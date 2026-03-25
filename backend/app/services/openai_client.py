@@ -75,6 +75,7 @@ class OpenAIResponsesClient:
         page_number: int,
         pass1_result: dict[str, Any],
         document_summary: dict[str, Any],
+        extra_guidance: str | None = None,
     ) -> dict[str, Any]:
         payload = {
             "document_id": document_id,
@@ -84,15 +85,27 @@ class OpenAIResponsesClient:
             "pass1_result": pass1_result,
             "document_summary": document_summary,
         }
-        return self._run_stage("pass2", payload, page_image_path=page_image_path)
+        extra_user_messages = [extra_guidance] if extra_guidance else None
+        return self._run_stage(
+            "pass2",
+            payload,
+            page_image_path=page_image_path,
+            extra_user_messages=extra_user_messages,
+        )
 
     def _run_stage(
         self,
         stage: StageName,
         stage_payload: dict[str, Any],
         page_image_path: str | Path | None = None,
+        extra_user_messages: list[str] | None = None,
     ) -> dict[str, Any]:
-        response = self._call_responses_api(stage, stage_payload, page_image_path=page_image_path)
+        response = self._call_responses_api(
+            stage,
+            stage_payload,
+            page_image_path=page_image_path,
+            extra_user_messages=extra_user_messages,
+        )
 
         try:
             return self._validate_and_wrap(stage, stage_payload, response)
@@ -107,6 +120,7 @@ class OpenAIResponsesClient:
                 stage_payload,
                 page_image_path=page_image_path,
                 repair_message=repair_message,
+                extra_user_messages=extra_user_messages,
             )
             return self._validate_and_wrap(stage, stage_payload, retry_response)
 
@@ -116,10 +130,16 @@ class OpenAIResponsesClient:
         stage_payload: dict[str, Any],
         page_image_path: str | Path | None = None,
         repair_message: str | None = None,
+        extra_user_messages: list[str] | None = None,
     ) -> Any:
         stage_config = self.settings.stage_config(stage)
         prompt_text = self._load_prompt_text(stage_config)
-        message_input = self._build_input_messages(stage_payload, page_image_path, repair_message)
+        message_input = self._build_input_messages(
+            stage_payload,
+            page_image_path,
+            repair_message,
+            extra_user_messages=extra_user_messages,
+        )
 
         try:
             return self._client.responses.create(
@@ -209,6 +229,7 @@ class OpenAIResponsesClient:
         stage_payload: dict[str, Any],
         page_image_path: str | Path | None,
         repair_message: str | None,
+        extra_user_messages: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         user_content: list[dict[str, Any]] = [
             {"type": "input_text", "text": json.dumps(stage_payload, ensure_ascii=False, indent=2)}
@@ -225,6 +246,17 @@ class OpenAIResponsesClient:
         messages: list[dict[str, Any]] = [
             {"role": "user", "content": user_content},
         ]
+
+        if extra_user_messages:
+            for message in extra_user_messages:
+                if not message:
+                    continue
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": [{"type": "input_text", "text": message}],
+                    }
+                )
 
         if repair_message:
             messages.append(

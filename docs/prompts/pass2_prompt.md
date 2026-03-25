@@ -30,7 +30,9 @@
 
 중요 원칙:
 - 출력 앵커 수는 **3~5개**다.
-- candidate anchors를 그대로 복사하지 말고, 문서 맥락을 참고해 rerank하라.
+- final anchors는 반드시 pass1 candidate anchors의 **부분집합**이어야 한다.
+- pass2는 새 anchor를 생성하지 말고, 문서 맥락을 참고해 **rerank + refine**만 수행하라.
+- `anchor_id`, `anchor_type`, `bbox`는 pass1 후보를 그대로 유지하라.
 - 우선순위는 다음 기준을 종합해 판단하라.
   1. 중요도
   2. 혼란 가능성
@@ -40,6 +42,7 @@
 - final anchors가 전부 같은 타입(text만, formula만)으로 몰리지 않게 해라.
 - 설명은 최소한 **뜻 + 이 페이지에서의 역할**을 포함해야 한다.
 - related_pages는 1~2개만. 정말 연결 가치가 큰 경우만 제시하라.
+- related_pages는 valid pass1 artifact가 있는 페이지 안에서만 고르고, 가능하면 `sections`, `prerequisite_links`, `difficult_pages`와 정합적인 페이지를 우선하라.
 - page_risk_note는 “이 페이지를 이해할 때 특히 조심할 점”을 1~2문장으로 적는다.
 - 반드시 JSON만 반환하라.
 
@@ -105,6 +108,9 @@ pass1 결과를 기본으로 유지하되, 문서 전체 흐름을 반영한 최
 ### `final_anchors`
 - 개수: **정확히 3~5개**
 - 사용자에게 노출할 핵심 앵커만 남긴다
+- pass1 candidate anchors의 부분집합만 사용한다
+- 새 anchor를 만들지 않는다
+- `anchor_id`, `anchor_type`, `bbox`는 pass1 후보와 일치해야 한다
 - 아래 다양성 제약을 가능한 한 반영한다.
   - 핵심 개념형 1개
   - 로컬 막힘형 1~2개
@@ -128,6 +134,8 @@ pass1 결과를 기본으로 유지하되, 문서 전체 흐름을 반영한 최
 - 기본 목표는 **1~2개**다
 - 단, 연결 가치가 없으면 0개도 허용 가능
 - 숫자만 나열하지 말고 실제 연결 가치가 있는 페이지를 선택하라
+- valid pass1 artifact가 있는 페이지 집합 안에서만 선택하라
+- 가능하면 같은 section, 직접 prerequisite 관계, difficult page 맥락과 정합적인 페이지를 우선하라
 
 ### `page_risk_note`
 이 페이지에서 가장 흔한 오해 또는 놓치기 쉬운 핵심을 1~2문장으로 정리한다.
@@ -154,7 +162,7 @@ candidate anchors를 final anchors로 고를 때 다음을 따르라.
 ## Quality Rules
 - candidate anchors를 무조건 많이 살리지 말고, 사용자 가치 기준으로 줄여라.
 - 같은 의미의 중복 앵커는 제거하라.
-- bbox는 pass1 후보를 최대한 유지하되, final anchor에 맞게 필요한 경우 소폭 정리 가능하다.
+- bbox는 pass1 후보 값을 그대로 유지하라.
 - 설명은 “똑똑해 보이는 글”보다 “학습자가 막힘을 풀 수 있는 글”이어야 한다.
 - 문서 전체 흐름을 반영하되, 과도한 환각으로 앞뒤 페이지 관계를 만들어내지 마라.
 

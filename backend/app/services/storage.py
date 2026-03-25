@@ -309,6 +309,26 @@ class StorageService:
                     f"Page row not found for document_id={document_id}, page_number={page_number}",
                 )
 
+    def update_page_pass2_status(
+        self,
+        document_id: str,
+        page_number: int,
+        status: StageStatus | None,
+    ) -> None:
+        with self._connect() as connection:
+            cursor = connection.execute(
+                """
+                UPDATE pages
+                SET pass2_status = ?
+                WHERE document_id = ? AND page_number = ?
+                """,
+                (status.value if status else None, document_id, page_number),
+            )
+            if cursor.rowcount == 0:
+                raise ValueError(
+                    f"Page row not found for document_id={document_id}, page_number={page_number}",
+                )
+
     def get_pass1_result_path(self, document_id: str, page_number: int) -> Path:
         return self.analysis_dir / document_id / "pages" / str(page_number) / "page_analysis_pass1.json"
 
@@ -346,6 +366,44 @@ class StorageService:
 
         payload = json.loads(target_path.read_text(encoding="utf-8"))
         return self._normalize_pass1_artifact(document_id, page_number, payload)
+
+    def get_pass2_result_path(self, document_id: str, page_number: int) -> Path:
+        return self.analysis_dir / document_id / "pages" / str(page_number) / "page_analysis_pass2.json"
+
+    def save_pass2_result(
+        self,
+        document_id: str,
+        page_number: int,
+        payload: dict[str, object],
+    ) -> str:
+        target_path = self.get_pass2_result_path(document_id, page_number)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+
+        normalized_payload = self._normalize_pass2_artifact(document_id, page_number, payload)
+        temp_path = target_path.parent / f".{target_path.name}.{uuid4().hex}.tmp"
+
+        try:
+            temp_path.write_text(
+                json.dumps(normalized_payload, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            loaded_payload = json.loads(temp_path.read_text(encoding="utf-8"))
+            self._normalize_pass2_artifact(document_id, page_number, loaded_payload)
+            os.replace(temp_path, target_path)
+        except Exception:
+            if temp_path.exists():
+                temp_path.unlink()
+            raise
+
+        return target_path.relative_to(PROJECT_ROOT).as_posix()
+
+    def load_pass2_result(self, document_id: str, page_number: int) -> dict[str, object] | None:
+        target_path = self.get_pass2_result_path(document_id, page_number)
+        if not target_path.exists():
+            return None
+
+        payload = json.loads(target_path.read_text(encoding="utf-8"))
+        return self._normalize_pass2_artifact(document_id, page_number, payload)
 
     def get_document_summary_path(self, document_id: str) -> Path:
         return self.analysis_dir / document_id / "document_summary.json"
@@ -531,6 +589,94 @@ class StorageService:
             },
             "result": validated_result,
         }
+
+    def _normalize_pass2_artifact(
+        self,
+        document_id: str,
+        page_number: int,
+        payload: dict[str, object],
+    ) -> dict[str, object]:
+        if not isinstance(payload, dict):
+            raise ValueError("Pass2 artifact must be a JSON object.")
+
+        meta = payload.get("meta")
+        result = payload.get("result")
+        if not isinstance(meta, dict):
+            raise ValueError("Pass2 artifact must include a meta object.")
+        if not isinstance(result, dict):
+            raise ValueError("Pass2 artifact must include a result object.")
+
+        required_meta_keys = {"schema_version", "prompt_version", "model_name", "generated_at"}
+        missing_meta_keys = [key for key in required_meta_keys if not meta.get(key)]
+        if missing_meta_keys:
+            raise ValueError(f"Pass2 artifact meta is missing required fields: {', '.join(missing_meta_keys)}")
+
+        pass1_artifact = self.load_pass1_result(document_id, page_number)
+        if pass1_artifact is None:
+            raise ValueError("Pass2 artifact requires a valid pass1 artifact for the same page.")
+
+        candidate_map = {
+            str(candidate["anchor_id"]): dict(candidate)
+            for candidate in pass1_artifact["result"]["candidate_anchors"]
+        }
+        valid_pass1_page_numbers = self._get_valid_pass1_page_numbers(document_id)
+
+        normalized_result = dict(result)
+        normalized_result["document_id"] = document_id
+        normalized_result["page_number"] = page_number
+        validated_result = validate_payload("pass2", normalized_result)
+
+        normalized_final_anchors = []
+        for anchor in validated_result["final_anchors"]:
+            anchor_id = str(anchor["anchor_id"])
+            if anchor_id not in candidate_map:
+                raise ValueError(f"Pass2 artifact contains anchor_id not found in pass1 candidates: {anchor_id}")
+
+            candidate = candidate_map[anchor_id]
+            related_pages = sorted({int(page) for page in anchor["related_pages"]})
+            if any(page == page_number for page in related_pages):
+                raise ValueError("Pass2 artifact related_pages must not include the current page.")
+
+            invalid_pages = [page for page in related_pages if page not in valid_pass1_page_numbers]
+            if invalid_pages:
+                raise ValueError(
+                    "Pass2 artifact related_pages contains pages without valid pass1 artifacts: "
+                    + ", ".join(map(str, invalid_pages))
+                )
+
+            normalized_final_anchors.append(
+                {
+                    **anchor,
+                    "anchor_id": candidate["anchor_id"],
+                    "anchor_type": candidate["anchor_type"],
+                    "bbox": candidate["bbox"],
+                    "related_pages": related_pages,
+                }
+            )
+
+        normalized_result["final_anchors"] = normalized_final_anchors
+        validated_result = validate_payload("pass2", normalized_result)
+
+        return {
+            "meta": {
+                "schema_version": str(meta["schema_version"]),
+                "prompt_version": str(meta["prompt_version"]),
+                "model_name": str(meta["model_name"]),
+                "generated_at": str(meta["generated_at"]),
+            },
+            "result": validated_result,
+        }
+
+    def _get_valid_pass1_page_numbers(self, document_id: str) -> set[int]:
+        valid_page_numbers: set[int] = set()
+        for page in self.get_pages(document_id):
+            try:
+                artifact = self.load_pass1_result(document_id, page.page_number)
+            except ValueError:
+                continue
+            if artifact is not None:
+                valid_page_numbers.add(page.page_number)
+        return valid_page_numbers
 
 
 def get_storage_service() -> StorageService:
