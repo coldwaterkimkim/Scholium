@@ -21,6 +21,8 @@ source .venv/bin/activate
 uvicorn app.main:app --reload --port 8000
 ```
 
+참고: `data/rendered_pages`는 앱 startup 시 자동 생성된다. `image_url`은 absolute URL로 반환하지만, 배포/프록시 환경에서는 base URL 처리 재검토가 필요하다.
+
 ## 확인
 
 - 브라우저 또는 HTTP 클라이언트로 `GET /health`
@@ -55,4 +57,13 @@ find ../data/rendered_pages/doc_xxx -maxdepth 1 -type f | sort | head
 sqlite3 ../data/scholium_dev.sqlite3 ".tables"
 sqlite3 ../data/scholium_dev.sqlite3 "select document_id, filename, status, total_pages, error_message from documents;"
 sqlite3 ../data/scholium_dev.sqlite3 "select page_number, image_path, render_status, width, height from pages where document_id = 'doc_xxx' order by page_number limit 5;"
+```
+
+## Public Read API 확인
+
+```bash
+curl http://127.0.0.1:8000/api/documents/doc_xxx
+curl http://127.0.0.1:8000/api/documents/doc_xxx/summary
+curl http://127.0.0.1:8000/api/documents/doc_xxx/pages/1
+curl -o /tmp/page1.png "$(curl -s http://127.0.0.1:8000/api/documents/doc_xxx/pages/1 | jq -r .image_url)"
 ```

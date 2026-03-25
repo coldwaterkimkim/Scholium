@@ -445,6 +445,13 @@ class StorageService:
     def resolve_relative_path(self, relative_path: str) -> Path:
         return self._resolve_project_path(relative_path)
 
+    def get_rendered_image_subpath(self, image_path: str) -> str:
+        resolved_image_path = self.resolve_relative_path(image_path)
+        try:
+            return resolved_image_path.relative_to(self.rendered_pages_dir).as_posix()
+        except ValueError as exc:
+            raise ValueError("Rendered page image is outside the rendered_pages directory.") from exc
+
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.db_path)
         connection.execute("PRAGMA foreign_keys = ON")
