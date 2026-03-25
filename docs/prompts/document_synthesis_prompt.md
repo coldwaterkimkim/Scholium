@@ -29,12 +29,13 @@
 너의 임무는 여러 페이지의 1차 분석 결과를 보고, 이 문서가 전체적으로 어떤 흐름을 갖는지 구조화하는 것이다.
 
 중요 원칙:
-- 입력은 원본 PDF 전체가 아니라 **page_role / page_summary / candidate anchor label 정보**다.
+- 입력은 원본 PDF 전체가 아니라 **page_role / page_summary / candidate anchor summary(label + anchor_type) 정보**다.
 - 각 페이지의 미세한 의미를 다시 해설하려 하지 말고, **문서 레벨 구조**에 집중하라.
 - 섹션 구조는 가능하면 3~7개 정도의 의미 있는 구간으로 나눈다. 너무 잘게 쪼개지 마라.
 - key_concepts는 단순 단어 목록이 아니라, 문서 전체에서 반복적으로 중요한 역할을 하는 개념만 뽑아라.
 - prerequisite_links는 “어느 페이지를 이해하려면 어떤 앞 페이지가 필요한가”를 표현한다.
 - difficult_pages는 학습자가 막힐 가능성이 높은 페이지 번호 목록이다.
+- 입력으로 제공되지 않은 페이지 번호는 참조하지 마라.
 - 반드시 JSON만 반환하라.
 
 ---
@@ -47,7 +48,9 @@
   - page_number
   - page_role
   - page_summary
-  - candidate_anchor_labels (optional)
+  - candidate_anchor_summaries (optional)
+    - label
+    - anchor_type
 - schema_version
 - prompt_version
 
@@ -62,7 +65,16 @@
       "page_number": 1,
       "page_role": "문제 정의",
       "page_summary": "문서가 다루는 핵심 문제와 배경을 소개한다.",
-      "candidate_anchor_labels": ["문제 정의", "핵심 질문"]
+      "candidate_anchor_summaries": [
+        {
+          "label": "문제 정의",
+          "anchor_type": "text"
+        },
+        {
+          "label": "핵심 질문",
+          "anchor_type": "diagram"
+        }
+      ]
     }
   ],
   "schema_version": "0.1",
@@ -134,6 +146,7 @@
 문서 전체에서 반복적으로 중요하게 등장하는 개념.
 - 단순 빈출 단어가 아니라, 흐름상 중요한 개념만
 - `pages`에는 해당 개념이 중요하게 드러나는 페이지 목록
+- 비워두지 마라. 문서가 짧더라도 최소 1개 이상은 제시하라.
 
 ### `difficult_pages`
 학습자가 막힐 가능성이 높은 페이지 번호 목록.
@@ -149,13 +162,14 @@
 - `to_page`: 먼저 봐야 하는 앞 페이지
 - `reason`: 왜 prerequisite인지
 - 모든 페이지 관계를 억지로 만들지 말고, 핵심 prerequisite만 생성하라
+- 입력으로 주어진 페이지 번호 범위 안에서만 관계를 만들고, 반드시 `to_page < from_page`를 유지하라
 
 ---
 
 ## Quality Rules
 - 모든 페이지를 억지로 섹션에 과하게 쪼개지 마라.
 - 흐름이 단순하면 섹션 수도 적게 유지하라.
-- key_concepts는 최대 5~10개 정도의 의미 있는 개념으로 제한하라.
+- key_concepts는 최소 1개, 최대 5~10개 정도의 의미 있는 개념으로 제한하라.
 - prerequisite_links는 진짜 필요한 관계만 제시하라. 너무 많이 생성하지 마라.
 - difficult_pages는 문서 전체에서 상대적으로 어려운 페이지를 중심으로 뽑아라.
 - 추론은 하되 과장하지 말고, 구조와 학습 흐름 중심으로 써라.

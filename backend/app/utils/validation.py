@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.core.config import StageName
-from app.schemas.document_summary import DocumentSummaryResult
+from app.schemas.document_summary_schema import DocumentSummaryResult
 from app.schemas.pass1_schema import Pass1Result
 from app.schemas.pass2 import Pass2Result
 

@@ -347,6 +347,43 @@ class StorageService:
         payload = json.loads(target_path.read_text(encoding="utf-8"))
         return self._normalize_pass1_artifact(document_id, page_number, payload)
 
+    def get_document_summary_path(self, document_id: str) -> Path:
+        return self.analysis_dir / document_id / "document_summary.json"
+
+    def save_document_summary(
+        self,
+        document_id: str,
+        payload: dict[str, object],
+    ) -> str:
+        target_path = self.get_document_summary_path(document_id)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+
+        normalized_payload = self._normalize_document_summary_artifact(document_id, payload)
+        temp_path = target_path.parent / f".{target_path.name}.{uuid4().hex}.tmp"
+
+        try:
+            temp_path.write_text(
+                json.dumps(normalized_payload, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            loaded_payload = json.loads(temp_path.read_text(encoding="utf-8"))
+            self._normalize_document_summary_artifact(document_id, loaded_payload)
+            os.replace(temp_path, target_path)
+        except Exception:
+            if temp_path.exists():
+                temp_path.unlink()
+            raise
+
+        return target_path.relative_to(PROJECT_ROOT).as_posix()
+
+    def load_document_summary(self, document_id: str) -> dict[str, object] | None:
+        target_path = self.get_document_summary_path(document_id)
+        if not target_path.exists():
+            return None
+
+        payload = json.loads(target_path.read_text(encoding="utf-8"))
+        return self._normalize_document_summary_artifact(document_id, payload)
+
     def resolve_relative_path(self, relative_path: str) -> Path:
         return self._resolve_project_path(relative_path)
 
@@ -418,6 +455,79 @@ class StorageService:
                 "prompt_version": str(meta["prompt_version"]),
                 "model_name": str(meta["model_name"]),
                 "generated_at": str(meta["generated_at"]),
+            },
+            "result": validated_result,
+        }
+
+    def _normalize_document_summary_artifact(
+        self,
+        document_id: str,
+        payload: dict[str, object],
+    ) -> dict[str, object]:
+        if not isinstance(payload, dict):
+            raise ValueError("Document summary artifact must be a JSON object.")
+
+        meta = payload.get("meta")
+        result = payload.get("result")
+        if not isinstance(meta, dict):
+            raise ValueError("Document summary artifact must include a meta object.")
+        if not isinstance(result, dict):
+            raise ValueError("Document summary artifact must include a result object.")
+
+        required_meta_keys = {
+            "schema_version",
+            "prompt_version",
+            "model_name",
+            "generated_at",
+            "total_rendered_pages",
+            "pass1_completed_pages",
+            "missing_pages",
+            "coverage_ratio",
+            "partial_input_used",
+            "coverage_threshold",
+        }
+        missing_meta_keys = [key for key in required_meta_keys if meta.get(key) is None]
+        if missing_meta_keys:
+            raise ValueError(
+                "Document summary artifact meta is missing required fields: "
+                + ", ".join(missing_meta_keys)
+            )
+
+        total_rendered_pages = int(meta["total_rendered_pages"])
+        pass1_completed_pages = int(meta["pass1_completed_pages"])
+        coverage_threshold = int(meta["coverage_threshold"])
+        coverage_ratio = float(meta["coverage_ratio"])
+        if total_rendered_pages < 0:
+            raise ValueError("Document summary artifact total_rendered_pages must be >= 0.")
+        if pass1_completed_pages < 0:
+            raise ValueError("Document summary artifact pass1_completed_pages must be >= 0.")
+        if coverage_threshold < 0:
+            raise ValueError("Document summary artifact coverage_threshold must be >= 0.")
+        if pass1_completed_pages > total_rendered_pages:
+            raise ValueError("pass1_completed_pages must be <= total_rendered_pages.")
+        if coverage_ratio < 0 or coverage_ratio > 1:
+            raise ValueError("coverage_ratio must be between 0 and 1.")
+
+        missing_pages = sorted({int(page) for page in meta["missing_pages"]})
+        if any(page < 1 for page in missing_pages):
+            raise ValueError("missing_pages must contain only positive page numbers.")
+
+        normalized_result = dict(result)
+        normalized_result["document_id"] = document_id
+        validated_result = validate_payload("document_synthesis", normalized_result)
+
+        return {
+            "meta": {
+                "schema_version": str(meta["schema_version"]),
+                "prompt_version": str(meta["prompt_version"]),
+                "model_name": str(meta["model_name"]),
+                "generated_at": str(meta["generated_at"]),
+                "total_rendered_pages": total_rendered_pages,
+                "pass1_completed_pages": pass1_completed_pages,
+                "missing_pages": missing_pages,
+                "coverage_ratio": coverage_ratio,
+                "partial_input_used": bool(meta["partial_input_used"]),
+                "coverage_threshold": coverage_threshold,
             },
             "result": validated_result,
         }

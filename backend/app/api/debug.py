@@ -29,3 +29,25 @@ def get_pass1_debug_result(
         )
 
     return payload
+
+
+@router.get("/{document_id}/debug/summary")
+def get_document_summary_debug_result(
+    document_id: str,
+    storage: StorageService = Depends(get_storage_service),
+) -> dict[str, object]:
+    try:
+        payload = storage.load_document_summary(document_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Stored document summary artifact is invalid: {exc}",
+        ) from exc
+
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document summary result was not found for the requested document.",
+        )
+
+    return payload

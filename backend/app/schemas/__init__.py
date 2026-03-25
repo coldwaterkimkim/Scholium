@@ -1,4 +1,4 @@
-from app.schemas.document_summary import DocumentSummaryResult
+from app.schemas.document_summary_schema import DocumentSummaryResult
 from app.schemas.pass1_schema import Pass1Result
 from app.schemas.pass2 import Pass2Result
 
