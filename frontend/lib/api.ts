@@ -56,6 +56,15 @@ export type FinalAnchor = {
   confidence: number;
 };
 
+export type InteractionEventType = "page_view" | "anchor_click" | "related_page_jump";
+
+export type InteractionLogPayload = {
+  document_id: string;
+  page_number: number;
+  anchor_id: string | null;
+  event_type: InteractionEventType;
+};
+
 export type PageData = {
   document_id: string;
   page_number: number;
@@ -137,4 +146,22 @@ export function getPageResult(
     "페이지 결과를 불러올 수 없어.",
     signal,
   );
+}
+
+export async function postInteractionLog(
+  payload: InteractionLogPayload,
+  signal?: AbortSignal,
+): Promise<void> {
+  const response = await fetch(buildApiUrl("/api/logs"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new ApiRequestError("로그 저장에 실패했어.", response.status);
+  }
 }

@@ -67,3 +67,18 @@ curl http://127.0.0.1:8000/api/documents/doc_xxx/summary
 curl http://127.0.0.1:8000/api/documents/doc_xxx/pages/1
 curl -o /tmp/page1.png "$(curl -s http://127.0.0.1:8000/api/documents/doc_xxx/pages/1 | jq -r .image_url)"
 ```
+
+## Interaction Log 확인
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/logs \
+  -H "Content-Type: application/json" \
+  -d '{"document_id":"doc_xxx","page_number":1,"anchor_id":null,"event_type":"page_view"}'
+
+curl -X POST http://127.0.0.1:8000/api/logs \
+  -H "Content-Type: application/json" \
+  -d '{"document_id":"doc_xxx","page_number":1,"anchor_id":"p1_a3","event_type":"anchor_click"}'
+
+sqlite3 ../data/scholium_dev.sqlite3 \
+  "select event_id, document_id, page_number, anchor_id, event_type, timestamp from interaction_logs order by timestamp desc limit 20;"
+```

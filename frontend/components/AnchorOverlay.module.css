@@ -1,0 +1,49 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.anchorLayer {
+  position: absolute;
+  inset: 0;
+}
+
+.outline {
+  position: absolute;
+  border: 1.5px solid rgba(15, 23, 42, 0.42);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.outlineSelected {
+  border-color: rgba(20, 83, 45, 0.85);
+  background: rgba(187, 247, 208, 0.12);
+}
+
+.marker {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(15, 23, 42, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #0f172a;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.14);
+}
+
+.markerSelected {
+  border-color: #166534;
+  background: #166534;
+  color: #f8fafc;
+  box-shadow: 0 3px 10px rgba(22, 101, 52, 0.24);
+}

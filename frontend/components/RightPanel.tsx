@@ -1,3 +1,5 @@
+import type { FinalAnchor } from "@/lib/api";
+
 import styles from "./RightPanel.module.css";
 
 type RightPanelProps = {
@@ -10,6 +12,10 @@ type RightPanelProps = {
   pageRiskNote: string | null;
   isPageLoading: boolean;
   pageError: string | null;
+  currentPage: number;
+  availableAnchorCount: number;
+  selectedAnchor: FinalAnchor | null;
+  onNavigateToRelatedPage: (pageNumber: number, anchorId: string) => void;
 };
 
 export function RightPanel({
@@ -22,7 +28,19 @@ export function RightPanel({
   pageRiskNote,
   isPageLoading,
   pageError,
+  currentPage,
+  availableAnchorCount,
+  selectedAnchor,
+  onNavigateToRelatedPage,
 }: RightPanelProps) {
+  const relatedPages =
+    selectedAnchor?.related_pages.filter((pageNumber) => pageNumber !== currentPage) ?? [];
+  const showAnchorDetailSection = availableAnchorCount > 0;
+  const confidenceText =
+    selectedAnchor && Number.isFinite(selectedAnchor.confidence)
+      ? `${Math.round(selectedAnchor.confidence * 100)}%`
+      : null;
+
   return (
     <aside className={styles.panel}>
       <section className={styles.section}>
@@ -75,10 +93,67 @@ export function RightPanel({
         )}
       </section>
 
-      <section className={styles.section}>
-        <span className={styles.label}>Anchor Details</span>
-        <div className={styles.placeholder}>anchor details will appear here</div>
-      </section>
+      {showAnchorDetailSection ? (
+        <section className={styles.section}>
+          <span className={styles.label}>Anchor Details</span>
+          {selectedAnchor ? (
+            <div className={styles.anchorDetails}>
+              <div className={styles.detailBlock}>
+                <span className={styles.detailTitle}>Label</span>
+                <p className={styles.text}>{selectedAnchor.label}</p>
+              </div>
+
+              <div className={styles.detailBlock}>
+                <span className={styles.detailTitle}>Question</span>
+                <p className={styles.text}>{selectedAnchor.question}</p>
+              </div>
+
+              <div className={styles.detailBlock}>
+                <span className={styles.detailTitle}>Short Explanation</span>
+                <p className={styles.text}>{selectedAnchor.short_explanation}</p>
+              </div>
+
+              <div className={styles.detailBlock}>
+                <span className={styles.detailTitle}>Long Explanation</span>
+                <p className={styles.text}>{selectedAnchor.long_explanation}</p>
+              </div>
+
+              <div className={styles.detailBlock}>
+                <span className={styles.detailTitle}>Prerequisite</span>
+                <p className={styles.text}>{selectedAnchor.prerequisite || "없음"}</p>
+              </div>
+
+              {relatedPages.length > 0 ? (
+                <div className={styles.detailBlock}>
+                  <span className={styles.detailTitle}>Related Pages</span>
+                  <div className={styles.relatedPages}>
+                    {relatedPages.map((pageNumber) => (
+                      <button
+                        key={pageNumber}
+                        type="button"
+                        className={styles.relatedPageButton}
+                        onClick={() => onNavigateToRelatedPage(pageNumber, selectedAnchor.anchor_id)}
+                        disabled={isPageLoading}
+                      >
+                        p. {pageNumber}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {confidenceText ? (
+                <div className={styles.detailBlock}>
+                  <span className={styles.detailTitle}>Confidence</span>
+                  <p className={styles.text}>{confidenceText}</p>
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <div className={styles.placeholder}>해설 포인트를 클릭하면 여기 표시돼.</div>
+          )}
+        </section>
+      ) : null}
     </aside>
   );
 }

@@ -96,9 +96,15 @@
   padding: 16px;
 }
 
+.viewerCanvas {
+  position: relative;
+  width: min(100%, 1040px);
+  line-height: 0;
+}
+
 .pageImage {
   display: block;
-  width: min(100%, 1040px);
+  width: 100%;
   height: auto;
   object-fit: contain;
   border-radius: 6px;

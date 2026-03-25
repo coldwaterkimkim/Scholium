@@ -1,17 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   ApiRequestError,
   type DocumentMeta,
   type DocumentSummary,
+  type FinalAnchor,
+  type InteractionLogPayload,
   type PageData,
   getDocument,
   getDocumentSummary,
   getPageResult,
+  postInteractionLog,
 } from "@/lib/api";
+import type { ImageDisplayMetrics } from "@/utils/bbox";
 
+import { AnchorOverlay } from "./AnchorOverlay";
 import { RightPanel } from "./RightPanel";
 import styles from "./DocumentViewer.module.css";
 
@@ -47,6 +52,8 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
   const [documentMeta, setDocumentMeta] = useState<DocumentMeta | null>(null);
   const [documentSummary, setDocumentSummary] = useState<DocumentSummary | null>(null);
   const [currentPageData, setCurrentPageData] = useState<PageData | null>(null);
+  const [selectedAnchorId, setSelectedAnchorId] = useState<string | null>(null);
+  const [imageDisplayMetrics, setImageDisplayMetrics] = useState<ImageDisplayMetrics | null>(null);
   const [loading, setLoading] = useState<LoadingState>({ document: true, page: false });
   const [error, setError] = useState<ErrorState>({ document: null, page: null });
   const [summaryError, setSummaryError] = useState<string | null>(null);
@@ -54,6 +61,117 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
   const documentRequestIdRef = useRef(0);
   const pageRequestIdRef = useRef(0);
   const initialPageLoadRef = useRef(true);
+  const viewerCanvasRef = useRef<HTMLDivElement | null>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const loggedPageViewKeyRef = useRef<string | null>(null);
+
+  const currentAnchors = currentPageData?.final_anchors ?? [];
+  const selectedAnchor = useMemo<FinalAnchor | null>(() => {
+    if (!selectedAnchorId) {
+      return null;
+    }
+
+    return currentAnchors.find((anchor) => anchor.anchor_id === selectedAnchorId) ?? null;
+  }, [currentAnchors, selectedAnchorId]);
+
+  const updateImageDisplayMetrics = useCallback(() => {
+    const wrapper = viewerCanvasRef.current;
+    const image = imageRef.current;
+
+    if (!wrapper || !image) {
+      setImageDisplayMetrics(null);
+      return;
+    }
+
+    const wrapperRect = wrapper.getBoundingClientRect();
+    const imageRect = image.getBoundingClientRect();
+
+    if (imageRect.width <= 0 || imageRect.height <= 0 || wrapperRect.width <= 0 || wrapperRect.height <= 0) {
+      setImageDisplayMetrics(null);
+      return;
+    }
+
+    setImageDisplayMetrics({
+      width: imageRect.width,
+      height: imageRect.height,
+      offsetLeft: Math.max(0, imageRect.left - wrapperRect.left),
+      offsetTop: Math.max(0, imageRect.top - wrapperRect.top),
+    });
+  }, []);
+
+  const dispatchInteractionLog = useCallback((payload: InteractionLogPayload) => {
+    void postInteractionLog(payload).catch(() => {});
+  }, []);
+
+  const navigateToPage = useCallback(
+    (pageNumber: number) => {
+      if (pageNumber < 1 || pageNumber > totalPages || pageNumber === currentPage || loading.page) {
+        return;
+      }
+
+      setSelectedAnchorId(null);
+      setImageDisplayMetrics(null);
+      setCurrentPage(pageNumber);
+    },
+    [currentPage, loading.page, totalPages],
+  );
+
+  const handleAnchorSelect = useCallback(
+    (anchorId: string) => {
+      setSelectedAnchorId(anchorId);
+
+      if (!currentPageData) {
+        return;
+      }
+
+      dispatchInteractionLog({
+        document_id: currentPageData.document_id,
+        page_number: currentPageData.page_number,
+        anchor_id: anchorId,
+        event_type: "anchor_click",
+      });
+    },
+    [currentPageData, dispatchInteractionLog],
+  );
+
+  const handleRelatedPageNavigate = useCallback(
+    (pageNumber: number, anchorId: string) => {
+      if (!currentPageData || loading.page) {
+        return;
+      }
+
+      dispatchInteractionLog({
+        document_id: currentPageData.document_id,
+        page_number: currentPageData.page_number,
+        anchor_id: anchorId,
+        event_type: "related_page_jump",
+      });
+
+      navigateToPage(pageNumber);
+    },
+    [currentPageData, dispatchInteractionLog, loading.page, navigateToPage],
+  );
+
+  const handlePageImageLoad = useCallback(() => {
+    updateImageDisplayMetrics();
+
+    if (!currentPageData) {
+      return;
+    }
+
+    const pageViewKey = `${currentPageData.document_id}:${currentPageData.page_number}:${currentPageData.image_url}`;
+    if (loggedPageViewKeyRef.current === pageViewKey) {
+      return;
+    }
+
+    loggedPageViewKeyRef.current = pageViewKey;
+    dispatchInteractionLog({
+      document_id: currentPageData.document_id,
+      page_number: currentPageData.page_number,
+      anchor_id: null,
+      event_type: "page_view",
+    });
+  }, [currentPageData, dispatchInteractionLog, updateImageDisplayMetrics]);
 
   useEffect(() => {
     const documentRequestId = ++documentRequestIdRef.current;
@@ -65,6 +183,9 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
     setDocumentMeta(null);
     setDocumentSummary(null);
     setCurrentPageData(null);
+    setSelectedAnchorId(null);
+    setImageDisplayMetrics(null);
+    loggedPageViewKeyRef.current = null;
     setSummaryError(null);
     setError({ document: null, page: null });
     setLoading({ document: true, page: false });
@@ -129,6 +250,12 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
   }, [documentId]);
 
   useEffect(() => {
+    setSelectedAnchorId(null);
+    setImageDisplayMetrics(null);
+    loggedPageViewKeyRef.current = null;
+  }, [currentPage, documentId]);
+
+  useEffect(() => {
     if (!documentMeta) {
       return;
     }
@@ -139,6 +266,7 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
     setLoading((previous) => ({ ...previous, page: true }));
     setError((previous) => ({ ...previous, page: null }));
     setCurrentPageData(null);
+    loggedPageViewKeyRef.current = null;
 
     async function loadPage() {
       try {
@@ -156,6 +284,9 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
 
         const pageMessage = getErrorMessage(pageFetchError, "페이지 결과를 불러올 수 없어.");
         setCurrentPageData(null);
+        setSelectedAnchorId(null);
+        setImageDisplayMetrics(null);
+        loggedPageViewKeyRef.current = null;
         if (currentPage === 1 && initialPageLoadRef.current) {
           setError({
             document: pageMessage,
@@ -185,6 +316,47 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
       pageController.abort();
     };
   }, [currentPage, documentId, documentMeta]);
+
+  useEffect(() => {
+    if (!currentPageData) {
+      return;
+    }
+
+    if (selectedAnchorId && !currentAnchors.some((anchor) => anchor.anchor_id === selectedAnchorId)) {
+      setSelectedAnchorId(null);
+    }
+  }, [currentAnchors, currentPageData, selectedAnchorId]);
+
+  useEffect(() => {
+    if (!currentPageData) {
+      setImageDisplayMetrics(null);
+      return;
+    }
+
+    const wrapper = viewerCanvasRef.current;
+    const image = imageRef.current;
+
+    if (!wrapper || !image) {
+      return;
+    }
+
+    updateImageDisplayMetrics();
+
+    if (typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateImageDisplayMetrics();
+    });
+
+    resizeObserver.observe(wrapper);
+    resizeObserver.observe(image);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [currentPageData, updateImageDisplayMetrics]);
 
   const documentTitle = useMemo(() => {
     return documentSummary?.overall_topic || documentMeta?.filename || "문서 viewer";
@@ -240,7 +412,7 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
               <button
                 type="button"
                 className={styles.navButton}
-                onClick={() => setCurrentPage((previous) => previous - 1)}
+                onClick={() => navigateToPage(currentPage - 1)}
                 disabled={!canGoPrevious}
               >
                 이전
@@ -251,7 +423,7 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
               <button
                 type="button"
                 className={styles.navButton}
-                onClick={() => setCurrentPage((previous) => previous + 1)}
+                onClick={() => navigateToPage(currentPage + 1)}
                 disabled={!canGoNext}
               >
                 다음
@@ -271,11 +443,25 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
                   </div>
                 </div>
               ) : currentPageData ? (
-                <img
-                  alt={`${documentMeta?.filename ?? documentId} ${currentPage}페이지`}
-                  className={styles.pageImage}
-                  src={currentPageData.image_url}
-                />
+                <div ref={viewerCanvasRef} className={styles.viewerCanvas}>
+                  <img
+                    ref={imageRef}
+                    alt={`${documentMeta?.filename ?? documentId} ${currentPage}페이지`}
+                    className={styles.pageImage}
+                    src={currentPageData.image_url}
+                    onLoad={handlePageImageLoad}
+                    onError={() => {
+                      setImageDisplayMetrics(null);
+                      loggedPageViewKeyRef.current = null;
+                    }}
+                  />
+                  <AnchorOverlay
+                    anchors={currentAnchors}
+                    imageDisplayMetrics={imageDisplayMetrics}
+                    selectedAnchorId={selectedAnchorId}
+                    onSelectAnchor={handleAnchorSelect}
+                  />
+                </div>
               ) : (
                 <div className={styles.stateBlock}>페이지 데이터를 아직 표시할 수 없어.</div>
               )}
@@ -293,6 +479,10 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
           pageRiskNote={currentPageData?.page_risk_note ?? null}
           isPageLoading={loading.page}
           pageError={error.page}
+          currentPage={currentPage}
+          availableAnchorCount={currentAnchors.length}
+          selectedAnchor={selectedAnchor}
+          onNavigateToRelatedPage={handleRelatedPageNavigate}
         />
       </div>
     </div>
