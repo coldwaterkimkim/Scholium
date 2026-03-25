@@ -1,0 +1,17 @@
+.DS_Store
+.env
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+data/raw_pdfs/*
+!data/raw_pdfs/.gitkeep
+data/rendered_pages/*
+!data/rendered_pages/.gitkeep
+data/analysis/*
+!data/analysis/.gitkeep
+data/logs/*
+!data/logs/.gitkeep
+data/*.sqlite3
+!data/.gitkeep
