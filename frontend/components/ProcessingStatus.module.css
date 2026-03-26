@@ -1,0 +1,142 @@
+.page {
+  min-height: 100vh;
+  padding: 48px 24px;
+}
+
+.shell {
+  width: min(820px, 100%);
+  margin: 0 auto;
+}
+
+.surface {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 32px;
+  display: grid;
+  gap: 20px;
+}
+
+.header {
+  display: grid;
+  gap: 10px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.85rem;
+  line-height: 1.2;
+}
+
+.description {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.identityRow {
+  display: grid;
+  gap: 6px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.identityLabel,
+.label {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.identityValue,
+.value {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+}
+
+.item {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-subtle);
+  padding: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.infoBox {
+  border-radius: 14px;
+  padding: 14px 16px;
+  line-height: 1.6;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+}
+
+.warningBox {
+  background: #fff8e8;
+  border-color: #e9d8ab;
+  color: #664f12;
+}
+
+.errorBox {
+  background: var(--danger-bg);
+  border-color: rgba(163, 58, 43, 0.2);
+  color: var(--danger);
+}
+
+.failureNote {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.failureSection {
+  display: grid;
+  gap: 10px;
+}
+
+.failureTitle {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.failureList {
+  display: grid;
+  gap: 10px;
+}
+
+.failureItem {
+  border: 1px solid rgba(163, 58, 43, 0.16);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(163, 58, 43, 0.06);
+  line-height: 1.55;
+}
+
+.failureMeta {
+  color: var(--danger);
+  font-size: 0.88rem;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 24px 16px;
+  }
+
+  .surface {
+    padding: 24px 18px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

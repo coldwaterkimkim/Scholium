@@ -1,6 +1,7 @@
 from app.models.document import (
     DocumentRecord,
     DocumentRenderResult,
+    ProcessingStage,
     DocumentStatus,
     DocumentUploadResponse,
     PageRenderFailure,
@@ -10,6 +11,7 @@ from app.models.document import (
     StageStatus,
 )
 from app.models.read_api import (
+    DocumentProcessingResponse,
     DocumentPublicResponse,
     DocumentSummaryPublicResponse,
     PagePublicResponse,
@@ -18,6 +20,7 @@ from app.models.read_api import (
 __all__ = [
     "DocumentRecord",
     "DocumentPublicResponse",
+    "DocumentProcessingResponse",
     "DocumentRenderResult",
     "DocumentSummaryPublicResponse",
     "DocumentStatus",
@@ -25,6 +28,7 @@ __all__ = [
     "PageRenderFailure",
     "PagePublicResponse",
     "PageRecord",
+    "ProcessingStage",
     "RenderStatus",
     "RenderedPageArtifact",
     "StageStatus",

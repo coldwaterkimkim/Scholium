@@ -1,0 +1,100 @@
+.page {
+  min-height: 100vh;
+  padding: 48px 24px;
+}
+
+.shell {
+  width: min(720px, 100%);
+  margin: 0 auto;
+}
+
+.surface {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 32px;
+}
+
+.header {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.9rem;
+  line-height: 1.2;
+}
+
+.description {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.form {
+  display: grid;
+  gap: 18px;
+}
+
+.fileField {
+  display: grid;
+  gap: 8px;
+}
+
+.fieldLabel {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.fileField input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-subtle);
+}
+
+.fileInfo {
+  min-height: 22px;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.errorBox {
+  border: 1px solid rgba(163, 58, 43, 0.18);
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-radius: 12px;
+  padding: 12px 14px;
+  line-height: 1.5;
+}
+
+.submitButton {
+  width: fit-content;
+  min-width: 180px;
+  border: 0;
+  border-radius: 12px;
+  background: #18212b;
+  color: white;
+  padding: 12px 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 24px 16px;
+  }
+
+  .surface {
+    padding: 24px 18px;
+  }
+}

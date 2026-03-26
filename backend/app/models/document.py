@@ -14,6 +14,13 @@ class DocumentStatus(StrEnum):
     FAILED = "failed"
 
 
+class ProcessingStage(StrEnum):
+    RENDER = "render"
+    PASS1 = "pass1"
+    SYNTHESIS = "synthesis"
+    PASS2 = "pass2"
+
+
 class RenderStatus(StrEnum):
     PENDING = "pending"
     RENDERED = "rendered"
@@ -51,6 +58,8 @@ class PageRecord(BaseModel):
     height: int | None = None
     pass1_status: StageStatus | None = None
     pass2_status: StageStatus | None = None
+    pass1_error_message: str | None = None
+    pass2_error_message: str | None = None
 
 
 class DocumentUploadResponse(BaseModel):

@@ -35,20 +35,29 @@ curl -F "file=@../data/raw_pdfs/W1.Lecture01-Financial Management and Firm Value
   http://127.0.0.1:8000/api/documents
 ```
 
-## PDF 렌더링 확인
+업로드가 성공하면 background로 아래 순서가 자동 시작된다.
 
-업로드 응답으로 받은 `document_id`를 넣어서 실행하면 된다.
+- render
+- pass1
+- document synthesis
+- pass2
+
+## Processing 상태 확인
 
 ```bash
-cd backend
-source .venv/bin/activate
-python -m app.workers.render_worker doc_xxx
+curl http://127.0.0.1:8000/api/documents/doc_xxx/processing
+watch -n 2 "curl -s http://127.0.0.1:8000/api/documents/doc_xxx/processing"
 ```
 
-렌더 결과 파일 확인:
+processing 응답에는 coarse status, `stage/current_stage(render/pass1/synthesis/pass2)`, page-level 진행 카운트, `pass1_failed_pages`, `pass1_processed_pages`, `current_page_number`, `recent_failures`가 같이 들어간다.
+
+## 자동 생성 artifact 확인
+
+완료 후 아래 파일들이 자동 생성되는지 보면 된다.
 
 ```bash
 find ../data/rendered_pages/doc_xxx -maxdepth 1 -type f | sort | head
+find ../data/analysis/doc_xxx -maxdepth 3 -type f | sort
 ```
 
 ## SQLite 확인
@@ -57,12 +66,14 @@ find ../data/rendered_pages/doc_xxx -maxdepth 1 -type f | sort | head
 sqlite3 ../data/scholium_dev.sqlite3 ".tables"
 sqlite3 ../data/scholium_dev.sqlite3 "select document_id, filename, status, total_pages, error_message from documents;"
 sqlite3 ../data/scholium_dev.sqlite3 "select page_number, image_path, render_status, width, height from pages where document_id = 'doc_xxx' order by page_number limit 5;"
+sqlite3 ../data/scholium_dev.sqlite3 "select page_number, render_status, pass1_status, pass1_error_message, pass2_status, pass2_error_message from pages where document_id = 'doc_xxx' order by page_number;"
 ```
 
 ## Public Read API 확인
 
 ```bash
 curl http://127.0.0.1:8000/api/documents/doc_xxx
+curl http://127.0.0.1:8000/api/documents/doc_xxx/processing
 curl http://127.0.0.1:8000/api/documents/doc_xxx/summary
 curl http://127.0.0.1:8000/api/documents/doc_xxx/pages/1
 curl -o /tmp/page1.png "$(curl -s http://127.0.0.1:8000/api/documents/doc_xxx/pages/1 | jq -r .image_url)"

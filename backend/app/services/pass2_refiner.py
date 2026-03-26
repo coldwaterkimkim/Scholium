@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
 from app.models.document import RenderStatus, StageStatus
@@ -13,9 +14,11 @@ class Pass2Refiner:
         self,
         storage: StorageService | None = None,
         openai_client: OpenAIResponsesClient | None = None,
+        max_workers: int = 3,
     ) -> None:
         self.storage = storage or get_storage_service()
         self.openai_client = openai_client or OpenAIResponsesClient()
+        self.max_workers = max(1, max_workers)
 
     def refine_page(self, document_id: str, page_number: int) -> dict[str, Any]:
         page_record = self.storage.get_page(document_id, page_number)
@@ -29,91 +32,148 @@ class Pass2Refiner:
         qa_warnings: list[str] = []
 
         try:
-            self.storage.update_page_pass2_status(document_id, page_number, StageStatus.PENDING)
+            self.storage.update_page_pass2_status(
+                document_id,
+                page_number,
+                StageStatus.PENDING,
+                error_message=None,
+            )
         except ValueError as exc:
             return self._failed_page_result(
                 document_id=document_id,
                 page_number=page_number,
-                error_message=str(exc),
+                error_message=self._summarize_error_message("Pass2 setup failed.", exc),
                 qa_warnings=qa_warnings,
             )
 
         if page_record.render_status is not RenderStatus.RENDERED:
-            self.storage.update_page_pass2_status(document_id, page_number, StageStatus.FAILED)
+            error_message = (
+                f"Page render_status must be 'rendered', got '{page_record.render_status.value}'."
+            )
+            self.storage.update_page_pass2_status(
+                document_id,
+                page_number,
+                StageStatus.FAILED,
+                error_message=error_message,
+            )
             return self._failed_page_result(
                 document_id=document_id,
                 page_number=page_number,
-                error_message=f"Page render_status must be 'rendered', got '{page_record.render_status.value}'.",
+                error_message=error_message,
                 qa_warnings=qa_warnings,
             )
 
         image_path = self.storage.resolve_relative_path(page_record.image_path)
         if not image_path.exists():
-            self.storage.update_page_pass2_status(document_id, page_number, StageStatus.FAILED)
+            error_message = f"Rendered page image is missing: {page_record.image_path}"
+            self.storage.update_page_pass2_status(
+                document_id,
+                page_number,
+                StageStatus.FAILED,
+                error_message=error_message,
+            )
             return self._failed_page_result(
                 document_id=document_id,
                 page_number=page_number,
-                error_message=f"Rendered page image is missing: {page_record.image_path}",
+                error_message=error_message,
                 qa_warnings=qa_warnings,
             )
 
         if page_record.pass1_status is not StageStatus.COMPLETED:
-            self.storage.update_page_pass2_status(document_id, page_number, StageStatus.FAILED)
+            error_message = "Pass1 must be completed before pass2 can run."
+            self.storage.update_page_pass2_status(
+                document_id,
+                page_number,
+                StageStatus.FAILED,
+                error_message=error_message,
+            )
             return self._failed_page_result(
                 document_id=document_id,
                 page_number=page_number,
-                error_message="Pass1 must be completed before pass2 can run.",
+                error_message=error_message,
                 qa_warnings=qa_warnings,
             )
 
         try:
             pass1_artifact = self.storage.load_pass1_result(document_id, page_number)
         except ValueError as exc:
-            self.storage.update_page_pass2_status(document_id, page_number, StageStatus.FAILED)
+            error_message = self._summarize_error_message("Pass2 failed.", exc)
+            self.storage.update_page_pass2_status(
+                document_id,
+                page_number,
+                StageStatus.FAILED,
+                error_message=error_message,
+            )
             return self._failed_page_result(
                 document_id=document_id,
                 page_number=page_number,
-                error_message=f"Stored pass1 artifact is invalid: {exc}",
+                error_message=error_message,
                 qa_warnings=qa_warnings,
             )
 
         if pass1_artifact is None:
-            self.storage.update_page_pass2_status(document_id, page_number, StageStatus.FAILED)
+            error_message = "Pass1 artifact was not found for the requested page."
+            self.storage.update_page_pass2_status(
+                document_id,
+                page_number,
+                StageStatus.FAILED,
+                error_message=error_message,
+            )
             return self._failed_page_result(
                 document_id=document_id,
                 page_number=page_number,
-                error_message="Pass1 artifact was not found for the requested page.",
+                error_message=error_message,
                 qa_warnings=qa_warnings,
             )
 
         try:
             document_summary = self.storage.load_document_summary(document_id)
         except ValueError as exc:
-            self.storage.update_page_pass2_status(document_id, page_number, StageStatus.FAILED)
+            error_message = self._summarize_error_message("Pass2 failed.", exc)
+            self.storage.update_page_pass2_status(
+                document_id,
+                page_number,
+                StageStatus.FAILED,
+                error_message=error_message,
+            )
             return self._failed_page_result(
                 document_id=document_id,
                 page_number=page_number,
-                error_message=f"Stored document summary artifact is invalid: {exc}",
+                error_message=error_message,
                 qa_warnings=qa_warnings,
             )
 
         if document_summary is None:
-            self.storage.update_page_pass2_status(document_id, page_number, StageStatus.FAILED)
+            error_message = "Document summary artifact was not found for the requested document."
+            self.storage.update_page_pass2_status(
+                document_id,
+                page_number,
+                StageStatus.FAILED,
+                error_message=error_message,
+            )
             return self._failed_page_result(
                 document_id=document_id,
                 page_number=page_number,
-                error_message="Document summary artifact was not found for the requested document.",
+                error_message=error_message,
                 qa_warnings=qa_warnings,
             )
 
         candidate_map = self._build_candidate_map(pass1_artifact["result"]["candidate_anchors"])
         candidate_types = {candidate["anchor_type"] for candidate in candidate_map.values()}
         if len(candidate_map) < 3:
-            self.storage.update_page_pass2_status(document_id, page_number, StageStatus.FAILED)
+            error_message = (
+                "Pass1 candidate anchor pool has fewer than 3 candidates, so pass2 cannot select 3~5 final anchors."
+            )
+            self.storage.update_page_pass2_status(
+                document_id,
+                page_number,
+                StageStatus.FAILED,
+                error_message=error_message,
+            )
             return self._failed_page_result(
                 document_id=document_id,
                 page_number=page_number,
-                error_message="Pass1 candidate anchor pool has fewer than 3 candidates, so pass2 cannot select 3~5 final anchors.",
+                error_message=error_message,
                 qa_warnings=[
                     "Pass1 candidate pool is insufficient for pass2 selection.",
                 ],
@@ -168,13 +228,24 @@ class Pass2Refiner:
                 )
 
             saved_path = self.storage.save_pass2_result(document_id, page_number, normalized_envelope)
-            self.storage.update_page_pass2_status(document_id, page_number, StageStatus.COMPLETED)
+            self.storage.update_page_pass2_status(
+                document_id,
+                page_number,
+                StageStatus.COMPLETED,
+                error_message=None,
+            )
         except Exception as exc:
-            self.storage.update_page_pass2_status(document_id, page_number, StageStatus.FAILED)
+            error_message = self._summarize_error_message("Pass2 failed.", exc)
+            self.storage.update_page_pass2_status(
+                document_id,
+                page_number,
+                StageStatus.FAILED,
+                error_message=error_message,
+            )
             return self._failed_page_result(
                 document_id=document_id,
                 page_number=page_number,
-                error_message=str(exc),
+                error_message=error_message,
                 qa_warnings=qa_warnings,
             )
 
@@ -213,10 +284,48 @@ class Pass2Refiner:
         if not selected_page_numbers:
             raise ValueError(f"No rendered pages are available for document_id={document_id}.")
 
-        page_results = [
-            self.refine_page(document_id=document_id, page_number=page_number)
-            for page_number in selected_page_numbers
-        ]
+        worker_count = min(self.max_workers, len(selected_page_numbers))
+        if worker_count <= 1:
+            page_results = [
+                self.refine_page(document_id=document_id, page_number=page_number)
+                for page_number in selected_page_numbers
+            ]
+        else:
+            page_results: list[dict[str, Any]] = []
+            with ThreadPoolExecutor(max_workers=worker_count) as executor:
+                future_map = {
+                    executor.submit(
+                        self.refine_page,
+                        document_id=document_id,
+                        page_number=page_number,
+                    ): page_number
+                    for page_number in selected_page_numbers
+                }
+                for future in as_completed(future_map):
+                    page_number = future_map[future]
+                    try:
+                        page_results.append(future.result())
+                    except Exception as exc:
+                        error_message = self._summarize_error_message("Pass2 failed.", exc)
+                        try:
+                            self.storage.update_page_pass2_status(
+                                document_id,
+                                page_number,
+                                StageStatus.FAILED,
+                                error_message=error_message,
+                            )
+                        except Exception:
+                            pass
+                        page_results.append(
+                            self._failed_page_result(
+                                document_id=document_id,
+                                page_number=page_number,
+                                error_message=error_message,
+                                qa_warnings=[],
+                            )
+                        )
+
+        page_results.sort(key=lambda page_result: int(page_result["page_number"]))
 
         return {
             "document_id": document_id,
@@ -481,3 +590,20 @@ class Pass2Refiner:
             "qa_warnings": qa_warnings,
             "error_message": error_message,
         }
+
+    def _summarize_error_message(self, prefix: str, detail: object | None) -> str:
+        normalized_prefix = " ".join(str(prefix).split())
+        normalized_detail = " ".join(str(detail or "").split())
+        if not normalized_detail:
+            return normalized_prefix
+        if normalized_detail.lower().startswith("traceback"):
+            return normalized_prefix
+        max_length = 220
+        detail_budget = max_length - len(normalized_prefix) - 1
+        if detail_budget <= 0:
+            return normalized_prefix
+        if len(normalized_detail) > detail_budget:
+            normalized_detail = normalized_detail[: max(detail_budget - 3, 0)].rstrip()
+            if normalized_detail:
+                normalized_detail += "..."
+        return f"{normalized_prefix} {normalized_detail}".strip()

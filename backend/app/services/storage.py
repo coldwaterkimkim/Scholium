@@ -9,7 +9,14 @@ from typing import Sequence
 from uuid import uuid4
 
 from app.core.config import PROJECT_ROOT, AppSettings, get_settings
-from app.models.document import DocumentRecord, DocumentStatus, PageRecord, RenderStatus, StageStatus
+from app.models.document import (
+    DocumentRecord,
+    DocumentStatus,
+    PageRecord,
+    ProcessingStage,
+    RenderStatus,
+    StageStatus,
+)
 from app.utils.validation import validate_payload
 
 
@@ -56,12 +63,15 @@ class StorageService:
                     width INTEGER NULL,
                     height INTEGER NULL,
                     pass1_status TEXT NULL CHECK (pass1_status IS NULL OR pass1_status IN ({stage_status_values})),
+                    pass1_error_message TEXT NULL,
                     pass2_status TEXT NULL CHECK (pass2_status IS NULL OR pass2_status IN ({stage_status_values})),
+                    pass2_error_message TEXT NULL,
                     FOREIGN KEY(document_id) REFERENCES documents(document_id) ON DELETE CASCADE,
                     UNIQUE(document_id, page_number)
                 );
                 """
             )
+            self._ensure_pages_columns(connection)
 
     def save_uploaded_document(self, filename: str, file_bytes: bytes) -> DocumentRecord:
         if not filename:
@@ -195,9 +205,11 @@ class StorageService:
                     width,
                     height,
                     pass1_status,
-                    pass2_status
+                    pass1_error_message,
+                    pass2_status,
+                    pass2_error_message
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 [
                     (
@@ -208,7 +220,9 @@ class StorageService:
                         page_record.width,
                         page_record.height,
                         page_record.pass1_status.value if page_record.pass1_status else None,
+                        page_record.pass1_error_message,
                         page_record.pass2_status.value if page_record.pass2_status else None,
+                        page_record.pass2_error_message,
                     )
                     for page_record in page_records
                 ],
@@ -229,7 +243,9 @@ class StorageService:
                     width,
                     height,
                     pass1_status,
-                    pass2_status
+                    pass1_error_message,
+                    pass2_status,
+                    pass2_error_message
                 FROM pages
                 WHERE document_id = ?
                 ORDER BY page_number ASC
@@ -254,7 +270,9 @@ class StorageService:
                     width,
                     height,
                     pass1_status,
-                    pass2_status
+                    pass1_error_message,
+                    pass2_status,
+                    pass2_error_message
                 FROM pages
                 WHERE document_id = ? AND page_number = ?
                 """,
@@ -294,15 +312,24 @@ class StorageService:
         document_id: str,
         page_number: int,
         status: StageStatus | None,
+        *,
+        error_message: str | None | object = _UNSET,
     ) -> None:
+        assignments = ["pass1_status = ?"]
+        params: list[object] = [status.value if status else None]
+        if error_message is not _UNSET:
+            assignments.append("pass1_error_message = ?")
+            params.append(error_message)
+        params.extend([document_id, page_number])
+
         with self._connect() as connection:
             cursor = connection.execute(
-                """
+                f"""
                 UPDATE pages
-                SET pass1_status = ?
+                SET {", ".join(assignments)}
                 WHERE document_id = ? AND page_number = ?
                 """,
-                (status.value if status else None, document_id, page_number),
+                tuple(params),
             )
             if cursor.rowcount == 0:
                 raise ValueError(
@@ -314,15 +341,24 @@ class StorageService:
         document_id: str,
         page_number: int,
         status: StageStatus | None,
+        *,
+        error_message: str | None | object = _UNSET,
     ) -> None:
+        assignments = ["pass2_status = ?"]
+        params: list[object] = [status.value if status else None]
+        if error_message is not _UNSET:
+            assignments.append("pass2_error_message = ?")
+            params.append(error_message)
+        params.extend([document_id, page_number])
+
         with self._connect() as connection:
             cursor = connection.execute(
-                """
+                f"""
                 UPDATE pages
-                SET pass2_status = ?
+                SET {", ".join(assignments)}
                 WHERE document_id = ? AND page_number = ?
                 """,
-                (status.value if status else None, document_id, page_number),
+                tuple(params),
             )
             if cursor.rowcount == 0:
                 raise ValueError(
@@ -442,6 +478,94 @@ class StorageService:
         payload = json.loads(target_path.read_text(encoding="utf-8"))
         return self._normalize_document_summary_artifact(document_id, payload)
 
+    def get_document_processing_snapshot(
+        self,
+        document_id: str,
+        *,
+        current_stage: ProcessingStage | None = None,
+    ) -> dict[str, object] | None:
+        document = self.get_document(document_id)
+        if document is None:
+            return None
+
+        pages = self.get_pages(document_id)
+        total_pages = document.total_pages
+        rendered_pages = sum(1 for page in pages if page.render_status is RenderStatus.RENDERED)
+        pass1_completed_pages = sum(1 for page in pages if page.pass1_status is StageStatus.COMPLETED)
+        pass1_failed_page_numbers = {
+            page.page_number for page in pages if page.pass1_status is StageStatus.FAILED
+        }
+        pass1_failed_pages = len(pass1_failed_page_numbers)
+        pass1_processed_pages = pass1_completed_pages + pass1_failed_pages
+        pass2_completed_pages = sum(1 for page in pages if page.pass2_status is StageStatus.COMPLETED)
+        pass2_failed_page_numbers = {
+            page.page_number for page in pages if page.pass2_status is StageStatus.FAILED
+        }
+        render_failed_page_numbers = {
+            page.page_number for page in pages if page.render_status is RenderStatus.FAILED
+        }
+        failed_page_numbers = (
+            render_failed_page_numbers | pass1_failed_page_numbers | pass2_failed_page_numbers
+        )
+        failed_page_count = len(failed_page_numbers)
+        completed_page_count = pass2_completed_pages
+        completion_ratio = (
+            round(completed_page_count / total_pages, 4)
+            if total_pages and total_pages > 0
+            else 0.0
+        )
+
+        synthesis_ready, summary_error_message = self._get_document_summary_health(document_id)
+        error_message = document.error_message
+        if (
+            not error_message
+            and document.status in {DocumentStatus.COMPLETED, DocumentStatus.FAILED}
+            and summary_error_message is not None
+        ):
+            error_message = summary_error_message
+
+        has_errors = failed_page_count > 0 or bool(error_message)
+        ready_for_viewer = document.status is DocumentStatus.COMPLETED
+        resolved_stage = current_stage or self._derive_processing_stage(
+            status=document.status,
+            rendered_pages=rendered_pages,
+            pass1_completed_pages=pass1_completed_pages,
+            pass1_failed_page_numbers=pass1_failed_page_numbers,
+            pass2_completed_pages=pass2_completed_pages,
+            pass2_failed_page_numbers=pass2_failed_page_numbers,
+            synthesis_ready=synthesis_ready,
+            error_message=error_message,
+        )
+        current_page_number = self._get_current_page_number(
+            pages=pages,
+            stage=resolved_stage,
+            status=document.status,
+        )
+        recent_failures = self._build_recent_failures(pages)
+
+        return {
+            "document_id": document.document_id,
+            "status": document.status,
+            "stage": resolved_stage,
+            "current_stage": resolved_stage,
+            "total_pages": total_pages,
+            "rendered_pages": rendered_pages,
+            "pass1_completed_pages": pass1_completed_pages,
+            "pass1_failed_pages": pass1_failed_pages,
+            "pass1_processed_pages": pass1_processed_pages,
+            "synthesis_ready": synthesis_ready,
+            "pass2_completed_pages": pass2_completed_pages,
+            "pass2_failed_pages": len(pass2_failed_page_numbers),
+            "ready_for_viewer": ready_for_viewer,
+            "current_page_number": current_page_number,
+            "error_message": error_message,
+            "has_errors": has_errors,
+            "failed_page_count": failed_page_count,
+            "completed_page_count": completed_page_count,
+            "completion_ratio": completion_ratio,
+            "recent_failures": recent_failures,
+        }
+
     def resolve_relative_path(self, relative_path: str) -> Path:
         return self._resolve_project_path(relative_path)
 
@@ -453,8 +577,9 @@ class StorageService:
             raise ValueError("Rendered page image is outside the rendered_pages directory.") from exc
 
     def _connect(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(self.db_path)
+        connection = sqlite3.connect(self.db_path, timeout=30)
         connection.execute("PRAGMA foreign_keys = ON")
+        connection.execute("PRAGMA busy_timeout = 30000")
         return connection
 
     def _resolve_project_path(self, configured_path: str) -> Path:
@@ -485,7 +610,9 @@ class StorageService:
             width=int(row[5]) if row[5] is not None else None,
             height=int(row[6]) if row[6] is not None else None,
             pass1_status=StageStatus(str(row[7])) if row[7] is not None else None,
-            pass2_status=StageStatus(str(row[8])) if row[8] is not None else None,
+            pass1_error_message=str(row[8]) if row[8] is not None else None,
+            pass2_status=StageStatus(str(row[9])) if row[9] is not None else None,
+            pass2_error_message=str(row[10]) if row[10] is not None else None,
         )
 
     def _normalize_pass1_artifact(
@@ -684,6 +811,125 @@ class StorageService:
             if artifact is not None:
                 valid_page_numbers.add(page.page_number)
         return valid_page_numbers
+
+    def _get_document_summary_health(self, document_id: str) -> tuple[bool, str | None]:
+        try:
+            artifact = self.load_document_summary(document_id)
+        except ValueError:
+            return False, "Stored document summary is invalid."
+
+        if artifact is None:
+            return False, None
+        return True, None
+
+    def _derive_processing_stage(
+        self,
+        *,
+        status: DocumentStatus,
+        rendered_pages: int,
+        pass1_completed_pages: int,
+        pass1_failed_page_numbers: set[int],
+        pass2_completed_pages: int,
+        pass2_failed_page_numbers: set[int],
+        synthesis_ready: bool,
+        error_message: str | None = None,
+    ) -> ProcessingStage | None:
+        analyzed_pass1_pages = pass1_completed_pages + len(pass1_failed_page_numbers)
+        normalized_error = (error_message or "").lower()
+
+        if status in {DocumentStatus.UPLOADED, DocumentStatus.RENDERING}:
+            return ProcessingStage.RENDER
+
+        if status is DocumentStatus.ANALYZING:
+            if analyzed_pass1_pages < rendered_pages:
+                return ProcessingStage.PASS1
+            if not synthesis_ready:
+                return ProcessingStage.SYNTHESIS
+            return ProcessingStage.PASS2
+
+        if status in {DocumentStatus.COMPLETED, DocumentStatus.FAILED}:
+            if "document synthesis" in normalized_error or "coverage_threshold" in normalized_error:
+                return ProcessingStage.SYNTHESIS
+            if "pass2" in normalized_error:
+                return ProcessingStage.PASS2
+            if pass2_completed_pages > 0 or pass2_failed_page_numbers or synthesis_ready:
+                return ProcessingStage.PASS2
+            if rendered_pages > 0 and analyzed_pass1_pages < rendered_pages:
+                return ProcessingStage.PASS1
+            if rendered_pages > 0 and analyzed_pass1_pages >= rendered_pages:
+                return ProcessingStage.SYNTHESIS
+            return ProcessingStage.RENDER
+
+        return None
+
+    def _build_recent_failures(self, pages: Sequence[PageRecord]) -> list[dict[str, object]]:
+        failures: list[dict[str, object]] = []
+        for page in pages:
+            if page.render_status is RenderStatus.FAILED:
+                failures.append(
+                    {
+                        "page_number": page.page_number,
+                        "stage": ProcessingStage.RENDER,
+                        "error_message": "Page render failed.",
+                    }
+                )
+            if page.pass1_status is StageStatus.FAILED and page.pass1_error_message:
+                failures.append(
+                    {
+                        "page_number": page.page_number,
+                        "stage": ProcessingStage.PASS1,
+                        "error_message": page.pass1_error_message,
+                    }
+                )
+            if page.pass2_status is StageStatus.FAILED and page.pass2_error_message:
+                failures.append(
+                    {
+                        "page_number": page.page_number,
+                        "stage": ProcessingStage.PASS2,
+                        "error_message": page.pass2_error_message,
+                    }
+                )
+
+        failures.sort(key=lambda item: (int(item["page_number"]), str(item["stage"])), reverse=True)
+        return failures[:5]
+
+    def _get_current_page_number(
+        self,
+        *,
+        pages: Sequence[PageRecord],
+        stage: ProcessingStage | None,
+        status: DocumentStatus,
+    ) -> int | None:
+        if status in {DocumentStatus.COMPLETED, DocumentStatus.FAILED}:
+            return None
+
+        ordered_pages = sorted(pages, key=lambda page: page.page_number)
+        if stage is ProcessingStage.PASS1:
+            for page in ordered_pages:
+                if page.render_status is not RenderStatus.RENDERED:
+                    continue
+                if page.pass1_status in {None, StageStatus.PENDING}:
+                    return page.page_number
+            return None
+
+        if stage is ProcessingStage.PASS2:
+            for page in ordered_pages:
+                if page.pass1_status is not StageStatus.COMPLETED:
+                    continue
+                if page.pass2_status in {None, StageStatus.PENDING}:
+                    return page.page_number
+            return None
+
+        return None
+
+    def _ensure_pages_columns(self, connection: sqlite3.Connection) -> None:
+        existing_columns = {
+            str(row[1]) for row in connection.execute("PRAGMA table_info(pages)").fetchall()
+        }
+        if "pass1_error_message" not in existing_columns:
+            connection.execute("ALTER TABLE pages ADD COLUMN pass1_error_message TEXT NULL")
+        if "pass2_error_message" not in existing_columns:
+            connection.execute("ALTER TABLE pages ADD COLUMN pass2_error_message TEXT NULL")
 
 
 def get_storage_service() -> StorageService:

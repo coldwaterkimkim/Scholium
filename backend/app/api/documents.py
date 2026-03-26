@@ -2,14 +2,16 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, UploadFile, status
 
-from app.models.document import DocumentRecord, DocumentUploadResponse
+from app.models.document import DocumentRecord, DocumentStatus, DocumentUploadResponse
 from app.models.read_api import (
+    DocumentProcessingResponse,
     DocumentPublicResponse,
     DocumentSummaryPublicResponse,
     PagePublicResponse,
 )
+from app.services.orchestrator import DocumentOrchestrator, get_document_orchestrator
 from app.services.storage import StorageService, get_storage_service
 
 
@@ -37,8 +39,10 @@ def _get_document_or_404(storage: StorageService, document_id: str) -> DocumentR
 
 @router.post("", response_model=DocumentUploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_document(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     storage: StorageService = Depends(get_storage_service),
+    orchestrator: DocumentOrchestrator = Depends(get_document_orchestrator),
 ) -> DocumentUploadResponse:
     if not file.filename:
         raise HTTPException(
@@ -84,6 +88,8 @@ async def upload_document(
             detail="Failed to store the uploaded document.",
         ) from exc
 
+    background_tasks.add_task(orchestrator.run_pipeline_in_background, document_record.document_id)
+
     return DocumentUploadResponse(
         document_id=document_record.document_id,
         status=document_record.status,
@@ -102,6 +108,31 @@ def get_document(
         status=document.status,
         total_pages=document.total_pages,
     )
+
+
+@router.get("/{document_id}/processing", response_model=DocumentProcessingResponse)
+def get_document_processing(
+    document_id: str,
+    storage: StorageService = Depends(get_storage_service),
+    orchestrator: DocumentOrchestrator = Depends(get_document_orchestrator),
+) -> DocumentProcessingResponse:
+    document = _get_document_or_404(storage, document_id)
+    current_stage = (
+        orchestrator.get_stage(document_id)
+        if document.status in {DocumentStatus.UPLOADED, DocumentStatus.RENDERING, DocumentStatus.ANALYZING}
+        else None
+    )
+    snapshot = storage.get_document_processing_snapshot(
+        document_id,
+        current_stage=current_stage,
+    )
+    if snapshot is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found.",
+        )
+
+    return DocumentProcessingResponse(**snapshot)
 
 
 @router.get("/{document_id}/summary", response_model=DocumentSummaryPublicResponse)
