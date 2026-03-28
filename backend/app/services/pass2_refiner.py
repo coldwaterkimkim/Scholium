@@ -17,7 +17,7 @@ class Pass2Refiner:
         max_workers: int = 2,
     ) -> None:
         self.storage = storage or get_storage_service()
-        self.openai_client = openai_client or OpenAIResponsesClient()
+        self.openai_client = openai_client or OpenAIResponsesClient(storage=self.storage)
         self.max_workers = max(1, max_workers)
 
     def refine_page(self, document_id: str, page_number: int) -> dict[str, Any]:

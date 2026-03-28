@@ -1,0 +1,71 @@
+{
+  "document_id": "doc_f37a8855d22a4f7699f08a943392d506",
+  "parser_source": "pymupdf4llm+fitz",
+  "schema_version": "parser_v0_2",
+  "pages": [
+    {
+      "page_number": 1,
+      "width": 595.0,
+      "height": 842.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p1_b0",
+          "block_type": "paragraph",
+          "text": "Financial management studies how firms allocate\nresources and evaluate risk.\nThe objective of firm value is linked to cash flows, timing,\nand uncertainty.\nManagers compare investment alternatives by estimating\nincremental value creation.\nDiscount rates reflect opportunity cost, inflation, and\ncompensation for risk.\nA useful reading strategy is to track the claim, the\nevidence, and the implication.\nWhen a page is text-rich, a text-first pass should still\ngenerate grounded anchors.\nEach paragraph can expose a distinct question,\nexplanation, and bbox candidate.\nThis smoke document is intentionally simple so routing and\nfallback are easy to inspect.",
+          "bbox": [
+            0.10084,
+            0.095012,
+            0.790215,
+            0.503011
+          ],
+          "reading_order": 0
+        }
+      ]
+    },
+    {
+      "page_number": 2,
+      "width": 595.0,
+      "height": 842.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p2_b0",
+          "block_type": "paragraph",
+          "text": "Figure-driven page",
+          "bbox": [
+            0.10084,
+            0.066924,
+            0.310292,
+            0.0359
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p2_b1",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.134454,
+            0.174188,
+            0.672269,
+            0.316706
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p2_b2",
+          "block_type": "paragraph",
+          "text": "Short caption and almost no body text.",
+          "bbox": [
+            0.134454,
+            0.546318,
+            0.401529,
+            0.022846
+          ],
+          "reading_order": 2
+        }
+      ]
+    }
+  ]
+}

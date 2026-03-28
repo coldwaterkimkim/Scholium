@@ -16,7 +16,7 @@ class DocumentSynthesizer:
         openai_client: OpenAIResponsesClient | None = None,
     ) -> None:
         self.storage = storage or get_storage_service()
-        self.openai_client = openai_client or OpenAIResponsesClient()
+        self.openai_client = openai_client or OpenAIResponsesClient(storage=self.storage)
 
     def synthesize_document(self, document_id: str) -> dict[str, Any]:
         page_records = self.storage.get_pages(document_id)

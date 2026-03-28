@@ -1,0 +1,1623 @@
+{
+  "document_id": "doc_43fa5cb8ed3d44dc8402aa7e592064cf",
+  "parser_source": "pymupdf4llm+fitz",
+  "schema_version": "parser_v0_2",
+  "pages": [
+    {
+      "page_number": 1,
+      "width": 595.3200073242188,
+      "height": 841.9200439453125,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p1_b0",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.172546,
+            0.122149,
+            0.654908,
+            0.320696
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p1_b1",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.237855,
+            0.160205,
+            0.541625,
+            0.052166
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p1_b2",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.196533,
+            0.226625,
+            0.606732,
+            0.163056
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p1_b3",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.172546,
+            0.557013,
+            0.654908,
+            0.320696
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p1_b4",
+          "block_type": "paragraph",
+          "text": "What Issues Does Financial\nManagement Address?",
+          "bbox": [
+            0.283501,
+            0.569972,
+            0.442505,
+            0.063151
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p1_b5",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.232413,
+            0.6813,
+            0.143116,
+            0.101197
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p1_b6",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.624874,
+            0.687144,
+            0.143116,
+            0.101197
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p1_b7",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.423705,
+            0.691847,
+            0.152389,
+            0.107754
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p1_b8",
+          "block_type": "paragraph",
+          "text": "Capital Budgeting\nFinancing\nWorking Capital\nManagement",
+          "bbox": [
+            0.234021,
+            0.785104,
+            0.540652,
+            0.039334
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p1_b9",
+          "block_type": "paragraph",
+          "text": "1",
+          "bbox": [
+            0.977635,
+            0.960992,
+            0.010596,
+            0.016243
+          ],
+          "reading_order": 9
+        }
+      ]
+    },
+    {
+      "page_number": 2,
+      "width": 595.3200073242188,
+      "height": 841.9200439453125,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p2_b0",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.172546,
+            0.122149,
+            0.654908,
+            0.320696
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p2_b1",
+          "block_type": "heading",
+          "text": "I. What is Financial Management?",
+          "bbox": [
+            0.203784,
+            0.137577,
+            0.463298,
+            0.02635
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p2_b2",
+          "block_type": "paragraph",
+          "text": "Financial Management is the study of ways to answer the",
+          "bbox": [
+            0.203792,
+            0.185541,
+            0.561899,
+            0.018461
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p2_b3",
+          "block_type": "paragraph",
+          "text": "following three questions.",
+          "bbox": [
+            0.226766,
+            0.205499,
+            0.245273,
+            0.018461
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p2_b4",
+          "block_type": "list",
+          "text": "What long-term investments should we undertake?",
+          "bbox": [
+            0.203792,
+            0.245406,
+            0.507527,
+            0.018461
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p2_b5",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.705704,
+            0.256556,
+            0.072163,
+            0.050741
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p2_b6",
+          "block_type": "paragraph",
+          "text": "Capital Budgeting",
+          "bbox": [
+            0.482769,
+            0.28109,
+            0.201171,
+            0.018611
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p2_b7",
+          "block_type": "list",
+          "text": "Where will you get the long-term financing to pay for",
+          "bbox": [
+            0.203792,
+            0.305271,
+            0.534885,
+            0.018461
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p2_b8",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.644628,
+            0.324971,
+            0.082241,
+            0.05801
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p2_b9",
+          "block_type": "paragraph",
+          "text": "your investment?",
+          "bbox": [
+            0.226766,
+            0.32522,
+            0.168861,
+            0.018461
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p2_b10",
+          "block_type": "paragraph",
+          "text": "Financing",
+          "bbox": [
+            0.511789,
+            0.341093,
+            0.111081,
+            0.018611
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p2_b11",
+          "block_type": "list",
+          "text": "How will you manage your everyday financial activities?",
+          "bbox": [
+            0.203792,
+            0.385085,
+            0.568138,
+            0.018461
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p2_b12",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.730901,
+            0.400798,
+            0.057448,
+            0.040907
+          ],
+          "reading_order": 12
+        },
+        {
+          "block_id": "p2_b13",
+          "block_type": "paragraph",
+          "text": "Working Capital Management",
+          "bbox": [
+            0.391658,
+            0.414923,
+            0.329303,
+            0.018611
+          ],
+          "reading_order": 13
+        },
+        {
+          "block_id": "p2_b14",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.172546,
+            0.557013,
+            0.654908,
+            0.320696
+          ],
+          "reading_order": 14
+        },
+        {
+          "block_id": "p2_b15",
+          "block_type": "heading",
+          "text": "Financial Management Decisions",
+          "bbox": [
+            0.274938,
+            0.573721,
+            0.450035,
+            0.02635
+          ],
+          "reading_order": 15
+        },
+        {
+          "block_id": "p2_b16",
+          "block_type": "list",
+          "text": "Capital Budgeting\n– Identification of investment opportunities that are worth more",
+          "bbox": [
+            0.208824,
+            0.63166,
+            0.552308,
+            0.039033
+          ],
+          "reading_order": 16
+        },
+        {
+          "block_id": "p2_b17",
+          "block_type": "paragraph",
+          "text": "than they cost to acquire\n– The size, timing, and risk of future cash flows are important.\n• Financing (Capital Structure Decisions)\n– How much to borrow?\n– What are the least expensive sources of funds?\n• Working Capital Management\n– Decisions to ensure that the firm has sufficient resources to",
+          "bbox": [
+            0.208824,
+            0.672022,
+            0.537593,
+            0.145765
+          ],
+          "reading_order": 17
+        },
+        {
+          "block_id": "p2_b18",
+          "block_type": "paragraph",
+          "text": "continue operations without costly interruptions.",
+          "bbox": [
+            0.258008,
+            0.819111,
+            0.396089,
+            0.015778
+          ],
+          "reading_order": 18
+        },
+        {
+          "block_id": "p2_b19",
+          "block_type": "paragraph",
+          "text": "2",
+          "bbox": [
+            0.977635,
+            0.960985,
+            0.010583,
+            0.016252
+          ],
+          "reading_order": 19
+        }
+      ]
+    },
+    {
+      "page_number": 3,
+      "width": 595.3200073242188,
+      "height": 841.9200439453125,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p3_b0",
+          "block_type": "heading",
+          "text": "Balance Sheet Model of a Firm",
+          "bbox": [
+            0.316668,
+            0.1379,
+            0.354226,
+            0.020985
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p3_b1",
+          "block_type": "paragraph",
+          "text": "Capital budgeting",
+          "bbox": [
+            0.234829,
+            0.188071,
+            0.157347,
+            0.015906
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p3_b2",
+          "block_type": "paragraph",
+          "text": "Capital structure\n(right-hand side)",
+          "bbox": [
+            0.596851,
+            0.191349,
+            0.152731,
+            0.033006
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p3_b3",
+          "block_type": "paragraph",
+          "text": "(left-hand side)",
+          "bbox": [
+            0.246118,
+            0.205171,
+            0.13471,
+            0.015906
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p3_b4",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.32312,
+            0.256984,
+            0.332796,
+            0.168472
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p3_b5",
+          "block_type": "paragraph",
+          "text": "Working\nCapital Mgmt.",
+          "bbox": [
+            0.196936,
+            0.314922,
+            0.124511,
+            0.033013
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p3_b6",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.172546,
+            0.557013,
+            0.654908,
+            0.320696
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p3_b7",
+          "block_type": "heading",
+          "text": "II. Goal of Financial Management?",
+          "bbox": [
+            0.240273,
+            0.573959,
+            0.519856,
+            0.028874
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p3_b8",
+          "block_type": "list",
+          "text": "We will assume that firms that we deal with are\ncorporations\nWhy invest in corporations?\nWhy is it important for managers to care\nshareholders?\nIf you are a shareholder of a firm, what would you\nwant from the management?",
+          "bbox": [
+            0.23402,
+            0.61741,
+            0.503282,
+            0.150163
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p3_b9",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.214271,
+            0.78549,
+            0.21286,
+            0.067845
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p3_b10",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.386817,
+            0.78549,
+            0.213465,
+            0.067845
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p3_b11",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.558355,
+            0.78549,
+            0.213465,
+            0.067845
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p3_b12",
+          "block_type": "paragraph",
+          "text": "Shareholder",
+          "bbox": [
+            0.279578,
+            0.802127,
+            0.086769,
+            0.012451
+          ],
+          "reading_order": 12
+        },
+        {
+          "block_id": "p3_b13",
+          "block_type": "paragraph",
+          "text": "Share Value\nMaximization",
+          "bbox": [
+            0.448492,
+            0.807399,
+            0.090805,
+            0.022998
+          ],
+          "reading_order": 13
+        },
+        {
+          "block_id": "p3_b14",
+          "block_type": "paragraph",
+          "text": "Firm Value\nMaximization",
+          "bbox": [
+            0.619823,
+            0.807399,
+            0.090805,
+            0.022998
+          ],
+          "reading_order": 14
+        },
+        {
+          "block_id": "p3_b15",
+          "block_type": "paragraph",
+          "text": "Wealth\nMaximization",
+          "bbox": [
+            0.275545,
+            0.812674,
+            0.090805,
+            0.022853
+          ],
+          "reading_order": 15
+        },
+        {
+          "block_id": "p3_b16",
+          "block_type": "paragraph",
+          "text": "3",
+          "bbox": [
+            0.977635,
+            0.960985,
+            0.010583,
+            0.016252
+          ],
+          "reading_order": 16
+        }
+      ]
+    },
+    {
+      "page_number": 4,
+      "width": 595.3200073242188,
+      "height": 841.9200439453125,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p4_b0",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.172546,
+            0.122149,
+            0.654908,
+            0.320696
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p4_b1",
+          "block_type": "heading",
+          "text": "What Should You Try to Achieve with",
+          "bbox": [
+            0.235227,
+            0.144702,
+            0.52278,
+            0.02635
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p4_b2",
+          "block_type": "heading",
+          "text": "Financial Management?",
+          "bbox": [
+            0.330183,
+            0.1732,
+            0.323598,
+            0.02635
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p4_b3",
+          "block_type": "heading",
+          "text": "“Value Maximization”",
+          "bbox": [
+            0.280405,
+            0.244659,
+            0.412488,
+            0.035501
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p4_b4",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.172546,
+            0.557013,
+            0.654908,
+            0.320696
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p4_b5",
+          "block_type": "heading",
+          "text": "Firm Value & Financial Management Decisions",
+          "bbox": [
+            0.187261,
+            0.571459,
+            0.623159,
+            0.023667
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p4_b6",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.471478,
+            0.60362,
+            0.178391,
+            0.255131
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p4_b7",
+          "block_type": "paragraph",
+          "text": "To create value,\nwhich financing\nmethod should I",
+          "bbox": [
+            0.508773,
+            0.621489,
+            0.107598,
+            0.033465
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p4_b8",
+          "block_type": "paragraph",
+          "text": "use?",
+          "bbox": [
+            0.544853,
+            0.6557,
+            0.031468,
+            0.010657
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p4_b9",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.656722,
+            0.659207,
+            0.155815,
+            0.180445
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p4_b10",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.207619,
+            0.662628,
+            0.164483,
+            0.175456
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p4_b11",
+          "block_type": "paragraph",
+          "text": "Invest Cash",
+          "bbox": [
+            0.492242,
+            0.674801,
+            0.071255,
+            0.010657
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p4_b12",
+          "block_type": "heading",
+          "text": "Investors",
+          "bbox": [
+            0.689981,
+            0.67809,
+            0.089417,
+            0.015906
+          ],
+          "reading_order": 12
+        },
+        {
+          "block_id": "p4_b13",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.391856,
+            0.68244,
+            0.1667,
+            0.114025
+          ],
+          "reading_order": 13
+        },
+        {
+          "block_id": "p4_b14",
+          "block_type": "heading",
+          "text": "Firm",
+          "bbox": [
+            0.265065,
+            0.69434,
+            0.043721,
+            0.015906
+          ],
+          "reading_order": 14
+        },
+        {
+          "block_id": "p4_b15",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.547269,
+            0.698404,
+            0.145334,
+            0.081813
+          ],
+          "reading_order": 15
+        },
+        {
+          "block_id": "p4_b16",
+          "block_type": "paragraph",
+          "text": "To create value,\nwhat should I do",
+          "bbox": [
+            0.421492,
+            0.700595,
+            0.110029,
+            0.022064
+          ],
+          "reading_order": 16
+        },
+        {
+          "block_id": "p4_b17",
+          "block_type": "paragraph",
+          "text": "Issue Securities",
+          "bbox": [
+            0.459789,
+            0.703448,
+            0.095213,
+            0.010657
+          ],
+          "reading_order": 17
+        },
+        {
+          "block_id": "p4_b18",
+          "block_type": "paragraph",
+          "text": "What should I do",
+          "bbox": [
+            0.569042,
+            0.709432,
+            0.112189,
+            0.010657
+          ],
+          "reading_order": 18
+        },
+        {
+          "block_id": "p4_b19",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.688571,
+            0.709664,
+            0.092119,
+            0.068558
+          ],
+          "reading_order": 19
+        },
+        {
+          "block_id": "p4_b20",
+          "block_type": "paragraph",
+          "text": "with tax\npayments to\ncreate value?",
+          "bbox": [
+            0.580125,
+            0.720838,
+            0.086447,
+            0.033459
+          ],
+          "reading_order": 20
+        },
+        {
+          "block_id": "p4_b21",
+          "block_type": "paragraph",
+          "text": "with free cash",
+          "bbox": [
+            0.429553,
+            0.723403,
+            0.093687,
+            0.010657
+          ],
+          "reading_order": 21
+        },
+        {
+          "block_id": "p4_b22",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.248942,
+            0.723774,
+            0.08204,
+            0.06927
+          ],
+          "reading_order": 22
+        },
+        {
+          "block_id": "p4_b23",
+          "block_type": "paragraph",
+          "text": "Reinvestments",
+          "bbox": [
+            0.399319,
+            0.730103,
+            0.089406,
+            0.010657
+          ],
+          "reading_order": 23
+        },
+        {
+          "block_id": "p4_b24",
+          "block_type": "paragraph",
+          "text": "flows?",
+          "bbox": [
+            0.453137,
+            0.734804,
+            0.042947,
+            0.010657
+          ],
+          "reading_order": 24
+        },
+        {
+          "block_id": "p4_b25",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.199355,
+            0.749002,
+            0.327353,
+            0.102337
+          ],
+          "reading_order": 25
+        },
+        {
+          "block_id": "p4_b26",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.60391,
+            0.764966,
+            0.181617,
+            0.066562
+          ],
+          "reading_order": 26
+        },
+        {
+          "block_id": "p4_b27",
+          "block_type": "paragraph",
+          "text": "Cash flows from\nfirm’s investments",
+          "bbox": [
+            0.382992,
+            0.766444,
+            0.107908,
+            0.022064
+          ],
+          "reading_order": 27
+        },
+        {
+          "block_id": "p4_b28",
+          "block_type": "paragraph",
+          "text": "Which investment",
+          "bbox": [
+            0.233219,
+            0.770297,
+            0.119077,
+            0.010657
+          ],
+          "reading_order": 28
+        },
+        {
+          "block_id": "p4_b29",
+          "block_type": "paragraph",
+          "text": "Dividends, Interests",
+          "bbox": [
+            0.507157,
+            0.771151,
+            0.118173,
+            0.010657
+          ],
+          "reading_order": 29
+        },
+        {
+          "block_id": "p4_b30",
+          "block_type": "paragraph",
+          "text": "project should I",
+          "bbox": [
+            0.240882,
+            0.781698,
+            0.103951,
+            0.010657
+          ],
+          "reading_order": 30
+        },
+        {
+          "block_id": "p4_b31",
+          "block_type": "paragraph",
+          "text": "If we borrow, will",
+          "bbox": [
+            0.663784,
+            0.781698,
+            0.112324,
+            0.010657
+          ],
+          "reading_order": 31
+        },
+        {
+          "block_id": "p4_b32",
+          "block_type": "paragraph",
+          "text": "take on?\nIs it better just not",
+          "bbox": [
+            0.232414,
+            0.793099,
+            0.120698,
+            0.022064
+          ],
+          "reading_order": 32
+        },
+        {
+          "block_id": "p4_b33",
+          "block_type": "paragraph",
+          "text": "that create",
+          "bbox": [
+            0.68414,
+            0.793099,
+            0.071673,
+            0.010657
+          ],
+          "reading_order": 33
+        },
+        {
+          "block_id": "p4_b34",
+          "block_type": "paragraph",
+          "text": "Taxes",
+          "bbox": [
+            0.496448,
+            0.800459,
+            0.015072,
+            0.024734
+          ],
+          "reading_order": 34
+        },
+        {
+          "block_id": "p4_b35",
+          "block_type": "paragraph",
+          "text": "value?",
+          "bbox": [
+            0.696842,
+            0.804506,
+            0.042677,
+            0.010657
+          ],
+          "reading_order": 35
+        },
+        {
+          "block_id": "p4_b36",
+          "block_type": "paragraph",
+          "text": "to invest at all?",
+          "bbox": [
+            0.241891,
+            0.815906,
+            0.098184,
+            0.010657
+          ],
+          "reading_order": 36
+        },
+        {
+          "block_id": "p4_b37",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.588591,
+            0.841505,
+            0.076597,
+            0.036203
+          ],
+          "reading_order": 37
+        },
+        {
+          "block_id": "p4_b38",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.434187,
+            0.846921,
+            0.141504,
+            0.023803
+          ],
+          "reading_order": 38
+        },
+        {
+          "block_id": "p4_b39",
+          "block_type": "heading",
+          "text": "CFO",
+          "bbox": [
+            0.605719,
+            0.850269,
+            0.042471,
+            0.015906
+          ],
+          "reading_order": 39
+        },
+        {
+          "block_id": "p4_b40",
+          "block_type": "heading",
+          "text": "Government",
+          "bbox": [
+            0.449501,
+            0.852265,
+            0.111207,
+            0.015906
+          ],
+          "reading_order": 40
+        },
+        {
+          "block_id": "p4_b41",
+          "block_type": "heading",
+          "text": "4",
+          "bbox": [
+            0.977635,
+            0.960985,
+            0.010583,
+            0.016252
+          ],
+          "reading_order": 41
+        }
+      ]
+    },
+    {
+      "page_number": 5,
+      "width": 595.3200073242188,
+      "height": 841.9200439453125,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p5_b0",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.172546,
+            0.122149,
+            0.654908,
+            0.320696
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p5_b1",
+          "block_type": "heading",
+          "text": "Financial Management and Value Creation",
+          "bbox": [
+            0.234421,
+            0.15773,
+            0.536447,
+            0.021156
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p5_b2",
+          "block_type": "paragraph",
+          "text": "Managers can maximize firm value or create firm value by",
+          "bbox": [
+            0.213865,
+            0.195051,
+            0.557286,
+            0.015906
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p5_b3",
+          "block_type": "paragraph",
+          "text": "finding out good projects that can add value to the firm.",
+          "bbox": [
+            0.21729,
+            0.212158,
+            0.5335,
+            0.015906
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p5_b4",
+          "block_type": "paragraph",
+          "text": "Also, managers can create firm value by finding cheaper",
+          "bbox": [
+            0.213865,
+            0.246364,
+            0.546602,
+            0.015906
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p5_b5",
+          "block_type": "paragraph",
+          "text": "source of financing.",
+          "bbox": [
+            0.21729,
+            0.26347,
+            0.197278,
+            0.015906
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p5_b6",
+          "block_type": "paragraph",
+          "text": "Also, managers can create firm value by effectively",
+          "bbox": [
+            0.213865,
+            0.297677,
+            0.494597,
+            0.015906
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p5_b7",
+          "block_type": "paragraph",
+          "text": "maintaining firm’s short-term assets.",
+          "bbox": [
+            0.21729,
+            0.314783,
+            0.353295,
+            0.015906
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p5_b8",
+          "block_type": "paragraph",
+          "text": "These are what financial managers should do.",
+          "bbox": [
+            0.213865,
+            0.348989,
+            0.446623,
+            0.015906
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p5_b9",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.172546,
+            0.557013,
+            0.654908,
+            0.320696
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p5_b10",
+          "block_type": "heading",
+          "text": "III. Managers vs. Shareholders",
+          "bbox": [
+            0.299331,
+            0.592817,
+            0.414353,
+            0.02635
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p5_b11",
+          "block_type": "paragraph",
+          "text": "Separation of Ownership and Control:",
+          "bbox": [
+            0.208826,
+            0.669312,
+            0.313041,
+            0.015778
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p5_b12",
+          "block_type": "paragraph",
+          "text": "One distinct characteristic of a corporation is the separation of\nownership and control.",
+          "bbox": [
+            0.208826,
+            0.703518,
+            0.506348,
+            0.032885
+          ],
+          "reading_order": 12
+        },
+        {
+          "block_id": "p5_b13",
+          "block_type": "paragraph",
+          "text": "The managers (control) are hired by shareholders (ownership) and\nexpected to achieve the maximization of shareholder value.",
+          "bbox": [
+            0.208826,
+            0.754831,
+            0.538599,
+            0.032877
+          ],
+          "reading_order": 13
+        },
+        {
+          "block_id": "p5_b14",
+          "block_type": "paragraph",
+          "text": "5",
+          "bbox": [
+            0.977635,
+            0.960985,
+            0.010583,
+            0.016252
+          ],
+          "reading_order": 14
+        }
+      ]
+    },
+    {
+      "page_number": 6,
+      "width": 595.3200073242188,
+      "height": 841.9200439453125,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p6_b0",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.172546,
+            0.122149,
+            0.654908,
+            0.320696
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p6_b1",
+          "block_type": "heading",
+          "text": "Agency Relationship/Agency Problem",
+          "bbox": [
+            0.319892,
+            0.174046,
+            0.394159,
+            0.018611
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p6_b2",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.488611,
+            0.236745,
+            0.065511,
+            0.047605
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p6_b3",
+          "block_type": "paragraph",
+          "text": "Service",
+          "bbox": [
+            0.483369,
+            0.248215,
+            0.067043,
+            0.015906
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p6_b4",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.293489,
+            0.25114,
+            0.122757,
+            0.087229
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p6_b5",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.60512,
+            0.254276,
+            0.122758,
+            0.086374
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p6_b6",
+          "block_type": "paragraph",
+          "text": "Reward",
+          "bbox": [
+            0.47893,
+            0.315917,
+            0.06926,
+            0.015906
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p6_b7",
+          "block_type": "paragraph",
+          "text": "Shareholders (Principal)\nManager (Agent)",
+          "bbox": [
+            0.286433,
+            0.366003,
+            0.419733,
+            0.015778
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p6_b8",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.172546,
+            0.557013,
+            0.654908,
+            0.320696
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p6_b9",
+          "block_type": "heading",
+          "text": "Moral Hazard",
+          "bbox": [
+            0.211251,
+            0.595559,
+            0.171309,
+            0.020985
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p6_b10",
+          "block_type": "paragraph",
+          "text": "Agency problem: Conflict of interest between the firm’s owners",
+          "bbox": [
+            0.211247,
+            0.635106,
+            0.526908,
+            0.015778
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p6_b11",
+          "block_type": "paragraph",
+          "text": "(shareholders) and the management of a firm",
+          "bbox": [
+            0.226768,
+            0.652204,
+            0.362365,
+            0.015778
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p6_b12",
+          "block_type": "paragraph",
+          "text": "There is possibility that managers do not act in the shareholders’ best",
+          "bbox": [
+            0.211247,
+            0.686311,
+            0.581131,
+            0.015878
+          ],
+          "reading_order": 12
+        },
+        {
+          "block_id": "p6_b13",
+          "block_type": "paragraph",
+          "text": "interest.",
+          "bbox": [
+            0.226768,
+            0.703518,
+            0.064301,
+            0.015778
+          ],
+          "reading_order": 13
+        },
+        {
+          "block_id": "p6_b14",
+          "block_type": "paragraph",
+          "text": "Agency conflicts reduce firm value (and shareholder wealth) - Why?",
+          "bbox": [
+            0.211247,
+            0.737624,
+            0.568896,
+            0.015878
+          ],
+          "reading_order": 14
+        },
+        {
+          "block_id": "p6_b15",
+          "block_type": "paragraph",
+          "text": "Agency problem creates more adverse effects on diversely held firms",
+          "bbox": [
+            0.211247,
+            0.77183,
+            0.578914,
+            0.015878
+          ],
+          "reading_order": 15
+        },
+        {
+          "block_id": "p6_b16",
+          "block_type": "paragraph",
+          "text": "(i.e., greater agency costs for diversely held firms) - Why?",
+          "bbox": [
+            0.226768,
+            0.789037,
+            0.470126,
+            0.015778
+          ],
+          "reading_order": 16
+        },
+        {
+          "block_id": "p6_b17",
+          "block_type": "paragraph",
+          "text": "6",
+          "bbox": [
+            0.977635,
+            0.960985,
+            0.010583,
+            0.016252
+          ],
+          "reading_order": 17
+        }
+      ]
+    },
+    {
+      "page_number": 7,
+      "width": 595.3200073242188,
+      "height": 841.9200439453125,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p7_b0",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.172546,
+            0.122149,
+            0.654908,
+            0.320696
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p7_b1",
+          "block_type": "heading",
+          "text": "Corporate Governance and Firm Value",
+          "bbox": [
+            0.211251,
+            0.160707,
+            0.457629,
+            0.020985
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p7_b2",
+          "block_type": "paragraph",
+          "text": "Research on agency theory shows firms that suffer from significant",
+          "bbox": [
+            0.211247,
+            0.200141,
+            0.562184,
+            0.015878
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p7_b3",
+          "block_type": "paragraph",
+          "text": "agency conflicts are undervalued.",
+          "bbox": [
+            0.226768,
+            0.217347,
+            0.275347,
+            0.015778
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p7_b4",
+          "block_type": "paragraph",
+          "text": "Good corporate governance has positive effects on firm value.",
+          "bbox": [
+            0.211247,
+            0.251454,
+            0.51683,
+            0.015878
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p7_b5",
+          "block_type": "paragraph",
+          "text": "What internal and external mechanisms can we think of to maintain",
+          "bbox": [
+            0.211247,
+            0.28566,
+            0.565208,
+            0.015878
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p7_b6",
+          "block_type": "paragraph",
+          "text": "good corporate governance and, thus, a high firm value?",
+          "bbox": [
+            0.226768,
+            0.302866,
+            0.459382,
+            0.015778
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p7_b7",
+          "block_type": "paragraph",
+          "text": "7",
+          "bbox": [
+            0.977635,
+            0.960985,
+            0.010583,
+            0.016252
+          ],
+          "reading_order": 7
+        }
+      ]
+    }
+  ]
+}

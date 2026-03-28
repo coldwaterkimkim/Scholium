@@ -1,0 +1,31 @@
+{
+  "document_id": "doc_f37a8855d22a4f7699f08a943392d506",
+  "parser_source": "pymupdf4llm+fitz",
+  "schema_version": "parser_v0_2",
+  "pages": [
+    {
+      "page_number": 1,
+      "route_label": "text-rich",
+      "route_reason": "text_length=653; block_count=1; non_empty_text_block_count=1; no_strong_visual_signal",
+      "text_length": 653,
+      "block_count": 1,
+      "non_empty_text_block_count": 1,
+      "image_count": 0,
+      "has_table": false,
+      "has_figure": false,
+      "ocr_used": false
+    },
+    {
+      "page_number": 2,
+      "route_label": "visual-rich",
+      "route_reason": "has_figure; text_length=56; non_empty_text_block_count=2",
+      "text_length": 56,
+      "block_count": 3,
+      "non_empty_text_block_count": 2,
+      "image_count": 1,
+      "has_table": false,
+      "has_figure": true,
+      "ocr_used": false
+    }
+  ]
+}

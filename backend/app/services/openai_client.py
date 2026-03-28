@@ -10,6 +10,7 @@ from typing import Any
 from openai import OpenAI
 
 from app.core.config import AppSettings, StageConfig, StageName, get_settings
+from app.services.storage import StorageService, get_storage_service
 from app.utils.validation import get_json_schema, validate_payload
 
 
@@ -26,8 +27,14 @@ class OpenAIResponseValidationError(OpenAIClientError):
 
 
 class OpenAIResponsesClient:
-    def __init__(self, settings: AppSettings | None = None, client: OpenAI | None = None) -> None:
+    def __init__(
+        self,
+        settings: AppSettings | None = None,
+        client: OpenAI | None = None,
+        storage: StorageService | None = None,
+    ) -> None:
         self.settings = settings or get_settings()
+        self.storage = storage or get_storage_service()
         if not self.settings.has_openai_api_key:
             raise OpenAIClientError("OPENAI_API_KEY is missing. Prepare the root .env file first.")
 
@@ -52,6 +59,41 @@ class OpenAIResponsesClient:
             "optional_extracted_text": optional_extracted_text,
         }
         return self._run_stage("pass1", payload, page_image_path=page_image_path)
+
+    def run_pass1_text_first(
+        self,
+        *,
+        document_id: str,
+        page_number: int,
+        route_label: str,
+        route_reason: str,
+        parser_source: str,
+        text_length: int,
+        non_empty_text_block_count: int,
+        page_text: str,
+        parsed_blocks: list[dict[str, Any]],
+        allowed_anchor_regions: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        payload = {
+            "document_id": document_id,
+            "page_number": page_number,
+            "schema_version": self.settings.schema_version,
+            "prompt_version": self.settings.stage_config("pass1").prompt_version,
+            "route_label": route_label,
+            "route_reason": route_reason,
+            "parser_source": parser_source,
+            "text_length": text_length,
+            "non_empty_text_block_count": non_empty_text_block_count,
+            "optional_extracted_text": page_text,
+            "page_text": page_text,
+            "parsed_blocks": parsed_blocks,
+            "allowed_anchor_regions": allowed_anchor_regions,
+        }
+        return self._run_stage(
+            "pass1",
+            payload,
+            extra_user_messages=[self._build_pass1_text_first_guidance()],
+        )
 
     def run_document_synthesis(
         self,
@@ -142,6 +184,7 @@ class OpenAIResponsesClient:
         )
 
         try:
+            self._record_call_attempt(stage, stage_payload)
             return self._client.responses.create(
                 model=stage_config.model_name,
                 reasoning={"effort": stage_config.reasoning_effort},
@@ -209,6 +252,19 @@ class OpenAIResponsesClient:
             "model_name": getattr(response, "model", stage_config.model_name),
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
+
+    def _record_call_attempt(
+        self,
+        stage: StageName,
+        stage_payload: dict[str, Any],
+    ) -> None:
+        document_id = stage_payload.get("document_id")
+        if not document_id:
+            return
+        try:
+            self.storage.increment_openai_call_count(str(document_id), stage)
+        except Exception:
+            return
 
     def _apply_system_fields(
         self,
@@ -281,6 +337,19 @@ class OpenAIResponsesClient:
                 f"Prompt file is missing for stage '{stage_config.stage_name}': {stage_config.prompt_path}"
             )
         return stage_config.prompt_path.read_text(encoding="utf-8")
+
+    def _build_pass1_text_first_guidance(self) -> str:
+        return (
+            "Text-first mode is active for this pass1 call. No page image is provided. "
+            "Ground the output only in the supplied page_text, parsed_blocks, and allowed_anchor_regions. "
+            "Treat allowed_anchor_regions as the authoritative bbox source. "
+            "Every candidate_anchors[].bbox must exactly match one allowed_anchor_regions[].bbox. "
+            "Prefer anchors whose bbox exactly matches a single parsed block. "
+            "If an anchor must span adjacent blocks, use only a provided two-block union bbox. "
+            "Reusing the same allowed bbox for multiple grounded anchors is acceptable when several questions attach to the same text region. "
+            "Do not invent visual regions or decorative elements that are not supported by page_text, parsed_blocks, or allowed_anchor_regions. "
+            "Return the same pass1 JSON schema as usual."
+        )
 
     def _image_path_to_data_url(self, page_image_path: str | Path) -> str:
         path = Path(page_image_path)

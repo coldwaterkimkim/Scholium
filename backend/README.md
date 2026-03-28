@@ -38,6 +38,7 @@ curl -F "file=@../data/raw_pdfs/W1.Lecture01-Financial Management and Firm Value
 업로드가 성공하면 background로 아래 순서가 자동 시작된다.
 
 - render
+- parse / page_manifest precondition
 - pass1
 - document synthesis
 - pass2
@@ -58,6 +59,146 @@ processing 응답에는 coarse status, `stage/current_stage(render/pass1/synthes
 ```bash
 find ../data/rendered_pages/doc_xxx -maxdepth 1 -type f | sort | head
 find ../data/analysis/doc_xxx -maxdepth 3 -type f | sort
+```
+
+## Canonical Parse Artifact 확인
+
+기본 parser backend는 `DOCUMENT_PARSER_BACKEND`로 선택할 수 있다.
+
+- `pymupdf4llm`: 실제 parser adapter 사용
+- `stub`: fallback / smoke test용
+
+pass1 routing mode도 env flag로 제어할 수 있다.
+
+- `PASS1_ROUTING_MODE=hybrid`: parse/page_manifest 기반 text-first + selective multimodal
+- `PASS1_ROUTING_MODE=legacy`: 기존 full-page multimodal pass1 rollback
+
+작은 PDF로 canonical parse artifact를 만들려면:
+
+```bash
+cd backend
+source .venv/bin/activate
+DOCUMENT_PARSER_BACKEND=pymupdf4llm .venv/bin/python - <<'PY'
+from pathlib import Path
+from app.services.document_parser import get_default_document_parser
+from app.services.storage import StorageService
+
+document_id = "doc_parse_smoke"
+pdf_path = Path("../data/raw_pdfs/W1.Lecture01-Financial Management and Firm Value.pdf")
+parser = get_default_document_parser()
+artifact = parser.parse_document(document_id, pdf_path)
+storage = StorageService()
+print(storage.save_parse_artifact(document_id, artifact.model_dump(mode="json")))
+PY
+```
+
+생성 경로:
+
+```bash
+../data/parsed/doc_parse_smoke/document_parse.json
+```
+
+page mirror는 기본 강제 저장이 아니라 lazy materialization이다.
+
+업로드 파이프라인에 parse integration이 붙어 있으면, 처리 중 아래 파일도 같이 확인하면 된다.
+
+```bash
+find ../data/parsed/doc_xxx -maxdepth 2 -type f | sort
+cat ../data/parsed/doc_xxx/document_parse.json | head -n 40
+cat ../data/parsed/doc_xxx/page_manifest.json | head -n 80
+```
+
+pass1이 실제로 어떤 경로를 탔는지도 확인할 수 있다.
+
+```bash
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+base = Path("../data/analysis/doc_xxx/pages")
+counts = {}
+for path in sorted(base.glob("*/page_analysis_pass1.json")):
+    payload = json.loads(path.read_text())
+    page_number = payload["result"]["page_number"]
+    pass1_path = payload["meta"].get("pass1_path", "unknown")
+    counts[pass1_path] = counts.get(pass1_path, 0) + 1
+    print(page_number, pass1_path, payload["meta"].get("route_label"))
+print(counts)
+PY
+```
+
+pass1 routing까지 확인하려면:
+
+```bash
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+document_id = "doc_xxx"
+base = Path(f"../data/analysis/{document_id}/pages")
+for path in sorted(base.glob("*/page_analysis_pass1.json")):
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    meta = payload["meta"]
+    print(
+        path.parent.name,
+        meta.get("pass1_path"),
+        meta.get("route_label"),
+        len(payload["result"]["candidate_anchors"]),
+    )
+PY
+```
+
+문서 단위로 text-first / multimodal / escalated 분포를 보려면:
+
+```bash
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+document_id = "doc_xxx"
+base = Path(f"../data/analysis/{document_id}/pages")
+summary = {"text-first": [], "multimodal": [], "escalated": [], "missing": []}
+for page_number in range(1, 1000):
+    path = base / str(page_number) / "page_analysis_pass1.json"
+    if not path.exists():
+        if page_number > 1 and not (base / str(page_number - 1)).exists():
+            break
+        continue
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    summary.setdefault(payload["meta"].get("pass1_path") or "unknown", []).append(page_number)
+print(summary)
+PY
+```
+
+processing benchmark를 보려면:
+
+```bash
+cat ../data/analysis/doc_xxx/processing_benchmark.json
+```
+
+짧게 핵심 수치만 보려면:
+
+```bash
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+document_id = "doc_xxx"
+payload = json.loads((Path(f"../data/analysis/{document_id}/processing_benchmark.json")).read_text())
+print(payload["final_status"], payload["final_error_message"])
+print("total_seconds =", payload["total_processing_time_seconds"])
+print("pass1 paths =", {
+    "text-first": payload["pass1_text_first_pages"],
+    "multimodal": payload["pass1_multimodal_pages"],
+    "escalated": payload["pass1_escalated_pages"],
+})
+print("openai_calls =", {
+    "total": payload["openai_call_count_total"],
+    "pass1": payload["openai_pass1_call_count"],
+    "synthesis": payload["openai_synthesis_call_count"],
+    "pass2": payload["openai_pass2_call_count"],
+})
+PY
 ```
 
 ## SQLite 확인

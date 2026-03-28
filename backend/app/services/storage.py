@@ -5,7 +5,8 @@ import os
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Sequence
+from threading import Lock, RLock
+from typing import Callable, Sequence
 from uuid import uuid4
 
 from app.core.config import PROJECT_ROOT, AppSettings, get_settings
@@ -17,10 +18,40 @@ from app.models.document import (
     RenderStatus,
     StageStatus,
 )
+from app.models.parser import DocumentPageManifest, DocumentParseArtifact, PageParseArtifact
 from app.utils.validation import validate_payload
 
 
 _UNSET = object()
+_OPTIONAL_PASS1_META_KEYS = {"pass1_path", "route_label", "route_reason", "parser_source"}
+_ALLOWED_PASS1_PATHS = {"text-first", "multimodal", "escalated"}
+_ALLOWED_ROUTE_LABELS = {"text-rich", "scan-like", "visual-rich"}
+_BENCHMARK_DURATION_FIELDS = {
+    "total_processing_time_seconds",
+    "render_time_seconds",
+    "parse_time_seconds",
+    "triage_time_seconds",
+    "pass1_time_seconds",
+    "synthesis_time_seconds",
+    "pass2_time_seconds",
+}
+_BENCHMARK_COUNT_FIELDS = {
+    "rendered_pages",
+    "pass1_text_first_pages",
+    "pass1_multimodal_pages",
+    "pass1_escalated_pages",
+    "pass2_completed_pages",
+    "pass2_failed_pages",
+    "openai_call_count_total",
+    "openai_pass1_call_count",
+    "openai_synthesis_call_count",
+    "openai_pass2_call_count",
+}
+_OPENAI_CALL_COUNT_FIELDS_BY_STAGE = {
+    "pass1": "openai_pass1_call_count",
+    "document_synthesis": "openai_synthesis_call_count",
+    "pass2": "openai_pass2_call_count",
+}
 
 
 class StorageService:
@@ -30,12 +61,16 @@ class StorageService:
         self.raw_pdfs_dir = self._resolve_project_path(self.settings.raw_pdfs_dir)
         self.rendered_pages_dir = self._resolve_project_path(self.settings.rendered_pages_dir)
         self.analysis_dir = self._resolve_project_path(self.settings.analysis_dir)
+        self.parsed_dir = self._resolve_project_path("./data/parsed")
+        self._benchmark_lock = RLock()
+        self._benchmark_states: dict[str, dict[str, object]] = {}
 
     def init_storage(self) -> None:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.raw_pdfs_dir.mkdir(parents=True, exist_ok=True)
         self.rendered_pages_dir.mkdir(parents=True, exist_ok=True)
         self.analysis_dir.mkdir(parents=True, exist_ok=True)
+        self.parsed_dir.mkdir(parents=True, exist_ok=True)
 
         with self._connect() as connection:
             document_status_values = self._enum_value_list(DocumentStatus)
@@ -478,6 +513,240 @@ class StorageService:
         payload = json.loads(target_path.read_text(encoding="utf-8"))
         return self._normalize_document_summary_artifact(document_id, payload)
 
+    def get_parse_artifact_path(self, document_id: str) -> Path:
+        return self.parsed_dir / document_id / "document_parse.json"
+
+    def save_parse_artifact(
+        self,
+        document_id: str,
+        payload: dict[str, object],
+        *,
+        materialize_page_mirrors: bool = False,
+    ) -> str:
+        target_path = self.get_parse_artifact_path(document_id)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+
+        normalized_payload = self._normalize_parse_artifact(document_id, payload)
+        self._write_validated_json_artifact(
+            target_path,
+            normalized_payload,
+            lambda loaded_payload: self._normalize_parse_artifact(document_id, loaded_payload),
+        )
+
+        if materialize_page_mirrors:
+            for page_payload in normalized_payload["pages"]:
+                page_number = int(page_payload["page_number"])
+                self.save_page_parse_artifact(
+                    document_id,
+                    page_number,
+                    self._build_page_parse_artifact_payload(normalized_payload, page_number),
+                )
+
+        return target_path.relative_to(PROJECT_ROOT).as_posix()
+
+    def load_parse_artifact(self, document_id: str) -> dict[str, object] | None:
+        target_path = self.get_parse_artifact_path(document_id)
+        if not target_path.exists():
+            return None
+
+        payload = json.loads(target_path.read_text(encoding="utf-8"))
+        return self._normalize_parse_artifact(document_id, payload)
+
+    def get_page_parse_artifact_path(self, document_id: str, page_number: int) -> Path:
+        return self.parsed_dir / document_id / "pages" / f"{page_number}.json"
+
+    def get_page_manifest_path(self, document_id: str) -> Path:
+        return self.parsed_dir / document_id / "page_manifest.json"
+
+    def save_page_parse_artifact(
+        self,
+        document_id: str,
+        page_number: int,
+        payload: dict[str, object],
+    ) -> str:
+        target_path = self.get_page_parse_artifact_path(document_id, page_number)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+
+        normalized_payload = self._normalize_page_parse_artifact(document_id, page_number, payload)
+        self._write_validated_json_artifact(
+            target_path,
+            normalized_payload,
+            lambda loaded_payload: self._normalize_page_parse_artifact(
+                document_id,
+                page_number,
+                loaded_payload,
+            ),
+        )
+        return target_path.relative_to(PROJECT_ROOT).as_posix()
+
+    def load_page_parse_artifact(
+        self,
+        document_id: str,
+        page_number: int,
+        *,
+        materialize_if_missing: bool = False,
+    ) -> dict[str, object] | None:
+        target_path = self.get_page_parse_artifact_path(document_id, page_number)
+        if target_path.exists():
+            payload = json.loads(target_path.read_text(encoding="utf-8"))
+            return self._normalize_page_parse_artifact(document_id, page_number, payload)
+
+        document_payload = self.load_parse_artifact(document_id)
+        if document_payload is None:
+            return None
+
+        page_payload = self._build_page_parse_artifact_payload(document_payload, page_number)
+        if page_payload is None:
+            return None
+
+        if materialize_if_missing:
+            self.save_page_parse_artifact(document_id, page_number, page_payload)
+
+        return page_payload
+
+    def save_page_manifest(
+        self,
+        document_id: str,
+        payload: dict[str, object],
+    ) -> str:
+        target_path = self.get_page_manifest_path(document_id)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+
+        normalized_payload = self._normalize_page_manifest(document_id, payload)
+        self._write_validated_json_artifact(
+            target_path,
+            normalized_payload,
+            lambda loaded_payload: self._normalize_page_manifest(document_id, loaded_payload),
+        )
+        return target_path.relative_to(PROJECT_ROOT).as_posix()
+
+    def load_page_manifest(self, document_id: str) -> dict[str, object] | None:
+        target_path = self.get_page_manifest_path(document_id)
+        if not target_path.exists():
+            return None
+
+        payload = json.loads(target_path.read_text(encoding="utf-8"))
+        return self._normalize_page_manifest(document_id, payload)
+
+    def get_processing_benchmark_path(self, document_id: str) -> Path:
+        return self.analysis_dir / document_id / "processing_benchmark.json"
+
+    def save_processing_benchmark(
+        self,
+        document_id: str,
+        payload: dict[str, object],
+    ) -> str:
+        target_path = self.get_processing_benchmark_path(document_id)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+
+        normalized_payload = self._normalize_processing_benchmark(document_id, payload)
+        self._write_validated_json_artifact(
+            target_path,
+            normalized_payload,
+            lambda loaded_payload: self._normalize_processing_benchmark(document_id, loaded_payload),
+        )
+        return target_path.relative_to(PROJECT_ROOT).as_posix()
+
+    def load_processing_benchmark(self, document_id: str) -> dict[str, object] | None:
+        target_path = self.get_processing_benchmark_path(document_id)
+        if not target_path.exists():
+            return None
+
+        payload = json.loads(target_path.read_text(encoding="utf-8"))
+        return self._normalize_processing_benchmark(document_id, payload)
+
+    def start_processing_benchmark(
+        self,
+        document_id: str,
+        initial_payload: dict[str, object],
+    ) -> None:
+        with self._benchmark_lock:
+            state = self._benchmark_defaults(document_id)
+            state.update(dict(initial_payload))
+            state["document_id"] = document_id
+            self._benchmark_states[document_id] = state
+
+    def record_stage_duration(
+        self,
+        document_id: str,
+        field_name: str,
+        seconds: float,
+    ) -> None:
+        if field_name not in _BENCHMARK_DURATION_FIELDS:
+            raise ValueError(f"Unknown benchmark duration field: {field_name}")
+
+        with self._benchmark_lock:
+            state = self._benchmark_states.get(document_id)
+            if state is None:
+                return
+            state[field_name] = max(0.0, round(float(seconds), 4))
+
+    def update_processing_benchmark_state(
+        self,
+        document_id: str,
+        payload: dict[str, object],
+    ) -> None:
+        with self._benchmark_lock:
+            state = self._benchmark_states.get(document_id)
+            if state is None:
+                return
+            state.update(dict(payload))
+
+    def record_pass1_path_counts(
+        self,
+        document_id: str,
+        pass1_summary: dict[str, object],
+    ) -> None:
+        with self._benchmark_lock:
+            state = self._benchmark_states.get(document_id)
+            if state is None:
+                return
+            state["pass1_text_first_pages"] = len(pass1_summary.get("text_first_pages", []))
+            state["pass1_multimodal_pages"] = len(pass1_summary.get("multimodal_pages", []))
+            state["pass1_escalated_pages"] = len(pass1_summary.get("escalated_pages", []))
+
+    def record_pass2_counts(
+        self,
+        document_id: str,
+        pass2_summary: dict[str, object],
+    ) -> None:
+        with self._benchmark_lock:
+            state = self._benchmark_states.get(document_id)
+            if state is None:
+                return
+            state["pass2_completed_pages"] = len(pass2_summary.get("completed_pages", []))
+            state["pass2_failed_pages"] = len(pass2_summary.get("failed_pages", []))
+
+    def increment_openai_call_count(self, document_id: str, stage_name: str) -> None:
+        counter_field = _OPENAI_CALL_COUNT_FIELDS_BY_STAGE.get(stage_name)
+        if counter_field is None:
+            return
+
+        with self._benchmark_lock:
+            state = self._benchmark_states.get(document_id)
+            if state is None:
+                return
+            state[counter_field] = int(state.get(counter_field, 0)) + 1
+
+    def finalize_processing_benchmark(
+        self,
+        document_id: str,
+        final_payload: dict[str, object],
+    ) -> str:
+        with self._benchmark_lock:
+            state = dict(self._benchmark_states.get(document_id, self._benchmark_defaults(document_id)))
+            state.update(dict(final_payload))
+            state["document_id"] = document_id
+            state["generated_at"] = datetime.now(timezone.utc).isoformat()
+
+        try:
+            saved_path = self.save_processing_benchmark(document_id, state)
+        finally:
+            with self._benchmark_lock:
+                self._benchmark_states.pop(document_id, None)
+
+        return saved_path
+
     def get_document_processing_snapshot(
         self,
         document_id: str,
@@ -642,14 +911,166 @@ class StorageService:
         validated_result = validate_payload("pass1", normalized_result)
 
         return {
-            "meta": {
-                "schema_version": str(meta["schema_version"]),
-                "prompt_version": str(meta["prompt_version"]),
-                "model_name": str(meta["model_name"]),
-                "generated_at": str(meta["generated_at"]),
-            },
+            "meta": self._normalize_pass1_meta(meta),
             "result": validated_result,
         }
+
+    def _normalize_pass1_meta(self, meta: dict[str, object]) -> dict[str, object]:
+        normalized_meta: dict[str, object] = {
+            "schema_version": str(meta["schema_version"]),
+            "prompt_version": str(meta["prompt_version"]),
+            "model_name": str(meta["model_name"]),
+            "generated_at": str(meta["generated_at"]),
+        }
+
+        for key in _OPTIONAL_PASS1_META_KEYS:
+            value = meta.get(key)
+            if value is None:
+                continue
+            normalized_value = str(value).strip()
+            if not normalized_value:
+                continue
+            if key == "pass1_path" and normalized_value not in _ALLOWED_PASS1_PATHS:
+                raise ValueError(
+                    "Pass1 artifact meta pass1_path must be one of: "
+                    + ", ".join(sorted(_ALLOWED_PASS1_PATHS))
+                )
+            if key == "route_label" and normalized_value not in _ALLOWED_ROUTE_LABELS:
+                raise ValueError(
+                    "Pass1 artifact meta route_label must be one of: "
+                    + ", ".join(sorted(_ALLOWED_ROUTE_LABELS))
+                )
+            normalized_meta[key] = normalized_value
+
+        return normalized_meta
+
+    def _normalize_parse_artifact(
+        self,
+        document_id: str,
+        payload: dict[str, object],
+    ) -> dict[str, object]:
+        if not isinstance(payload, dict):
+            raise ValueError("Parse artifact must be a JSON object.")
+
+        normalized_payload = DocumentParseArtifact.model_validate(payload).model_dump(mode="json")
+        if normalized_payload["document_id"] != document_id:
+            raise ValueError("Parse artifact document_id does not match the requested document.")
+        return normalized_payload
+
+    def _normalize_page_parse_artifact(
+        self,
+        document_id: str,
+        page_number: int,
+        payload: dict[str, object],
+    ) -> dict[str, object]:
+        if not isinstance(payload, dict):
+            raise ValueError("Page parse artifact must be a JSON object.")
+
+        normalized_payload = PageParseArtifact.model_validate(payload).model_dump(mode="json")
+        if normalized_payload["document_id"] != document_id:
+            raise ValueError("Page parse artifact document_id does not match the requested document.")
+        if int(normalized_payload["page_number"]) != page_number:
+            raise ValueError("Page parse artifact page_number does not match the requested page.")
+        return normalized_payload
+
+    def _normalize_page_manifest(
+        self,
+        document_id: str,
+        payload: dict[str, object],
+    ) -> dict[str, object]:
+        if not isinstance(payload, dict):
+            raise ValueError("Page manifest must be a JSON object.")
+
+        normalized_payload = DocumentPageManifest.model_validate(payload).model_dump(mode="json")
+        if normalized_payload["document_id"] != document_id:
+            raise ValueError("Page manifest document_id does not match the requested document.")
+        return normalized_payload
+
+    def _normalize_processing_benchmark(
+        self,
+        document_id: str,
+        payload: dict[str, object],
+    ) -> dict[str, object]:
+        if not isinstance(payload, dict):
+            raise ValueError("Processing benchmark must be a JSON object.")
+
+        normalized_payload = self._benchmark_defaults(document_id)
+        normalized_payload.update(dict(payload))
+        normalized_payload["document_id"] = document_id
+
+        if str(normalized_payload["document_id"]) != document_id:
+            raise ValueError("Processing benchmark document_id does not match the requested document.")
+
+        for field_name in _BENCHMARK_DURATION_FIELDS:
+            seconds = round(float(normalized_payload[field_name]), 4)
+            if seconds < 0:
+                raise ValueError(f"{field_name} must be >= 0.")
+            normalized_payload[field_name] = seconds
+
+        for field_name in _BENCHMARK_COUNT_FIELDS - {"openai_call_count_total"}:
+            count = int(normalized_payload[field_name])
+            if count < 0:
+                raise ValueError(f"{field_name} must be >= 0.")
+            normalized_payload[field_name] = count
+
+        normalized_payload["openai_call_count_total"] = (
+            int(normalized_payload["openai_pass1_call_count"])
+            + int(normalized_payload["openai_synthesis_call_count"])
+            + int(normalized_payload["openai_pass2_call_count"])
+        )
+
+        final_status = str(normalized_payload["final_status"]).strip()
+        if final_status not in {status.value for status in DocumentStatus}:
+            raise ValueError("final_status must be a valid DocumentStatus value.")
+        normalized_payload["final_status"] = final_status
+
+        document_parser_backend = str(normalized_payload["document_parser_backend"]).strip()
+        if document_parser_backend not in {"stub", "pymupdf4llm"}:
+            raise ValueError("document_parser_backend must be 'stub' or 'pymupdf4llm'.")
+        normalized_payload["document_parser_backend"] = document_parser_backend
+
+        pass1_routing_mode = str(normalized_payload["pass1_routing_mode"]).strip()
+        if pass1_routing_mode not in {"legacy", "hybrid"}:
+            raise ValueError("pass1_routing_mode must be 'legacy' or 'hybrid'.")
+        normalized_payload["pass1_routing_mode"] = pass1_routing_mode
+
+        for field_name in (
+            "openai_model_pass1",
+            "openai_model_synthesis",
+            "openai_model_pass2",
+            "reasoning_effort_pass1",
+            "reasoning_effort_synthesis",
+            "reasoning_effort_pass2",
+            "generated_at",
+        ):
+            normalized_value = str(normalized_payload[field_name]).strip()
+            if not normalized_value:
+                raise ValueError(f"{field_name} must be a non-empty string.")
+            normalized_payload[field_name] = normalized_value
+
+        openai_timeout_seconds = int(normalized_payload["openai_timeout_seconds"])
+        openai_max_retries = int(normalized_payload["openai_max_retries"])
+        analysis_image_long_edge = int(normalized_payload["analysis_image_long_edge"])
+        if openai_timeout_seconds < 0:
+            raise ValueError("openai_timeout_seconds must be >= 0.")
+        if openai_max_retries < 0:
+            raise ValueError("openai_max_retries must be >= 0.")
+        if analysis_image_long_edge < 0:
+            raise ValueError("analysis_image_long_edge must be >= 0.")
+        normalized_payload["openai_timeout_seconds"] = openai_timeout_seconds
+        normalized_payload["openai_max_retries"] = openai_max_retries
+        normalized_payload["analysis_image_long_edge"] = analysis_image_long_edge
+
+        normalized_payload["parse_artifact_reused"] = bool(normalized_payload["parse_artifact_reused"])
+        normalized_payload["page_manifest_reused"] = bool(normalized_payload["page_manifest_reused"])
+
+        final_error_message = normalized_payload.get("final_error_message")
+        if final_error_message is None:
+            normalized_payload["final_error_message"] = None
+        else:
+            normalized_payload["final_error_message"] = str(final_error_message).strip() or None
+
+        return normalized_payload
 
     def _normalize_document_summary_artifact(
         self,
@@ -893,6 +1314,87 @@ class StorageService:
         failures.sort(key=lambda item: (int(item["page_number"]), str(item["stage"])), reverse=True)
         return failures[:5]
 
+    def _build_page_parse_artifact_payload(
+        self,
+        document_payload: dict[str, object],
+        page_number: int,
+    ) -> dict[str, object] | None:
+        for page_payload in document_payload.get("pages", []):
+            if int(page_payload["page_number"]) != page_number:
+                continue
+
+            return PageParseArtifact(
+                document_id=str(document_payload["document_id"]),
+                parser_source=str(document_payload["parser_source"]),
+                schema_version=str(document_payload["schema_version"]),
+                page_number=int(page_payload["page_number"]),
+                width=float(page_payload["width"]),
+                height=float(page_payload["height"]),
+                ocr_used=bool(page_payload["ocr_used"]),
+                blocks=list(page_payload["blocks"]),
+            ).model_dump(mode="json")
+
+        return None
+
+    def _write_validated_json_artifact(
+        self,
+        target_path: Path,
+        payload: dict[str, object],
+        validator: Callable[[dict[str, object]], dict[str, object]],
+    ) -> None:
+        temp_path = target_path.parent / f".{target_path.name}.{uuid4().hex}.tmp"
+
+        try:
+            temp_path.write_text(
+                json.dumps(payload, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            loaded_payload = json.loads(temp_path.read_text(encoding="utf-8"))
+            validator(loaded_payload)
+            os.replace(temp_path, target_path)
+        except Exception:
+            if temp_path.exists():
+                temp_path.unlink()
+            raise
+
+    def _benchmark_defaults(self, document_id: str) -> dict[str, object]:
+        return {
+            "document_id": document_id,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "total_processing_time_seconds": 0.0,
+            "render_time_seconds": 0.0,
+            "parse_time_seconds": 0.0,
+            "triage_time_seconds": 0.0,
+            "pass1_time_seconds": 0.0,
+            "synthesis_time_seconds": 0.0,
+            "pass2_time_seconds": 0.0,
+            "rendered_pages": 0,
+            "pass1_text_first_pages": 0,
+            "pass1_multimodal_pages": 0,
+            "pass1_escalated_pages": 0,
+            "pass2_completed_pages": 0,
+            "pass2_failed_pages": 0,
+            "openai_call_count_total": 0,
+            "openai_pass1_call_count": 0,
+            "openai_synthesis_call_count": 0,
+            "openai_pass2_call_count": 0,
+            "document_parser_backend": self.settings.document_parser_backend,
+            "pass1_routing_mode": self.settings.pass1_routing_mode,
+            "openai_model_pass1": self.settings.stage_config("pass1").model_name,
+            "openai_model_synthesis": self.settings.stage_config("document_synthesis").model_name,
+            "openai_model_pass2": self.settings.stage_config("pass2").model_name,
+            "reasoning_effort_pass1": self.settings.stage_config("pass1").reasoning_effort,
+            "reasoning_effort_synthesis": self.settings.stage_config("document_synthesis").reasoning_effort,
+            "reasoning_effort_pass2": self.settings.stage_config("pass2").reasoning_effort,
+            "openai_timeout_seconds": self.settings.openai_timeout_seconds,
+            "openai_max_retries": self.settings.openai_max_retries,
+            "analysis_image_long_edge": 0,
+            "parse_artifact_reused": False,
+            "page_manifest_reused": False,
+            "final_status": DocumentStatus.UPLOADED.value,
+            "final_error_message": None,
+        }
+
     def _get_current_page_number(
         self,
         *,
@@ -932,8 +1434,17 @@ class StorageService:
             connection.execute("ALTER TABLE pages ADD COLUMN pass2_error_message TEXT NULL")
 
 
+_storage_service: StorageService | None = None
+_storage_service_lock = Lock()
+
+
 def get_storage_service() -> StorageService:
-    return StorageService()
+    global _storage_service
+    if _storage_service is None:
+        with _storage_service_lock:
+            if _storage_service is None:
+                _storage_service = StorageService()
+    return _storage_service
 
 
 def init_storage() -> None:

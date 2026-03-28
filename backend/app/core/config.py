@@ -9,6 +9,8 @@ from typing import Literal
 
 StageName = Literal["pass1", "document_synthesis", "pass2"]
 ReasoningEffort = Literal["minimal", "low", "medium", "high", "xhigh"]
+DocumentParserBackend = Literal["stub", "pymupdf4llm"]
+Pass1RoutingMode = Literal["legacy", "hybrid"]
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 ENV_FILE_PATH = PROJECT_ROOT / ".env"
@@ -32,6 +34,9 @@ class AppSettings:
     openai_timeout_seconds: int
     openai_max_retries: int
     schema_version: str
+    parser_schema_version: str
+    document_parser_backend: DocumentParserBackend
+    pass1_routing_mode: Pass1RoutingMode
     frontend_port: int
     backend_port: int
     document_db_path: str
@@ -89,6 +94,20 @@ def _strip_wrapping_quotes(value: str) -> str:
     return value
 
 
+def _load_document_parser_backend() -> DocumentParserBackend:
+    backend = os.getenv("DOCUMENT_PARSER_BACKEND", "pymupdf4llm").strip().lower()
+    if backend in {"stub", "pymupdf4llm"}:
+        return backend  # type: ignore[return-value]
+    return "pymupdf4llm"
+
+
+def _load_pass1_routing_mode() -> Pass1RoutingMode:
+    routing_mode = os.getenv("PASS1_ROUTING_MODE", "hybrid").strip().lower()
+    if routing_mode in {"legacy", "hybrid"}:
+        return routing_mode  # type: ignore[return-value]
+    return "hybrid"
+
+
 def _load_env_file(env_path: Path) -> None:
     if not env_path.exists():
         return
@@ -132,6 +151,9 @@ def _build_settings() -> AppSettings:
         openai_timeout_seconds=int(os.getenv("OPENAI_TIMEOUT_SECONDS", "60")),
         openai_max_retries=int(os.getenv("OPENAI_MAX_RETRIES", "2")),
         schema_version=os.getenv("SCHEMA_VERSION", "0.1"),
+        parser_schema_version=os.getenv("PARSER_SCHEMA_VERSION", "parser_v0_2"),
+        document_parser_backend=_load_document_parser_backend(),
+        pass1_routing_mode=_load_pass1_routing_mode(),
         frontend_port=int(os.getenv("FRONTEND_PORT", "3000")),
         backend_port=int(os.getenv("BACKEND_PORT", "8000")),
         document_db_path=os.getenv("DOCUMENT_DB_PATH", "./data/scholium_dev.sqlite3"),

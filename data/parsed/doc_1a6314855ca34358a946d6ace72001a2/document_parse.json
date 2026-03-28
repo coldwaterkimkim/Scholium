@@ -1,0 +1,223 @@
+{
+  "document_id": "doc_1a6314855ca34358a946d6ace72001a2",
+  "parser_source": "pymupdf4llm+fitz",
+  "schema_version": "parser_v0_2",
+  "pages": [
+    {
+      "page_number": 1,
+      "width": 960.0,
+      "height": 540.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p1_b0",
+          "block_type": "paragraph",
+          "text": "Financial management links firm decisions to value creation. This",
+          "bbox": [
+            0.0625,
+            0.111111,
+            0.660985,
+            0.055978
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p1_b1",
+          "block_type": "paragraph",
+          "text": "page explains cash flows, discount rates, and why time value of",
+          "bbox": [
+            0.0625,
+            0.231463,
+            0.644508,
+            0.055978
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p1_b2",
+          "block_type": "paragraph",
+          "text": "money matters for managers. The examples emphasize tradeoffs between",
+          "bbox": [
+            0.0625,
+            0.351816,
+            0.755287,
+            0.055978
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p1_b3",
+          "block_type": "paragraph",
+          "text": "risk, return, and capital allocation. Students should notice how",
+          "bbox": [
+            0.0625,
+            0.472168,
+            0.627962,
+            0.055978
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p1_b4",
+          "block_type": "paragraph",
+          "text": "each paragraph supports a coherent explanatory narrative across the",
+          "bbox": [
+            0.0625,
+            0.59252,
+            0.701846,
+            0.055978
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p1_b5",
+          "block_type": "paragraph",
+          "text": "slide. Discounting future cash flows, estimating risk, and comparing",
+          "bbox": [
+            0.0625,
+            0.712872,
+            0.681381,
+            0.055978
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p1_b6",
+          "block_type": "paragraph",
+          "text": "projects are all core ideas on this page.",
+          "bbox": [
+            0.0625,
+            0.833225,
+            0.398681,
+            0.055978
+          ],
+          "reading_order": 6
+        }
+      ]
+    },
+    {
+      "page_number": 2,
+      "width": 960.0,
+      "height": 540.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p2_b0",
+          "block_type": "paragraph",
+          "text": "A text rich lecture slide can still contain minor decorative shapes",
+          "bbox": [
+            0.0625,
+            0.111111,
+            0.64955,
+            0.055978
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p2_b1",
+          "block_type": "paragraph",
+          "text": "without requiring an image multimodal call. This page introduces",
+          "bbox": [
+            0.0625,
+            0.231463,
+            0.652094,
+            0.055978
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p2_b2",
+          "block_type": "paragraph",
+          "text": "shareholder value, enterprise value, project selection, and the role",
+          "bbox": [
+            0.0625,
+            0.351816,
+            0.669992,
+            0.055978
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p2_b3",
+          "block_type": "paragraph",
+          "text": "of expected future cash flow. The key idea is that the page remains",
+          "bbox": [
+            0.0625,
+            0.472168,
+            0.680212,
+            0.055978
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p2_b4",
+          "block_type": "paragraph",
+          "text": "heavily textual and structurally legible from parsed blocks alone.",
+          "bbox": [
+            0.0625,
+            0.59252,
+            0.648289,
+            0.055978
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p2_b5",
+          "block_type": "paragraph",
+          "text": "The slide is meant to trigger multiple semantic anchors that can be",
+          "bbox": [
+            0.0625,
+            0.712872,
+            0.673773,
+            0.055978
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p2_b6",
+          "block_type": "paragraph",
+          "text": "grounded in text blocks instead of the full image.",
+          "bbox": [
+            0.0625,
+            0.833225,
+            0.490417,
+            0.055978
+          ],
+          "reading_order": 6
+        }
+      ]
+    },
+    {
+      "page_number": 3,
+      "width": 960.0,
+      "height": 540.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p3_b0",
+          "block_type": "paragraph",
+          "text": "Figure-heavy visual page",
+          "bbox": [
+            0.0625,
+            0.081852,
+            0.279275,
+            0.061067
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p3_b1",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.1875,
+            0.222222,
+            0.625,
+            0.648148
+          ],
+          "reading_order": 1
+        }
+      ]
+    }
+  ]
+}
