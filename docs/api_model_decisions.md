@@ -18,15 +18,33 @@
 
 | stage | model | reasoning.effort | prompt_version |
 | --- | --- | --- | --- |
-| pass1 | `gpt-5.4` | `high` | `pass1_v0_1` |
+| pass1 | `gpt-5.4` | `medium` | `pass1_v0_1` |
 | document_synthesis | `gpt-5.4` | `medium` | `synthesis_v0_1` |
-| pass2 | `gpt-5.4` | `high` | `pass2_v0_1` |
+| pass2 | `gpt-5.4` | `medium` | `pass2_v0_1` |
 
 ## timeout / retry
 
-- request timeout: 60초
+- request timeout: 기본 60초
+- pass2 request timeout: 120초
 - API/network retry: 최대 2회
 - local validation 실패 시: repair instruction을 붙여 1회 재시도
+- pass2 diversity 보정용 추가 모델 호출: 사용하지 않음
+
+## P0-A 비용/성능 절감
+
+- pass1 기본 reasoning effort는 `high`에서 `medium`으로 낮춘다.
+- 이유: pass1은 페이지 수만큼 호출이 fan-out되므로 reasoning effort를 낮추는 편이 누적 비용과 지연을 가장 직접적으로 줄인다.
+- pass2는 diversity 부족을 이유로 모델을 다시 호출하지 않고, 결과의 다양성 부족은 `qa_warnings`에만 남긴다.
+- 이유: diversity 보정용 추가 호출은 비용 증가 대비 효과가 불안정하므로, 이번 단계에서는 warning으로만 관찰하고 재호출은 생략한다.
+- pass2 기본 reasoning effort는 `high`에서 `medium`으로 낮춘다.
+- 이유: pass2는 이미지 + pass1 결과 + 문서 요약을 함께 넣는 무거운 stage라서 timeout과 connection error를 줄이기 위해 호출당 사고량을 낮춘다.
+- pass2 기본 병렬도는 `3`에서 `2`로 낮춘다.
+- 이유: 문서당 동시 호출 burst를 줄여 timeout/connection error 확률을 낮춘다.
+- pass2 기본 timeout은 `60초`가 아니라 `120초`를 사용한다.
+- 이유: pass2는 stage 특성상 payload와 출력이 가장 무거워서, 60초 제한보다 1회 성공을 우선하는 편이 재시도/실패 비용까지 포함하면 더 안정적이다.
+- 모델 입력에 넣는 stage payload JSON은 compact form으로 직렬화한다.
+- 이유: 모델 입력 토큰과 전송량을 줄이기 위해서고, 사람용 artifact 저장 포맷은 그대로 유지한다.
+- artifact 저장 JSON과 `meta` / `result` envelope 구조는 그대로 유지한다.
 
 ## schema validation
 

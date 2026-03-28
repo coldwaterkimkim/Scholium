@@ -14,7 +14,7 @@ class Pass2Refiner:
         self,
         storage: StorageService | None = None,
         openai_client: OpenAIResponsesClient | None = None,
-        max_workers: int = 3,
+        max_workers: int = 2,
     ) -> None:
         self.storage = storage or get_storage_service()
         self.openai_client = openai_client or OpenAIResponsesClient()
@@ -200,27 +200,9 @@ class Pass2Refiner:
             qa_warnings.extend(initial_warnings)
 
             if needs_diversity_retry:
-                retry_envelope = self._run_pass2_with_timeout_retry(
-                    image_path=image_path,
-                    document_id=document_id,
-                    page_number=page_number,
-                    pass1_result=pass1_artifact["result"],
-                    document_summary_result=document_summary["result"],
-                    extra_guidance=self._build_diversity_retry_guidance(candidate_types),
+                qa_warnings.append(
+                    "Final anchors remained monotype even though the pass1 candidate pool included multiple anchor types.",
                 )
-                normalized_envelope, retry_warnings, needs_diversity_retry = self._normalize_envelope(
-                    document_id=document_id,
-                    page_number=page_number,
-                    envelope=retry_envelope,
-                    candidate_map=candidate_map,
-                    valid_pass1_page_numbers=valid_pass1_page_numbers,
-                    document_summary_result=document_summary["result"],
-                )
-                qa_warnings = retry_warnings
-                if needs_diversity_retry:
-                    qa_warnings.append(
-                        "Final anchors remained monotype even though the pass1 candidate pool included multiple anchor types.",
-                    )
 
             if len(candidate_types) == 1:
                 qa_warnings.append(
@@ -553,20 +535,12 @@ class Pass2Refiner:
 
         return score
 
-    def _build_diversity_retry_guidance(self, candidate_types: set[str]) -> str:
-        sorted_types = ", ".join(sorted(candidate_types))
-        return (
-            "Your previous pass2 result selected final anchors of only one anchor_type even though "
-            f"the pass1 candidate pool includes multiple types ({sorted_types}). "
-            "Rerank again and try to include a meaningful secondary type if possible, while keeping "
-            "final_anchors as a subset of pass1 candidates and preserving anchor_id, anchor_type, and bbox."
-        )
-
     def _build_timeout_retry_guidance(self, existing_guidance: str | None = None) -> str:
         timeout_guidance = (
             "Retry pass2 with a faster, more concise output. Prefer 3 final anchors if that is enough. "
-            "Keep long_explanation to 3 concise sentences, keep page_risk_note to 1 sentence, "
-            "and use 0 related_pages if the connection value is weak. Do not create new anchors."
+            "Keep short_explanation to 1 sentence, keep long_explanation to 2 concise sentences, "
+            "keep prerequisite very short, keep page_risk_note to 1 sentence, "
+            "and use at most 1 related_page if the connection value is strong. Do not create new anchors."
         )
         if existing_guidance:
             return f"{existing_guidance}\n\n{timeout_guidance}"

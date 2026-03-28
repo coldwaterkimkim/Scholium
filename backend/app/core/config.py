@@ -19,6 +19,7 @@ class StageConfig:
     stage_name: StageName
     model_name: str
     reasoning_effort: ReasoningEffort
+    timeout_seconds: int
     prompt_version: str
     schema_name: str
     prompt_path: Path
@@ -52,7 +53,8 @@ STAGE_DEFAULTS = {
     "pass1": {
         "model_env": "OPENAI_MODEL_PASS1",
         "default_model": "gpt-5.4",
-        "reasoning_effort": "high",
+        "reasoning_effort": "medium",
+        "timeout_seconds": 60,
         "prompt_env": "PROMPT_VERSION_PASS1",
         "default_prompt_version": "pass1_v0_1",
         "schema_name": "pass1_result",
@@ -62,6 +64,7 @@ STAGE_DEFAULTS = {
         "model_env": "OPENAI_MODEL_SYNTHESIS",
         "default_model": "gpt-5.4",
         "reasoning_effort": "medium",
+        "timeout_seconds": 60,
         "prompt_env": "PROMPT_VERSION_SYNTHESIS",
         "default_prompt_version": "synthesis_v0_1",
         "schema_name": "document_synthesis_result",
@@ -70,7 +73,8 @@ STAGE_DEFAULTS = {
     "pass2": {
         "model_env": "OPENAI_MODEL_PASS2",
         "default_model": "gpt-5.4",
-        "reasoning_effort": "high",
+        "reasoning_effort": "medium",
+        "timeout_seconds": 120,
         "prompt_env": "PROMPT_VERSION_PASS2",
         "default_prompt_version": "pass2_v0_1",
         "schema_name": "pass2_result",
@@ -107,6 +111,7 @@ def _load_stage_configs() -> dict[StageName, StageConfig]:
             stage_name=stage_name,
             model_name=os.getenv(default_config["model_env"], default_config["default_model"]),
             reasoning_effort=default_config["reasoning_effort"],
+            timeout_seconds=int(default_config["timeout_seconds"]),
             prompt_version=os.getenv(
                 default_config["prompt_env"],
                 default_config["default_prompt_version"],

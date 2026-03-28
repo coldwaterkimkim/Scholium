@@ -155,7 +155,7 @@ class OpenAIResponsesClient:
                         "strict": True,
                     }
                 },
-                timeout=self.settings.openai_timeout_seconds,
+                timeout=stage_config.timeout_seconds,
             )
         except Exception as exc:  # pragma: no cover - depends on live API/network
             raise OpenAIClientError(f"Responses API call failed for stage '{stage}': {exc}") from exc
@@ -232,7 +232,14 @@ class OpenAIResponsesClient:
         extra_user_messages: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         user_content: list[dict[str, Any]] = [
-            {"type": "input_text", "text": json.dumps(stage_payload, ensure_ascii=False, indent=2)}
+            {
+                "type": "input_text",
+                "text": json.dumps(
+                    stage_payload,
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                ),
+            }
         ]
 
         if page_image_path is not None:
