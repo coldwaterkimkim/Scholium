@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -20,6 +21,24 @@ class DocumentPublicResponse(BaseModel):
     filename: str
     status: DocumentStatus
     total_pages: int | None = None
+
+
+class DocumentListItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    document_id: str
+    filename: str
+    status: DocumentStatus
+    total_pages: int | None = None
+    created_at: datetime
+    updated_at: datetime
+    error_message: str | None = None
+
+
+class DocumentListResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    documents: list[DocumentListItem] = Field(default_factory=list)
 
 
 class DocumentSummaryPublicResponse(DocumentSummaryResult):

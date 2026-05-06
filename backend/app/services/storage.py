@@ -218,6 +218,31 @@ class StorageService:
 
         return self._row_to_document(row)
 
+    def list_documents(self, *, limit: int = 50) -> list[DocumentRecord]:
+        self.init_storage()
+
+        safe_limit = max(1, min(int(limit), 200))
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT
+                    document_id,
+                    filename,
+                    original_path,
+                    status,
+                    total_pages,
+                    created_at,
+                    updated_at,
+                    error_message
+                FROM documents
+                ORDER BY updated_at DESC, created_at DESC
+                LIMIT ?
+                """,
+                (safe_limit,),
+            ).fetchall()
+
+        return [self._row_to_document(row) for row in rows]
+
     def update_document(
         self,
         document_id: str,

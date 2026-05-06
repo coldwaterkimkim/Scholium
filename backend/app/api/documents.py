@@ -6,6 +6,8 @@ from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Re
 
 from app.models.document import DocumentRecord, DocumentStatus, DocumentUploadResponse
 from app.models.read_api import (
+    DocumentListItem,
+    DocumentListResponse,
     DocumentProcessingResponse,
     DocumentPublicResponse,
     DocumentSummaryPublicResponse,
@@ -106,6 +108,27 @@ async def upload_document(
     return DocumentUploadResponse(
         document_id=document_record.document_id,
         status=document_record.status,
+    )
+
+
+@router.get("", response_model=DocumentListResponse)
+def list_documents(
+    storage: StorageService = Depends(get_storage_service),
+) -> DocumentListResponse:
+    documents = storage.list_documents(limit=50)
+    return DocumentListResponse(
+        documents=[
+            DocumentListItem(
+                document_id=document.document_id,
+                filename=document.filename,
+                status=document.status,
+                total_pages=document.total_pages,
+                created_at=document.created_at,
+                updated_at=document.updated_at,
+                error_message=document.error_message,
+            )
+            for document in documents
+        ]
     )
 
 

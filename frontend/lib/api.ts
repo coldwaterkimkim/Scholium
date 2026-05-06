@@ -15,6 +15,16 @@ export type DocumentMeta = {
   total_pages: number | null;
 };
 
+export type DocumentListItem = DocumentMeta & {
+  created_at: string;
+  updated_at: string;
+  error_message: string | null;
+};
+
+export type DocumentListResponse = {
+  documents: DocumentListItem[];
+};
+
 export type DocumentUploadResponse = {
   document_id: string;
   status: string;
@@ -290,6 +300,14 @@ export function getDocument(documentId: string, signal?: AbortSignal): Promise<D
   return fetchJson<DocumentMeta>(
     `/api/documents/${encodeURIComponent(documentId)}`,
     "문서를 찾을 수 없어.",
+    signal,
+  );
+}
+
+export function listDocuments(signal?: AbortSignal): Promise<DocumentListResponse> {
+  return fetchJson<DocumentListResponse>(
+    "/api/documents",
+    "작업 목록을 불러올 수 없어.",
     signal,
   );
 }
