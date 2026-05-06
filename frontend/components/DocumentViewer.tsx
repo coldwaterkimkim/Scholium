@@ -119,6 +119,18 @@ type ChipContextMenu = {
   top: number;
 } | null;
 
+type SelectionChipSide = "left" | "right";
+
+type SelectionChipPlacement = {
+  left: number;
+  top: number;
+  side: SelectionChipSide;
+};
+
+const ANNOTATION_CHIP_MAX_WIDTH = 228;
+const ANNOTATION_CHIP_HEIGHT = 26;
+const ANNOTATION_CHIP_GAP = 8;
+
 const RELATED_FOCUS_ALIASES: Array<[RegExp, string]> = [
   [/전도대/, "conduction band"],
   [/가전자대/, "valence band"],
@@ -227,6 +239,47 @@ function buildPanelPlacement(
     connectorLine: { x1, y1, x2, y2 },
     canvasWidth,
     canvasHeight,
+  };
+}
+
+function buildSelectionChipPlacement(
+  selectionRect: PixelRect,
+  imageDisplayMetrics: ImageDisplayMetrics,
+): SelectionChipPlacement {
+  const panelPlacement = buildPanelPlacement(selectionRect, imageDisplayMetrics);
+  const selectionCenterX = selectionRect.left + selectionRect.width / 2;
+  const panelCenterX = panelPlacement
+    ? panelPlacement.panelStyle.left + panelPlacement.panelStyle.width / 2
+    : selectionCenterX + 1;
+  const side: SelectionChipSide = panelCenterX < selectionCenterX ? "left" : "right";
+  const imageLeft = imageDisplayMetrics.offsetLeft;
+  const imageTop = imageDisplayMetrics.offsetTop;
+  const imageRight = imageLeft + imageDisplayMetrics.width;
+  const imageBottom = imageTop + imageDisplayMetrics.height;
+  const minTop = imageTop + 8;
+  const maxTop = Math.max(minTop, imageBottom - ANNOTATION_CHIP_HEIGHT - 8);
+  const top = clamp(
+    selectionRect.top + selectionRect.height / 2 - ANNOTATION_CHIP_HEIGHT / 2,
+    minTop,
+    maxTop,
+  );
+
+  if (side === "left") {
+    const maxAnchorLeft = imageRight - 8;
+    const minAnchorLeft = Math.min(imageLeft + ANNOTATION_CHIP_MAX_WIDTH + 8, maxAnchorLeft);
+    return {
+      left: clamp(selectionRect.left - ANNOTATION_CHIP_GAP, minAnchorLeft, maxAnchorLeft),
+      top,
+      side,
+    };
+  }
+
+  const minLeft = imageLeft + 8;
+  const maxLeft = Math.max(minLeft, imageRight - ANNOTATION_CHIP_MAX_WIDTH - 8);
+  return {
+    left: clamp(selectionRect.left + selectionRect.width + ANNOTATION_CHIP_GAP, minLeft, maxLeft),
+    top,
+    side,
   };
 }
 
@@ -390,6 +443,7 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
   const [dragSelection, setDragSelection] = useState<DragSelection | null>(null);
   const [viewerNotice, setViewerNotice] = useState<ViewerNotice>(null);
   const [chipContextMenu, setChipContextMenu] = useState<ChipContextMenu>(null);
+  const [hoveredSelectionJobId, setHoveredSelectionJobId] = useState<string | null>(null);
   const [pendingRelatedFocus, setPendingRelatedFocus] = useState<RelatedFocusTarget | null>(null);
   const [relatedFocus, setRelatedFocus] = useState<RelatedFocus | null>(null);
   const [loading, setLoading] = useState<LoadingState>({ document: true, page: false });
@@ -426,6 +480,25 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
 
     return normalizedBboxToPixelRect(selectedBbox, imageDisplayMetrics);
   }, [imageDisplayMetrics, selectedBbox]);
+  const hoveredSelectionJob = useMemo(() => {
+    if (!hoveredSelectionJobId) {
+      return null;
+    }
+
+    return selectionJobs.find((job) => job.id === hoveredSelectionJobId) ?? null;
+  }, [hoveredSelectionJobId, selectionJobs]);
+  const hoveredSelectionRect = useMemo<PixelRect | null>(() => {
+    if (
+      !hoveredSelectionJob ||
+      !currentPageData ||
+      !imageDisplayMetrics ||
+      hoveredSelectionJob.pageNumber !== currentPageData.page_number
+    ) {
+      return null;
+    }
+
+    return normalizedBboxToPixelRect(hoveredSelectionJob.bbox, imageDisplayMetrics);
+  }, [currentPageData, hoveredSelectionJob, imageDisplayMetrics]);
   const panelPlacement = useMemo(
     () => buildPanelPlacement(selectedRegionRect, imageDisplayMetrics),
     [imageDisplayMetrics, selectedRegionRect],
@@ -455,13 +528,11 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
       }))
       .filter((item): item is { job: SelectionJob; rect: PixelRect } => item.rect !== null)
       .map(({ job, rect }) => {
-        const maxLeft = Math.max(8, imageDisplayMetrics.offsetLeft + imageDisplayMetrics.width - 228);
-        const maxTop = Math.max(8, imageDisplayMetrics.offsetTop + imageDisplayMetrics.height - 30);
+        const chipPlacement = buildSelectionChipPlacement(rect, imageDisplayMetrics);
         return {
           job,
           rect,
-          left: clamp(rect.left + rect.width - 18, 8, maxLeft),
-          top: clamp(rect.top - 13, 8, maxTop),
+          ...chipPlacement,
         };
       });
   }, [activeSelectionJobId, currentPageData, imageDisplayMetrics, selectionJobs]);
@@ -517,6 +588,7 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
     dragSelectionRef.current = null;
     setDragSelection(null);
     setChipContextMenu(null);
+    setHoveredSelectionJobId(null);
     activeSelectionJobIdRef.current = null;
     setActiveSelectionJobId(null);
   }, []);
@@ -526,6 +598,7 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
     dragSelectionRef.current = null;
     setDragSelection(null);
     setChipContextMenu(null);
+    setHoveredSelectionJobId(null);
 
     if (activeJobId) {
       selectionJobControllersRef.current.get(activeJobId)?.abort();
@@ -546,6 +619,7 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
     dragSelectionRef.current = null;
     setDragSelection(null);
     setChipContextMenu(null);
+    setHoveredSelectionJobId(null);
     activeSelectionJobIdRef.current = null;
     setActiveSelectionJobId(null);
     setSelectionJobs([]);
@@ -608,6 +682,7 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
 
   const handleSelectionChipOpen = useCallback((job: SelectionJob) => {
     setChipContextMenu(null);
+    setHoveredSelectionJobId(null);
     dragSelectionRef.current = null;
     setDragSelection(null);
     setPendingRelatedFocus(null);
@@ -1440,7 +1515,18 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
                       }}
                     />
                   ) : null}
-                  {currentPageSelectionChips.map(({ job, left, top }) => (
+                  {hoveredSelectionRect && !visibleDragRect ? (
+                    <div
+                      className={styles.hoveredSelectionRect}
+                      style={{
+                        left: `${hoveredSelectionRect.left}px`,
+                        top: `${hoveredSelectionRect.top}px`,
+                        width: `${hoveredSelectionRect.width}px`,
+                        height: `${hoveredSelectionRect.height}px`,
+                      }}
+                    />
+                  ) : null}
+                  {currentPageSelectionChips.map(({ job, left, top, side }) => (
                     <button
                       key={job.id}
                       type="button"
@@ -1450,7 +1536,9 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
                           : job.status === "error"
                             ? styles.annotationChipError
                             : styles.annotationChipReady
-                      } ${job.isImportant ? styles.annotationChipImportant : ""}`}
+                      } ${side === "left" ? styles.annotationChipSideLeft : styles.annotationChipSideRight} ${
+                        job.isImportant ? styles.annotationChipImportant : ""
+                      }`}
                       style={{
                         left: `${left}px`,
                         top: `${top}px`,
@@ -1458,6 +1546,14 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
                       aria-label={buildSelectionChipTitle(job)}
                       title={buildSelectionChipTitle(job)}
                       onPointerDown={(event) => event.stopPropagation()}
+                      onPointerEnter={() => setHoveredSelectionJobId(job.id)}
+                      onPointerLeave={() => {
+                        setHoveredSelectionJobId((currentId) => (currentId === job.id ? null : currentId));
+                      }}
+                      onFocus={() => setHoveredSelectionJobId(job.id)}
+                      onBlur={() => {
+                        setHoveredSelectionJobId((currentId) => (currentId === job.id ? null : currentId));
+                      }}
                       onContextMenu={(event) => handleSelectionChipContextMenu(job, event)}
                       onClick={() => handleSelectionChipOpen(job)}
                     >
