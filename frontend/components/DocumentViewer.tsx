@@ -733,30 +733,6 @@ function resolveSelectionChipLanes(
 }
 
 function getSelectionChipStyleFromRect(draft: SelectionChipDraft): SelectionChipPlacement {
-  if (draft.side === "left") {
-    return {
-      left: draft.chipRect.left + draft.chipRect.width,
-      top: draft.chipRect.top,
-      side: draft.side,
-    };
-  }
-
-  if (draft.side === "top") {
-    return {
-      left: draft.chipRect.left + draft.chipRect.width / 2,
-      top: draft.chipRect.top + draft.chipRect.height,
-      side: draft.side,
-    };
-  }
-
-  if (draft.side === "bottom") {
-    return {
-      left: draft.chipRect.left + draft.chipRect.width / 2,
-      top: draft.chipRect.top,
-      side: draft.side,
-    };
-  }
-
   return {
     left: draft.chipRect.left,
     top: draft.chipRect.top,

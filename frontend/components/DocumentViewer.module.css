@@ -217,27 +217,11 @@
     box-shadow 160ms ease;
 }
 
-.annotationChipSideLeft {
-  --annotation-chip-offset-x: -100%;
-
-  transform-origin: right center;
-}
-
-.annotationChipSideRight {
-  transform-origin: left center;
-}
-
-.annotationChipSideTop {
-  --annotation-chip-offset-x: -50%;
-  --annotation-chip-offset-y: -100%;
-
-  transform-origin: center bottom;
-}
-
+.annotationChipSideLeft,
+.annotationChipSideRight,
+.annotationChipSideTop,
 .annotationChipSideBottom {
-  --annotation-chip-offset-x: -50%;
-
-  transform-origin: center top;
+  transform-origin: center center;
 }
 
 .annotationChipDot {
