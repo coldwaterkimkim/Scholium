@@ -19,6 +19,7 @@ from app.models.document import (
     StageStatus,
 )
 from app.models.parser import DocumentPageManifest, DocumentParseArtifact, PageParseArtifact
+from app.models.pipeline_v2 import DocumentSpineArtifact, PageRoutingArtifact
 from app.utils.validation import validate_payload
 
 
@@ -26,22 +27,47 @@ _UNSET = object()
 _OPTIONAL_PASS1_META_KEYS = {"pass1_path", "route_label", "route_reason", "parser_source"}
 _ALLOWED_PASS1_PATHS = {"text-first", "multimodal", "escalated"}
 _ALLOWED_ROUTE_LABELS = {"text-rich", "scan-like", "visual-rich"}
+_ALLOWED_PIPELINE_MODES = {"legacy", "hybrid", "v2_spine"}
+_ALLOWED_SPINE_MODES = {"off", "shadow", "active"}
+_ALLOWED_SPINE_SHADOW_STATUSES = {"disabled", "skipped", "completed", "failed"}
+_ALLOWED_SPINE_SHADOW_REASONS = {
+    "disabled",
+    "parse_unavailable",
+    "manifest_unavailable",
+    "builder_failed",
+    "not_requested",
+}
+_ALLOWED_PASS2_GENERATION_MODES = {"llm", "compat"}
+_ALLOWED_PASS2_EXECUTION_MODES = {"all_pages", "hard_pages_only"}
+_ALLOWED_PASS2_PLANNER_STATUSES = {"disabled", "active", "fallback"}
+_ALLOWED_PASS2_PLANNER_REASONS = {
+    "not_requested",
+    "routing_missing",
+    "routing_invalid",
+    "routing_coverage_mismatch",
+    "compat_builder_failed_promoted",
+}
 _BENCHMARK_DURATION_FIELDS = {
     "total_processing_time_seconds",
     "render_time_seconds",
     "parse_time_seconds",
     "triage_time_seconds",
+    "spine_time_seconds",
     "pass1_time_seconds",
     "synthesis_time_seconds",
     "pass2_time_seconds",
 }
 _BENCHMARK_COUNT_FIELDS = {
     "rendered_pages",
+    "hard_page_count",
     "pass1_text_first_pages",
     "pass1_multimodal_pages",
     "pass1_escalated_pages",
     "pass2_completed_pages",
     "pass2_failed_pages",
+    "pass2_llm_count",
+    "pass2_compat_count",
+    "compat_promoted_to_llm_count",
     "openai_call_count_total",
     "openai_pass1_call_count",
     "openai_synthesis_call_count",
@@ -558,6 +584,12 @@ class StorageService:
     def get_page_manifest_path(self, document_id: str) -> Path:
         return self.parsed_dir / document_id / "page_manifest.json"
 
+    def get_document_spine_path(self, document_id: str) -> Path:
+        return self.analysis_dir / document_id / "document_spine.json"
+
+    def get_page_routing_path(self, document_id: str) -> Path:
+        return self.analysis_dir / document_id / "page_routing.json"
+
     def save_page_parse_artifact(
         self,
         document_id: str,
@@ -627,6 +659,54 @@ class StorageService:
 
         payload = json.loads(target_path.read_text(encoding="utf-8"))
         return self._normalize_page_manifest(document_id, payload)
+
+    def save_document_spine(
+        self,
+        document_id: str,
+        payload: dict[str, object],
+    ) -> str:
+        target_path = self.get_document_spine_path(document_id)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+
+        normalized_payload = self._normalize_document_spine(document_id, payload)
+        self._write_validated_json_artifact(
+            target_path,
+            normalized_payload,
+            lambda loaded_payload: self._normalize_document_spine(document_id, loaded_payload),
+        )
+        return target_path.relative_to(PROJECT_ROOT).as_posix()
+
+    def load_document_spine(self, document_id: str) -> dict[str, object] | None:
+        target_path = self.get_document_spine_path(document_id)
+        if not target_path.exists():
+            return None
+
+        payload = json.loads(target_path.read_text(encoding="utf-8"))
+        return self._normalize_document_spine(document_id, payload)
+
+    def save_page_routing(
+        self,
+        document_id: str,
+        payload: dict[str, object],
+    ) -> str:
+        target_path = self.get_page_routing_path(document_id)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+
+        normalized_payload = self._normalize_page_routing(document_id, payload)
+        self._write_validated_json_artifact(
+            target_path,
+            normalized_payload,
+            lambda loaded_payload: self._normalize_page_routing(document_id, loaded_payload),
+        )
+        return target_path.relative_to(PROJECT_ROOT).as_posix()
+
+    def load_page_routing(self, document_id: str) -> dict[str, object] | None:
+        target_path = self.get_page_routing_path(document_id)
+        if not target_path.exists():
+            return None
+
+        payload = json.loads(target_path.read_text(encoding="utf-8"))
+        return self._normalize_page_routing(document_id, payload)
 
     def get_processing_benchmark_path(self, document_id: str) -> Path:
         return self.analysis_dir / document_id / "processing_benchmark.json"
@@ -716,6 +796,41 @@ class StorageService:
                 return
             state["pass2_completed_pages"] = len(pass2_summary.get("completed_pages", []))
             state["pass2_failed_pages"] = len(pass2_summary.get("failed_pages", []))
+            pass2_llm_pages = self._normalize_sorted_unique_int_list(pass2_summary.get("llm_pages", []))
+            pass2_compat_pages = self._normalize_sorted_unique_int_list(
+                pass2_summary.get("compat_pages", [])
+            )
+            pass2_selected_pages = self._normalize_sorted_unique_int_list(
+                pass2_summary.get("selected_pages", [])
+            )
+            pass2_skipped_llm_pages = self._normalize_sorted_unique_int_list(
+                pass2_summary.get("skipped_llm_pages", [])
+            )
+            compat_promoted_to_llm_pages = self._normalize_sorted_unique_int_list(
+                pass2_summary.get("compat_promoted_to_llm_pages", [])
+            )
+
+            state["pass2_execution_mode"] = str(
+                pass2_summary.get("pass2_execution_mode", state.get("pass2_execution_mode", "all_pages"))
+            )
+            state["pass2_llm_pages"] = pass2_llm_pages
+            state["pass2_compat_pages"] = pass2_compat_pages
+            state["pass2_llm_count"] = len(pass2_llm_pages)
+            state["pass2_compat_count"] = len(pass2_compat_pages)
+            state["pass2_selected_pages"] = pass2_selected_pages
+            state["pass2_skipped_llm_pages"] = pass2_skipped_llm_pages
+            state["compat_promoted_to_llm_pages"] = compat_promoted_to_llm_pages
+            state["compat_promoted_to_llm_count"] = len(compat_promoted_to_llm_pages)
+            state["pass2_planner_status"] = str(
+                pass2_summary.get(
+                    "pass2_planner_status",
+                    state.get("pass2_planner_status", "disabled"),
+                )
+            )
+            state["pass2_planner_reason"] = pass2_summary.get(
+                "pass2_planner_reason",
+                state.get("pass2_planner_reason"),
+            )
 
     def increment_openai_call_count(self, document_id: str, stage_name: str) -> None:
         counter_field = _OPENAI_CALL_COUNT_FIELDS_BY_STAGE.get(stage_name)
@@ -986,6 +1101,32 @@ class StorageService:
             raise ValueError("Page manifest document_id does not match the requested document.")
         return normalized_payload
 
+    def _normalize_document_spine(
+        self,
+        document_id: str,
+        payload: dict[str, object],
+    ) -> dict[str, object]:
+        if not isinstance(payload, dict):
+            raise ValueError("Document spine artifact must be a JSON object.")
+
+        normalized_payload = DocumentSpineArtifact.model_validate(payload).model_dump(mode="json")
+        if normalized_payload["result"]["document_id"] != document_id:
+            raise ValueError("Document spine document_id does not match the requested document.")
+        return normalized_payload
+
+    def _normalize_page_routing(
+        self,
+        document_id: str,
+        payload: dict[str, object],
+    ) -> dict[str, object]:
+        if not isinstance(payload, dict):
+            raise ValueError("Page routing artifact must be a JSON object.")
+
+        normalized_payload = PageRoutingArtifact.model_validate(payload).model_dump(mode="json")
+        if normalized_payload["result"]["document_id"] != document_id:
+            raise ValueError("Page routing document_id does not match the requested document.")
+        return normalized_payload
+
     def _normalize_processing_benchmark(
         self,
         document_id: str,
@@ -1034,6 +1175,16 @@ class StorageService:
             raise ValueError("pass1_routing_mode must be 'legacy' or 'hybrid'.")
         normalized_payload["pass1_routing_mode"] = pass1_routing_mode
 
+        pipeline_mode = str(normalized_payload["pipeline_mode"]).strip()
+        if pipeline_mode not in _ALLOWED_PIPELINE_MODES:
+            raise ValueError("pipeline_mode must be 'legacy', 'hybrid', or 'v2_spine'.")
+        normalized_payload["pipeline_mode"] = pipeline_mode
+
+        spine_mode = str(normalized_payload["spine_mode"]).strip()
+        if spine_mode not in _ALLOWED_SPINE_MODES:
+            raise ValueError("spine_mode must be 'off', 'shadow', or 'active'.")
+        normalized_payload["spine_mode"] = spine_mode
+
         for field_name in (
             "openai_model_pass1",
             "openai_model_synthesis",
@@ -1063,6 +1214,82 @@ class StorageService:
 
         normalized_payload["parse_artifact_reused"] = bool(normalized_payload["parse_artifact_reused"])
         normalized_payload["page_manifest_reused"] = bool(normalized_payload["page_manifest_reused"])
+        normalized_payload["document_spine_generated"] = bool(normalized_payload["document_spine_generated"])
+        normalized_payload["page_routing_generated"] = bool(normalized_payload["page_routing_generated"])
+
+        spine_shadow_status = str(normalized_payload["spine_shadow_status"]).strip()
+        if spine_shadow_status not in _ALLOWED_SPINE_SHADOW_STATUSES:
+            raise ValueError(
+                "spine_shadow_status must be one of disabled, skipped, completed, failed."
+            )
+        normalized_payload["spine_shadow_status"] = spine_shadow_status
+
+        spine_shadow_reason = normalized_payload.get("spine_shadow_reason")
+        if spine_shadow_reason is None:
+            normalized_payload["spine_shadow_reason"] = None
+        else:
+            normalized_reason = str(spine_shadow_reason).strip()
+            if normalized_reason not in _ALLOWED_SPINE_SHADOW_REASONS:
+                raise ValueError(
+                    "spine_shadow_reason must be disabled, parse_unavailable, "
+                    "manifest_unavailable, builder_failed, not_requested, or null."
+                )
+            normalized_payload["spine_shadow_reason"] = normalized_reason
+
+        routing_counts_by_label = normalized_payload.get("routing_counts_by_label")
+        if not isinstance(routing_counts_by_label, dict):
+            raise ValueError("routing_counts_by_label must be a JSON object.")
+        normalized_routing_counts: dict[str, int] = {}
+        for label in sorted(_ALLOWED_ROUTE_LABELS):
+            count = int(routing_counts_by_label.get(label, 0))
+            if count < 0:
+                raise ValueError(f"routing_counts_by_label[{label}] must be >= 0.")
+            normalized_routing_counts[label] = count
+        extra_labels = set(routing_counts_by_label) - _ALLOWED_ROUTE_LABELS
+        if extra_labels:
+            raise ValueError("routing_counts_by_label contains unsupported labels.")
+        normalized_payload["routing_counts_by_label"] = normalized_routing_counts
+
+        pass2_execution_mode = str(normalized_payload["pass2_execution_mode"]).strip()
+        if pass2_execution_mode not in _ALLOWED_PASS2_EXECUTION_MODES:
+            raise ValueError("pass2_execution_mode must be 'all_pages' or 'hard_pages_only'.")
+        normalized_payload["pass2_execution_mode"] = pass2_execution_mode
+
+        for field_name in (
+            "pass2_llm_pages",
+            "pass2_compat_pages",
+            "pass2_selected_pages",
+            "pass2_skipped_llm_pages",
+            "compat_promoted_to_llm_pages",
+        ):
+            normalized_payload[field_name] = self._normalize_sorted_unique_int_list(
+                normalized_payload.get(field_name, [])
+            )
+
+        normalized_payload["pass2_llm_count"] = len(normalized_payload["pass2_llm_pages"])
+        normalized_payload["pass2_compat_count"] = len(normalized_payload["pass2_compat_pages"])
+        normalized_payload["compat_promoted_to_llm_count"] = len(
+            normalized_payload["compat_promoted_to_llm_pages"]
+        )
+
+        pass2_planner_status = str(normalized_payload["pass2_planner_status"]).strip()
+        if pass2_planner_status not in _ALLOWED_PASS2_PLANNER_STATUSES:
+            raise ValueError(
+                "pass2_planner_status must be one of disabled, active, fallback."
+            )
+        normalized_payload["pass2_planner_status"] = pass2_planner_status
+
+        pass2_planner_reason = normalized_payload.get("pass2_planner_reason")
+        if pass2_planner_reason is None:
+            normalized_payload["pass2_planner_reason"] = None
+        else:
+            normalized_reason = str(pass2_planner_reason).strip()
+            if normalized_reason not in _ALLOWED_PASS2_PLANNER_REASONS:
+                raise ValueError(
+                    "pass2_planner_reason must be not_requested, routing_missing, "
+                    "routing_invalid, routing_coverage_mismatch, compat_builder_failed_promoted, or null."
+                )
+            normalized_payload["pass2_planner_reason"] = normalized_reason
 
         final_error_message = normalized_payload.get("final_error_message")
         if final_error_message is None:
@@ -1213,14 +1440,24 @@ class StorageService:
         validated_result = validate_payload("pass2", normalized_result)
 
         return {
-            "meta": {
-                "schema_version": str(meta["schema_version"]),
-                "prompt_version": str(meta["prompt_version"]),
-                "model_name": str(meta["model_name"]),
-                "generated_at": str(meta["generated_at"]),
-            },
+            "meta": self._normalize_pass2_meta(meta),
             "result": validated_result,
         }
+
+    def _normalize_pass2_meta(self, meta: dict[str, object]) -> dict[str, object]:
+        normalized_meta: dict[str, object] = {
+            "schema_version": str(meta["schema_version"]),
+            "prompt_version": str(meta["prompt_version"]),
+            "model_name": str(meta["model_name"]),
+            "generated_at": str(meta["generated_at"]),
+        }
+        generation_mode = meta.get("pass2_generation_mode")
+        if generation_mode is not None:
+            normalized_generation_mode = str(generation_mode).strip()
+            if normalized_generation_mode not in _ALLOWED_PASS2_GENERATION_MODES:
+                raise ValueError("pass2_generation_mode must be 'llm' or 'compat'.")
+            normalized_meta["pass2_generation_mode"] = normalized_generation_mode
+        return normalized_meta
 
     def _get_valid_pass1_page_numbers(self, document_id: str) -> set[int]:
         valid_page_numbers: set[int] = set()
@@ -1357,6 +1594,16 @@ class StorageService:
                 temp_path.unlink()
             raise
 
+    def _normalize_sorted_unique_int_list(self, values: object) -> list[int]:
+        if values is None:
+            return []
+        if not isinstance(values, list):
+            raise ValueError("Expected a JSON array of page numbers.")
+        normalized_values = sorted({int(value) for value in values})
+        if any(value < 1 for value in normalized_values):
+            raise ValueError("Page number lists must contain only positive integers.")
+        return normalized_values
+
     def _benchmark_defaults(self, document_id: str) -> dict[str, object]:
         return {
             "document_id": document_id,
@@ -1365,21 +1612,36 @@ class StorageService:
             "render_time_seconds": 0.0,
             "parse_time_seconds": 0.0,
             "triage_time_seconds": 0.0,
+            "spine_time_seconds": 0.0,
             "pass1_time_seconds": 0.0,
             "synthesis_time_seconds": 0.0,
             "pass2_time_seconds": 0.0,
             "rendered_pages": 0,
+            "hard_page_count": 0,
             "pass1_text_first_pages": 0,
             "pass1_multimodal_pages": 0,
             "pass1_escalated_pages": 0,
             "pass2_completed_pages": 0,
             "pass2_failed_pages": 0,
+            "pass2_execution_mode": "all_pages",
+            "pass2_llm_pages": [],
+            "pass2_compat_pages": [],
+            "pass2_llm_count": 0,
+            "pass2_compat_count": 0,
+            "pass2_selected_pages": [],
+            "pass2_skipped_llm_pages": [],
+            "pass2_planner_status": "disabled",
+            "pass2_planner_reason": "not_requested",
+            "compat_promoted_to_llm_pages": [],
+            "compat_promoted_to_llm_count": 0,
             "openai_call_count_total": 0,
             "openai_pass1_call_count": 0,
             "openai_synthesis_call_count": 0,
             "openai_pass2_call_count": 0,
             "document_parser_backend": self.settings.document_parser_backend,
             "pass1_routing_mode": self.settings.pass1_routing_mode,
+            "pipeline_mode": self.settings.pipeline_mode,
+            "spine_mode": self.settings.v2_spine_mode,
             "openai_model_pass1": self.settings.stage_config("pass1").model_name,
             "openai_model_synthesis": self.settings.stage_config("document_synthesis").model_name,
             "openai_model_pass2": self.settings.stage_config("pass2").model_name,
@@ -1391,6 +1653,17 @@ class StorageService:
             "analysis_image_long_edge": 0,
             "parse_artifact_reused": False,
             "page_manifest_reused": False,
+            "document_spine_generated": False,
+            "page_routing_generated": False,
+            "routing_counts_by_label": {
+                "text-rich": 0,
+                "visual-rich": 0,
+                "scan-like": 0,
+            },
+            "spine_shadow_status": "disabled",
+            "spine_shadow_reason": (
+                "disabled" if self.settings.v2_spine_mode == "off" else "not_requested"
+            ),
             "final_status": DocumentStatus.UPLOADED.value,
             "final_error_message": None,
         }

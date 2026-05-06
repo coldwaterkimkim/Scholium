@@ -1,0 +1,266 @@
+{
+  "generated_at": "2026-03-29T08:31:23.662680+00:00",
+  "reference_run_key": "baseline_hybrid_all_pages",
+  "runs": [
+    {
+      "run_key": "baseline_hybrid_all_pages",
+      "mode_name": "baseline_hybrid_all_pages",
+      "path": "/Users/chansukim/Documents/개인/6-1. codex/Scholium/docs/perf_runs/20260329T071211565189Z_baseline_hybrid_all_pages.json",
+      "run_id": "run_20260329T071635556589Z_93816d9e",
+      "git_head": "6906934222361419f4aa624c1ac498744bd044d3",
+      "pipeline_mode": "hybrid",
+      "spine_mode": "shadow",
+      "pass2_execution_mode": "all_pages",
+      "source_root": "/Users/chansukim/Documents/개인/6-1. codex/Scholium/data/raw_pdfs/_active_pass2_eval_20260329T071211565189Z",
+      "corpus_manifest_path": "/Users/chansukim/Documents/개인/6-1. codex/Scholium/docs/perf_runs/20260329T071211565189Z_corpus_manifest.json",
+      "corpus_manifest_sha256": "d34a9168c0517522dd6dfc4ee66e050b8878e5b85a88c9d375ebeed97636e20d"
+    },
+    {
+      "run_key": "v2_spine_active_hard_pages_only",
+      "mode_name": "v2_spine_active_hard_pages_only",
+      "path": "/Users/chansukim/Documents/개인/6-1. codex/Scholium/docs/perf_runs/20260329T071211565189Z_v2_spine_active_hard_pages_only.json",
+      "run_id": "run_20260329T080041196066Z_2926cf51",
+      "git_head": "6906934222361419f4aa624c1ac498744bd044d3",
+      "pipeline_mode": "v2_spine",
+      "spine_mode": "active",
+      "pass2_execution_mode": "hard_pages_only",
+      "source_root": "/Users/chansukim/Documents/개인/6-1. codex/Scholium/data/raw_pdfs/_active_pass2_eval_20260329T071211565189Z",
+      "corpus_manifest_path": "/Users/chansukim/Documents/개인/6-1. codex/Scholium/docs/perf_runs/20260329T071211565189Z_corpus_manifest.json",
+      "corpus_manifest_sha256": "d34a9168c0517522dd6dfc4ee66e050b8878e5b85a88c9d375ebeed97636e20d"
+    }
+  ],
+  "matched_document_count": 5,
+  "unmatched_documents_by_run": {
+    "baseline_hybrid_all_pages": [],
+    "v2_spine_active_hard_pages_only": []
+  },
+  "excluded_documents_missing_key": {
+    "baseline_hybrid_all_pages": [],
+    "v2_spine_active_hard_pages_only": []
+  },
+  "warnings": [],
+  "corpus_aggregate_comparison": {
+    "baseline_hybrid_all_pages": {
+      "completed_docs": 5,
+      "failed_docs": 0,
+      "avg_total_processing_time_seconds": 524.8224,
+      "median_total_processing_time_seconds": 472.7361,
+      "total_openai_call_count": 156,
+      "total_openai_pass2_call_count": 75,
+      "total_pass2_llm_count": 76,
+      "total_pass2_compat_count": 0
+    },
+    "v2_spine_active_hard_pages_only": {
+      "completed_docs": 5,
+      "failed_docs": 0,
+      "avg_total_processing_time_seconds": 361.9378,
+      "median_total_processing_time_seconds": 329.172,
+      "total_openai_call_count": 110,
+      "total_openai_pass2_call_count": 29,
+      "total_pass2_llm_count": 30,
+      "total_pass2_compat_count": 46
+    }
+  },
+  "documents": [
+    {
+      "source_pdf_relpath": "26_통계학과.pdf",
+      "filename": "26_통계학과.pdf",
+      "runs": {
+        "baseline_hybrid_all_pages": {
+          "document_id": "doc_881123eefe2145688bf2beebe9d1f4d5",
+          "final_status": "completed",
+          "total_processing_time_seconds": 472.7361,
+          "rendered_pages": 17,
+          "pass1_text_first_pages": 13,
+          "pass1_multimodal_pages": 4,
+          "pass1_escalated_pages": 0,
+          "pass2_llm_count": 17,
+          "pass2_compat_count": 0,
+          "openai_call_count_total": 34,
+          "openai_pass2_call_count": 16
+        },
+        "v2_spine_active_hard_pages_only": {
+          "document_id": "doc_b6fb79a4bd514f0ea5d6284b26d9d545",
+          "final_status": "completed",
+          "total_processing_time_seconds": 261.0986,
+          "rendered_pages": 17,
+          "pass1_text_first_pages": 13,
+          "pass1_multimodal_pages": 4,
+          "pass1_escalated_pages": 0,
+          "pass2_llm_count": 2,
+          "pass2_compat_count": 15,
+          "openai_call_count_total": 19,
+          "openai_pass2_call_count": 1
+        }
+      },
+      "deltas_vs_reference": {
+        "v2_spine_active_hard_pages_only": {
+          "delta_total_processing_time_seconds": -211.6375,
+          "delta_openai_call_count_total": -15,
+          "delta_openai_pass2_call_count": -15,
+          "delta_pass2_llm_count": -15
+        }
+      }
+    },
+    {
+      "source_pdf_relpath": "W1.Lecture01-Financial Management and Firm Value.pdf",
+      "filename": "W1.Lecture01-Financial Management and Firm Value.pdf",
+      "runs": {
+        "baseline_hybrid_all_pages": {
+          "document_id": "doc_4aa77c458e614b0ba645b9edc15168c1",
+          "final_status": "completed",
+          "total_processing_time_seconds": 248.3383,
+          "rendered_pages": 7,
+          "pass1_text_first_pages": 6,
+          "pass1_multimodal_pages": 1,
+          "pass1_escalated_pages": 0,
+          "pass2_llm_count": 7,
+          "pass2_compat_count": 0,
+          "openai_call_count_total": 15,
+          "openai_pass2_call_count": 7
+        },
+        "v2_spine_active_hard_pages_only": {
+          "document_id": "doc_4840bd97746f4f13bfe8fce69923e1ea",
+          "final_status": "completed",
+          "total_processing_time_seconds": 329.172,
+          "rendered_pages": 7,
+          "pass1_text_first_pages": 6,
+          "pass1_multimodal_pages": 1,
+          "pass1_escalated_pages": 0,
+          "pass2_llm_count": 7,
+          "pass2_compat_count": 0,
+          "openai_call_count_total": 15,
+          "openai_pass2_call_count": 7
+        }
+      },
+      "deltas_vs_reference": {
+        "v2_spine_active_hard_pages_only": {
+          "delta_total_processing_time_seconds": 80.8337,
+          "delta_openai_call_count_total": 0,
+          "delta_openai_pass2_call_count": 0,
+          "delta_pass2_llm_count": 0
+        }
+      }
+    },
+    {
+      "source_pdf_relpath": "W2 Tutorial - Financial Management and Firm Value.pdf",
+      "filename": "W2 Tutorial - Financial Management and Firm Value.pdf",
+      "runs": {
+        "baseline_hybrid_all_pages": {
+          "document_id": "doc_df991288c42644748dd3a27817f69122",
+          "final_status": "completed",
+          "total_processing_time_seconds": 406.4752,
+          "rendered_pages": 12,
+          "pass1_text_first_pages": 8,
+          "pass1_multimodal_pages": 4,
+          "pass1_escalated_pages": 0,
+          "pass2_llm_count": 12,
+          "pass2_compat_count": 0,
+          "openai_call_count_total": 25,
+          "openai_pass2_call_count": 12
+        },
+        "v2_spine_active_hard_pages_only": {
+          "document_id": "doc_5d509baf7e5c4119bdd3e5193a3e2afe",
+          "final_status": "completed",
+          "total_processing_time_seconds": 401.7345,
+          "rendered_pages": 12,
+          "pass1_text_first_pages": 8,
+          "pass1_multimodal_pages": 4,
+          "pass1_escalated_pages": 0,
+          "pass2_llm_count": 10,
+          "pass2_compat_count": 2,
+          "openai_call_count_total": 23,
+          "openai_pass2_call_count": 10
+        }
+      },
+      "deltas_vs_reference": {
+        "v2_spine_active_hard_pages_only": {
+          "delta_total_processing_time_seconds": -4.7407,
+          "delta_openai_call_count_total": -2,
+          "delta_openai_pass2_call_count": -2,
+          "delta_pass2_llm_count": -2
+        }
+      }
+    },
+    {
+      "source_pdf_relpath": "doc_f9ba1ef0e03446d1bcf11dcc686d1275.pdf",
+      "filename": "doc_f9ba1ef0e03446d1bcf11dcc686d1275.pdf",
+      "runs": {
+        "baseline_hybrid_all_pages": {
+          "document_id": "doc_fac5a54f33cb49a5b41d963c5202b546",
+          "final_status": "completed",
+          "total_processing_time_seconds": 745.4967,
+          "rendered_pages": 23,
+          "pass1_text_first_pages": 21,
+          "pass1_multimodal_pages": 2,
+          "pass1_escalated_pages": 0,
+          "pass2_llm_count": 23,
+          "pass2_compat_count": 0,
+          "openai_call_count_total": 47,
+          "openai_pass2_call_count": 23
+        },
+        "v2_spine_active_hard_pages_only": {
+          "document_id": "doc_49f948e346a949b49fee0181eb6f6cdf",
+          "final_status": "completed",
+          "total_processing_time_seconds": 321.4916,
+          "rendered_pages": 23,
+          "pass1_text_first_pages": 21,
+          "pass1_multimodal_pages": 2,
+          "pass1_escalated_pages": 0,
+          "pass2_llm_count": 1,
+          "pass2_compat_count": 22,
+          "openai_call_count_total": 25,
+          "openai_pass2_call_count": 1
+        }
+      },
+      "deltas_vs_reference": {
+        "v2_spine_active_hard_pages_only": {
+          "delta_total_processing_time_seconds": -424.0051,
+          "delta_openai_call_count_total": -22,
+          "delta_openai_pass2_call_count": -22,
+          "delta_pass2_llm_count": -22
+        }
+      }
+    },
+    {
+      "source_pdf_relpath": "유우_질병면역학 발표논문.pdf",
+      "filename": "유우_질병면역학 발표논문.pdf",
+      "runs": {
+        "baseline_hybrid_all_pages": {
+          "document_id": "doc_214b45294e1441589369c538c69b4b6f",
+          "final_status": "completed",
+          "total_processing_time_seconds": 751.0655,
+          "rendered_pages": 17,
+          "pass1_text_first_pages": 13,
+          "pass1_multimodal_pages": 4,
+          "pass1_escalated_pages": 0,
+          "pass2_llm_count": 17,
+          "pass2_compat_count": 0,
+          "openai_call_count_total": 35,
+          "openai_pass2_call_count": 17
+        },
+        "v2_spine_active_hard_pages_only": {
+          "document_id": "doc_3cbb9bb19bea4a33bcf83b826e35eeed",
+          "final_status": "completed",
+          "total_processing_time_seconds": 496.1922,
+          "rendered_pages": 17,
+          "pass1_text_first_pages": 13,
+          "pass1_multimodal_pages": 4,
+          "pass1_escalated_pages": 0,
+          "pass2_llm_count": 10,
+          "pass2_compat_count": 7,
+          "openai_call_count_total": 28,
+          "openai_pass2_call_count": 10
+        }
+      },
+      "deltas_vs_reference": {
+        "v2_spine_active_hard_pages_only": {
+          "delta_total_processing_time_seconds": -254.8733,
+          "delta_openai_call_count_total": -7,
+          "delta_openai_pass2_call_count": -7,
+          "delta_pass2_llm_count": -7
+        }
+      }
+    }
+  ]
+}

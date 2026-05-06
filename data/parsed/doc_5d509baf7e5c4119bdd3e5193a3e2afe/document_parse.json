@@ -1,0 +1,1675 @@
+{
+  "document_id": "doc_5d509baf7e5c4119bdd3e5193a3e2afe",
+  "parser_source": "pymupdf4llm+fitz",
+  "schema_version": "parser_v0_2",
+  "pages": [
+    {
+      "page_number": 1,
+      "width": 595.3200073242188,
+      "height": 841.9199829101562,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p1_b0",
+          "block_type": "heading",
+          "text": "Week 2 Tutorial\nFinancial Management & Firm Value",
+          "bbox": [
+            0.220117,
+            0.156478,
+            0.559756,
+            0.051311
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p1_b1",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.172546,
+            0.250142,
+            0.654908,
+            0.164054
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p1_b2",
+          "block_type": "paragraph",
+          "text": "1",
+          "bbox": [
+            0.812123,
+            0.423724,
+            0.009302,
+            0.013214
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p1_b3",
+          "block_type": "heading",
+          "text": "Major Tasks of Financial Managers",
+          "bbox": [
+            0.26003,
+            0.584123,
+            0.479995,
+            0.02635
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p1_b4",
+          "block_type": "paragraph",
+          "text": "Which of the following questions are addressed by financial\nmanagers?",
+          "bbox": [
+            0.21145,
+            0.635227,
+            0.57144,
+            0.03842
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p1_b5",
+          "block_type": "paragraph",
+          "text": "A. How should a product be marketed?",
+          "bbox": [
+            0.21145,
+            0.682261,
+            0.369184,
+            0.018461
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p1_b6",
+          "block_type": "paragraph",
+          "text": "B. Should customers be given 30 or 45 days to pay for their",
+          "bbox": [
+            0.21145,
+            0.709341,
+            0.566959,
+            0.018461
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p1_b7",
+          "block_type": "paragraph",
+          "text": "credit purchases?",
+          "bbox": [
+            0.235034,
+            0.729301,
+            0.17405,
+            0.018461
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p1_b8",
+          "block_type": "paragraph",
+          "text": "C. Should the firm borrow more money?",
+          "bbox": [
+            0.21145,
+            0.756385,
+            0.400928,
+            0.018461
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p1_b9",
+          "block_type": "paragraph",
+          "text": "D. Should the firm acquire new equipment?",
+          "bbox": [
+            0.21145,
+            0.783459,
+            0.412342,
+            0.018461
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p1_b10",
+          "block_type": "paragraph",
+          "text": "2",
+          "bbox": [
+            0.811929,
+            0.858442,
+            0.009302,
+            0.013214
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p1_b11",
+          "block_type": "paragraph",
+          "text": "1",
+          "bbox": [
+            0.977635,
+            0.960985,
+            0.010583,
+            0.016252
+          ],
+          "reading_order": 11
+        }
+      ]
+    },
+    {
+      "page_number": 2,
+      "width": 595.3200073242188,
+      "height": 841.9199829101562,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p2_b0",
+          "block_type": "heading",
+          "text": "Capital Budgeting",
+          "bbox": [
+            0.377143,
+            0.149258,
+            0.245737,
+            0.02635
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p2_b1",
+          "block_type": "paragraph",
+          "text": "Which one of the following is a capital budgeting decision?\nA. determining how many shares of stock to issue\nB. deciding whether or not to purchase a new machine for",
+          "bbox": [
+            0.21145,
+            0.200361,
+            0.560686,
+            0.066356
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p2_b2",
+          "block_type": "paragraph",
+          "text": "the production line\nC. deciding how to refinance a debt issue that is maturing\nD. determining how much inventory to keep on hand\nE. determining how much money should be kept in the",
+          "bbox": [
+            0.21145,
+            0.268205,
+            0.541017,
+            0.090303
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p2_b3",
+          "block_type": "paragraph",
+          "text": "checking account",
+          "bbox": [
+            0.241287,
+            0.359998,
+            0.164097,
+            0.018461
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p2_b4",
+          "block_type": "paragraph",
+          "text": "3",
+          "bbox": [
+            0.811929,
+            0.423583,
+            0.009302,
+            0.013214
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p2_b5",
+          "block_type": "heading",
+          "text": "Capital Structure",
+          "bbox": [
+            0.385608,
+            0.584123,
+            0.22904,
+            0.02635
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p2_b6",
+          "block_type": "paragraph",
+          "text": "Which one of the following is a capital structure decision?\nA. determining which one of two projects to accept\nB. determining how to allocate investment funds to multiple",
+          "bbox": [
+            0.21145,
+            0.635227,
+            0.571912,
+            0.06635
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p2_b7",
+          "block_type": "paragraph",
+          "text": "projects\nC. determining the amount of funds needed to maintain a",
+          "bbox": [
+            0.21145,
+            0.703071,
+            0.54196,
+            0.04241
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p2_b8",
+          "block_type": "paragraph",
+          "text": "proper level of working capital\nD. determining how much debt should be assumed to fund a",
+          "bbox": [
+            0.21145,
+            0.74697,
+            0.571676,
+            0.04241
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p2_b9",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.206612,
+            0.764918,
+            0.025197,
+            0.024943
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p2_b10",
+          "block_type": "paragraph",
+          "text": "project\nE. determining how much inventory will be needed to",
+          "bbox": [
+            0.21145,
+            0.790874,
+            0.512952,
+            0.0424
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p2_b11",
+          "block_type": "paragraph",
+          "text": "support a project",
+          "bbox": [
+            0.235034,
+            0.834774,
+            0.158437,
+            0.018461
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p2_b12",
+          "block_type": "paragraph",
+          "text": "4",
+          "bbox": [
+            0.811929,
+            0.858442,
+            0.009302,
+            0.013214
+          ],
+          "reading_order": 12
+        },
+        {
+          "block_id": "p2_b13",
+          "block_type": "paragraph",
+          "text": "2",
+          "bbox": [
+            0.977635,
+            0.960985,
+            0.010583,
+            0.016252
+          ],
+          "reading_order": 13
+        }
+      ]
+    },
+    {
+      "page_number": 3,
+      "width": 595.3200073242188,
+      "height": 841.9199829101562,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p3_b0",
+          "block_type": "paragraph",
+          "text": "Goal of Financial Management",
+          "bbox": [
+            0.290668,
+            0.149258,
+            0.419032,
+            0.02635
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p3_b1",
+          "block_type": "paragraph",
+          "text": "Which one of the following best illustrates that the\nmanagement of a firm is adhering to the goal of financial\nmanagement?\nA. increase in the amount of the quarterly dividend\nB. decrease in the per unit production costs\nC. increase in the number of shares outstanding\nD. decrease in the net working capital\nE. increase in the market value per share",
+          "bbox": [
+            0.21145,
+            0.200361,
+            0.542667,
+            0.178098
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p3_b2",
+          "block_type": "paragraph",
+          "text": "5",
+          "bbox": [
+            0.811929,
+            0.423583,
+            0.009302,
+            0.013214
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p3_b3",
+          "block_type": "paragraph",
+          "text": "Agency Problem",
+          "bbox": [
+            0.38661,
+            0.584123,
+            0.227155,
+            0.02635
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p3_b4",
+          "block_type": "paragraph",
+          "text": "Which of the following mechanisms help align managers’\nincentives with the interests of the shareholders?\nA. compensation based on net income\nB. compensation based on the value of the firm’s stock\nC. stock option plans\nD. employment contract that guarantee managerial tenure",
+          "bbox": [
+            0.23402,
+            0.635227,
+            0.550686,
+            0.134193
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p3_b5",
+          "block_type": "paragraph",
+          "text": "6",
+          "bbox": [
+            0.811929,
+            0.858442,
+            0.009302,
+            0.013214
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p3_b6",
+          "block_type": "paragraph",
+          "text": "3",
+          "bbox": [
+            0.977635,
+            0.960985,
+            0.010583,
+            0.016252
+          ],
+          "reading_order": 6
+        }
+      ]
+    },
+    {
+      "page_number": 4,
+      "width": 595.3200073242188,
+      "height": 841.9199829101562,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p4_b0",
+          "block_type": "heading",
+          "text": "Agency Problem",
+          "bbox": [
+            0.38661,
+            0.149258,
+            0.227155,
+            0.02635
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p4_b1",
+          "block_type": "paragraph",
+          "text": "Between two opposite firms in each of the pairs below,\nwhich do you think suffer more from an agency problem?",
+          "bbox": [
+            0.23402,
+            0.207494,
+            0.543941,
+            0.03841
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p4_b2",
+          "block_type": "paragraph",
+          "text": "A. privately owned vs. publicly owned",
+          "bbox": [
+            0.23402,
+            0.254526,
+            0.371684,
+            0.018461
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p4_b3",
+          "block_type": "paragraph",
+          "text": "B. diversely held vs. closely held",
+          "bbox": [
+            0.23402,
+            0.281608,
+            0.319327,
+            0.018461
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p4_b4",
+          "block_type": "paragraph",
+          "text": "C. with large excess cash vs. with small excess cash",
+          "bbox": [
+            0.23402,
+            0.308691,
+            0.488896,
+            0.018461
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p4_b5",
+          "block_type": "paragraph",
+          "text": "D. transparent vs. opaque",
+          "bbox": [
+            0.23402,
+            0.335773,
+            0.240179,
+            0.018461
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p4_b6",
+          "block_type": "paragraph",
+          "text": "E. large analysts following vs. no analysts following",
+          "bbox": [
+            0.23402,
+            0.362848,
+            0.499037,
+            0.018461
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p4_b7",
+          "block_type": "paragraph",
+          "text": "7",
+          "bbox": [
+            0.811929,
+            0.423583,
+            0.009302,
+            0.013214
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p4_b8",
+          "block_type": "heading",
+          "text": "Agency Problem",
+          "bbox": [
+            0.38661,
+            0.584123,
+            0.227155,
+            0.02635
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p4_b9",
+          "block_type": "list",
+          "text": "Are there any effective mechanisms/tools to curb\nmanagers’ tendency to seek their own interest at the cost\nof shareholders? (Corporate Governance)",
+          "bbox": [
+            0.21145,
+            0.635227,
+            0.560729,
+            0.05837
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p4_b10",
+          "block_type": "paragraph",
+          "text": "8",
+          "bbox": [
+            0.811929,
+            0.858442,
+            0.009302,
+            0.013214
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p4_b11",
+          "block_type": "paragraph",
+          "text": "4",
+          "bbox": [
+            0.977635,
+            0.960985,
+            0.010583,
+            0.016252
+          ],
+          "reading_order": 11
+        }
+      ]
+    },
+    {
+      "page_number": 5,
+      "width": 595.3200073242188,
+      "height": 841.9199829101562,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p5_b0",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.23584,
+            0.143529,
+            0.540617,
+            0.074829
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p5_b1",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.243298,
+            0.151226,
+            0.124572,
+            0.02366
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p5_b2",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.200564,
+            0.216363,
+            0.122153,
+            0.046038
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p5_b3",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.202782,
+            0.261117,
+            0.60774,
+            0.030359
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p5_b4",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.237251,
+            0.311003,
+            0.474904,
+            0.121722
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p5_b5",
+          "block_type": "paragraph",
+          "text": "9",
+          "bbox": [
+            0.811929,
+            0.423583,
+            0.009302,
+            0.013214
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p5_b6",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.195928,
+            0.570268,
+            0.14231,
+            0.016106
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p5_b7",
+          "block_type": "paragraph",
+          "text": "Jan. 24, 2024",
+          "bbox": [
+            0.705495,
+            0.572411,
+            0.089842,
+            0.013096
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p5_b8",
+          "block_type": "heading",
+          "text": "Financial regulator aims to benchmark Japan's stock market",
+          "bbox": [
+            0.21387,
+            0.593748,
+            0.568471,
+            0.01704
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p5_b9",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.202782,
+            0.618871,
+            0.609151,
+            0.117588
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p5_b10",
+          "block_type": "paragraph",
+          "text": "PBR serves as a metric to evaluate a company's market price relative to its book\nvalue. A ratio below 1 indicates that the stock price of a firm is less than the\nvalue derived from selling all of its assets at book value. Consequently, a PBR\nbelow 1 suggests that the investment may not be lucrative as the stock is valued\nlower than the sum of its asset values on the books.",
+          "bbox": [
+            0.201973,
+            0.748694,
+            0.591267,
+            0.070452
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p5_b11",
+          "block_type": "paragraph",
+          "text": "The PBR of companies listed on the KOSPI and smaller equity markets\ncombined is 0.89 on average.",
+          "bbox": [
+            0.201973,
+            0.82709,
+            0.527859,
+            0.027688
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p5_b12",
+          "block_type": "paragraph",
+          "text": "10",
+          "bbox": [
+            0.802657,
+            0.858442,
+            0.018504,
+            0.013214
+          ],
+          "reading_order": 12
+        },
+        {
+          "block_id": "p5_b13",
+          "block_type": "heading",
+          "text": "5",
+          "bbox": [
+            0.977635,
+            0.960985,
+            0.010583,
+            0.016252
+          ],
+          "reading_order": 13
+        }
+      ]
+    },
+    {
+      "page_number": 6,
+      "width": 595.3200073242188,
+      "height": 841.9199829101562,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p6_b0",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.202782,
+            0.140536,
+            0.14614,
+            0.013398
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p6_b1",
+          "block_type": "paragraph",
+          "text": "Jan. 31, 2024",
+          "bbox": [
+            0.717193,
+            0.143249,
+            0.089842,
+            0.013096
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p6_b2",
+          "block_type": "paragraph",
+          "text": "Expectations rise for Korea's value-up program for underperforming\nstocks",
+          "bbox": [
+            0.208827,
+            0.160923,
+            0.551705,
+            0.030196
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p6_b3",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.379157,
+            0.194983,
+            0.206612,
+            0.117018
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p6_b4",
+          "block_type": "paragraph",
+          "text": "Expectations for the improvement in performance of corporations are\nrising as the government unveiled a \"value-up\" program that will\ntarget underperformers in the stock market. Investors are\nincreasingly focused on acquiring stocks with a low price-to-book\nratio (PBR), in anticipation of them rebounding.",
+          "bbox": [
+            0.244101,
+            0.324528,
+            0.520498,
+            0.070444
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p6_b5",
+          "block_type": "paragraph",
+          "text": "11",
+          "bbox": [
+            0.803867,
+            0.423583,
+            0.017333,
+            0.013214
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p6_b6",
+          "block_type": "paragraph",
+          "text": "Price-to-Earnings Ratio:",
+          "bbox": [
+            0.269504,
+            0.606403,
+            0.21423,
+            0.015921
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p6_b7",
+          "block_type": "paragraph",
+          "text": "𝑃𝐸𝑅=\n𝑆ℎ𝑎𝑟𝑒 𝑃𝑟𝑖𝑐𝑒\n𝐸𝑎𝑟𝑛𝑖𝑛𝑔𝑠 𝑃𝑒𝑟 𝑆ℎ𝑎𝑟𝑒",
+          "bbox": [
+            0.381372,
+            0.645536,
+            0.243624,
+            0.03465
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p6_b8",
+          "block_type": "paragraph",
+          "text": "Price-to-Book Ratio:",
+          "bbox": [
+            0.269504,
+            0.73468,
+            0.180568,
+            0.015921
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p6_b9",
+          "block_type": "paragraph",
+          "text": "𝑃𝐵𝑅=\n𝑆ℎ𝑎𝑟𝑒 𝑃𝑟𝑖𝑐𝑒\n𝐵𝑜𝑜𝑘 𝑉𝑎𝑙𝑢𝑒 𝑃𝑒𝑟 𝑆ℎ𝑎𝑟𝑒 (𝑜𝑓 𝐸𝑞𝑢𝑖𝑡𝑦)",
+          "bbox": [
+            0.331589,
+            0.772248,
+            0.371598,
+            0.03465
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p6_b10",
+          "block_type": "paragraph",
+          "text": "12",
+          "bbox": [
+            0.802657,
+            0.858442,
+            0.018504,
+            0.013214
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p6_b11",
+          "block_type": "heading",
+          "text": "6",
+          "bbox": [
+            0.977635,
+            0.960985,
+            0.010583,
+            0.016252
+          ],
+          "reading_order": 11
+        }
+      ]
+    },
+    {
+      "page_number": 7,
+      "width": 595.3200073242188,
+      "height": 841.9199829101562,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p7_b0",
+          "block_type": "heading",
+          "text": "PER & PBR Comparison",
+          "bbox": [
+            0.352352,
+            0.143762,
+            0.310206,
+            0.021174
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p7_b1",
+          "block_type": "table",
+          "text": "Country\nPER\nPBR\nKorea\n11.3\n0.9\nDeveloped\nMarkets\nUnited States\n20.4\n4.2\nJapan\n16.3\n1.4\nGreat Britain\n11.0\n1.7\nFrance\n13.8\n2.0\nAll (23 Countries)\n17.9\n2.9\nEmerging\nMarkets\nChina\n13.7\n1.4\nTaiwan\n12.6\n2.2\nIndia\n23.6\n3.2\nBrazil\n5.5\n1.5\nThailand\n22.5\n1.9\nAll (24 Countries)\n12.5\n1.6",
+          "bbox": [
+            0.293489,
+            0.175599,
+            0.428341,
+            0.235177
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p7_b2",
+          "block_type": "paragraph",
+          "text": "Source: Korea Exchange (May 3, 2023)",
+          "bbox": [
+            0.298327,
+            0.42077,
+            0.265666,
+            0.011941
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p7_b3",
+          "block_type": "paragraph",
+          "text": "13",
+          "bbox": [
+            0.802657,
+            0.423583,
+            0.018504,
+            0.013214
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p7_b4",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.191897,
+            0.559863,
+            0.186857,
+            0.020952
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p7_b5",
+          "block_type": "paragraph",
+          "text": "Feb. 20, 2026",
+          "bbox": [
+            0.704694,
+            0.56984,
+            0.092686,
+            0.013096
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p7_b6",
+          "block_type": "paragraph",
+          "text": "Kospi PBR Near 2 Times... Entering a Phase of Selective\nInvestment After Undervaluation Eases",
+          "bbox": [
+            0.223947,
+            0.602993,
+            0.560512,
+            0.03502
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p7_b7",
+          "block_type": "paragraph",
+          "text": "There is analysis that the structural undervaluation of the Korean stock market has\nbeen largely resolved, as the price-to-book ratio (PBR) of the domestic market has\napproached 2 times. Since the beginning of this month, domestic demand sectors\nsuch as banking, retail, insurance, and construction have shown a stronger trend\nthan semiconductors. This is evaluated as a reflection in share prices of expectations\nfor shareholder-return policies, as the perception of undervaluation has combined\nwith expectations for amendments to the Commercial Act. In the past as well, a\nKospi PBR of 2 times was reached only during limited periods, so the current level\nis interpreted as a meaningful range.",
+          "bbox": [
+            0.223948,
+            0.655222,
+            0.569334,
+            0.127114
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p7_b8",
+          "block_type": "paragraph",
+          "text": "However, as the valuation of domestic demand sectors has been normalized to some\nextent, experts advise that going forward, investors need a selective strategy that\nconsiders profitability in addition to simply targeting low PBR.",
+          "bbox": [
+            0.223948,
+            0.797747,
+            0.568163,
+            0.041602
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p7_b9",
+          "block_type": "paragraph",
+          "text": "14",
+          "bbox": [
+            0.802851,
+            0.858442,
+            0.018504,
+            0.013214
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p7_b10",
+          "block_type": "paragraph",
+          "text": "7",
+          "bbox": [
+            0.977635,
+            0.960985,
+            0.010583,
+            0.016252
+          ],
+          "reading_order": 10
+        }
+      ]
+    },
+    {
+      "page_number": 8,
+      "width": 595.3200073242188,
+      "height": 841.9199829101562,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p8_b0",
+          "block_type": "paragraph",
+          "text": "Price to Book Ratio (PBR)",
+          "bbox": [
+            0.245515,
+            0.154486,
+            0.206001,
+            0.013214
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p8_b1",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.251159,
+            0.196836,
+            0.455352,
+            0.012828
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p8_b2",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.234227,
+            0.197263,
+            0.00766,
+            0.01012
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p8_b3",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.251764,
+            0.21508,
+            0.378754,
+            0.01012
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p8_b4",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.251159,
+            0.226055,
+            0.305785,
+            0.01012
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p8_b5",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.225963,
+            0.241876,
+            0.445273,
+            0.109322
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p8_b6",
+          "block_type": "paragraph",
+          "text": "𝑷𝑩𝑹= 𝒆𝒒𝒖𝒊𝒕𝒚 𝒎𝒂𝒓𝒌𝒆𝒕 𝒗𝒂𝒍𝒖𝒆",
+          "bbox": [
+            0.302963,
+            0.255499,
+            0.203821,
+            0.018822
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p8_b7",
+          "block_type": "paragraph",
+          "text": "𝒆𝒖𝒒𝒊𝒕𝒚 𝒃𝒐𝒐𝒌 𝒗𝒂𝒍𝒖𝒆",
+          "bbox": [
+            0.364239,
+            0.270746,
+            0.132871,
+            0.010701
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p8_b8",
+          "block_type": "paragraph",
+          "text": "= 𝒆𝒒𝒖𝒊𝒕𝒚 𝒎𝒂𝒓𝒌𝒆𝒕 𝒗𝒂𝒍𝒖𝒆",
+          "bbox": [
+            0.335214,
+            0.295409,
+            0.167746,
+            0.018822
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p8_b9",
+          "block_type": "paragraph",
+          "text": "𝒆𝒂𝒓𝒏𝒊𝒏𝒈𝒔\n×\n𝒆𝒂𝒓𝒏𝒊𝒏𝒈𝒔\n𝒆𝒒𝒖𝒊𝒕𝒚 𝒃𝒐𝒐𝒌 𝒗𝒂𝒍𝒖𝒆",
+          "bbox": [
+            0.39246,
+            0.295409,
+            0.260722,
+            0.025947
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p8_b10",
+          "block_type": "paragraph",
+          "text": "= 𝑷𝑬𝑹× 𝑹𝑶𝑬",
+          "bbox": [
+            0.335214,
+            0.330329,
+            0.095437,
+            0.010701
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p8_b11",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.243096,
+            0.36317,
+            0.481959,
+            0.010547
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p8_b12",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.233622,
+            0.363597,
+            0.006652,
+            0.008124
+          ],
+          "reading_order": 12
+        },
+        {
+          "block_id": "p8_b13",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.243499,
+            0.37329,
+            0.073775,
+            0.01012
+          ],
+          "reading_order": 13
+        },
+        {
+          "block_id": "p8_b14",
+          "block_type": "heading",
+          "text": "Goal of Management",
+          "bbox": [
+            0.357385,
+            0.584123,
+            0.285391,
+            0.02635
+          ],
+          "reading_order": 14
+        },
+        {
+          "block_id": "p8_b15",
+          "block_type": "list",
+          "text": "Can the goal of maximizing the value of the stock conflict\nwith other goals, such as avoiding unethical or illegal\nbehavior? In particular, do you think subjects like\ncustomer and employee safety, the environment, and the\ngeneral good of society fit in this framework, or are they\nessentially ignored?",
+          "bbox": [
+            0.21145,
+            0.635227,
+            0.575685,
+            0.118234
+          ],
+          "reading_order": 15
+        },
+        {
+          "block_id": "p8_b16",
+          "block_type": "paragraph",
+          "text": "16",
+          "bbox": [
+            0.802657,
+            0.858442,
+            0.018504,
+            0.013214
+          ],
+          "reading_order": 16
+        },
+        {
+          "block_id": "p8_b17",
+          "block_type": "heading",
+          "text": "8",
+          "bbox": [
+            0.977635,
+            0.960985,
+            0.010583,
+            0.016252
+          ],
+          "reading_order": 17
+        }
+      ]
+    },
+    {
+      "page_number": 9,
+      "width": 595.3200073242188,
+      "height": 841.9199829101562,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p9_b0",
+          "block_type": "heading",
+          "text": "Shareholder Capitalism vs. Stakeholder Capitalism",
+          "bbox": [
+            0.231602,
+            0.132429,
+            0.569294,
+            0.018627
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p9_b1",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.248135,
+            0.152793,
+            0.514009,
+            0.286203
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p9_b2",
+          "block_type": "paragraph",
+          "text": "[The New York Times, Aug. 19, 2019]",
+          "bbox": [
+            0.596251,
+            0.167111,
+            0.15516,
+            0.007889
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p9_b3",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.486192,
+            0.594498,
+            0.088289,
+            0.027366
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p9_b4",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.267486,
+            0.612172,
+            0.171135,
+            0.213512
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p9_b5",
+          "block_type": "paragraph",
+          "text": "Passenger dragged off United Airlines plane",
+          "bbox": [
+            0.487394,
+            0.625741,
+            0.25206,
+            0.009834
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p9_b6",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.486797,
+            0.659065,
+            0.124975,
+            0.013968
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p9_b7",
+          "block_type": "paragraph",
+          "text": "Doctor dragged off United Airlines flight\nreaches undisclosed settlement",
+          "bbox": [
+            0.487394,
+            0.674016,
+            0.26996,
+            0.023134
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p9_b8",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.486797,
+            0.731898,
+            0.269301,
+            0.109607
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p9_b9",
+          "block_type": "paragraph",
+          "text": "18",
+          "bbox": [
+            0.802657,
+            0.858442,
+            0.018504,
+            0.013214
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p9_b10",
+          "block_type": "heading",
+          "text": "9",
+          "bbox": [
+            0.977635,
+            0.960985,
+            0.010583,
+            0.016252
+          ],
+          "reading_order": 10
+        }
+      ]
+    },
+    {
+      "page_number": 10,
+      "width": 595.3200073242188,
+      "height": 841.9199829101562,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p10_b0",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.172546,
+            0.122149,
+            0.654908,
+            0.320696
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p10_b1",
+          "block_type": "paragraph",
+          "text": "May 25, 2015",
+          "bbox": [
+            0.725664,
+            0.134167,
+            0.075495,
+            0.010571
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p10_b2",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.202782,
+            0.136402,
+            0.161863,
+            0.016106
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p10_b3",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.202782,
+            0.152794,
+            0.604717,
+            0.040907
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p10_b4",
+          "block_type": "paragraph",
+          "text": "Once known as one of the youngest female\nbillionaires in South Korea and deemed an\ninfluential figure in the airline industry, Ms\nCho, also known as Heather Cho, is now\nmore likely to be called \"nut- rage woman\"\ninstead.",
+          "bbox": [
+            0.485992,
+            0.203252,
+            0.324161,
+            0.092912
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p10_b5",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.202782,
+            0.208808,
+            0.277162,
+            0.224487
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p10_b6",
+          "block_type": "paragraph",
+          "text": "The label has stuck since the former\nexecutive vice-president notoriously\nordered a taxiing Korean Air flight to turn\nback at New York's John F. Kennedy\nInternational Airport last December to eject\ntwo cabin crew members for serving her\nmacadamia nuts in a bag instead of on a\nplate.",
+          "bbox": [
+            0.485992,
+            0.313002,
+            0.327128,
+            0.124268
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p10_b7",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.23846,
+            0.574686,
+            0.53074,
+            0.273232
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p10_b8",
+          "block_type": "paragraph",
+          "text": "20",
+          "bbox": [
+            0.802657,
+            0.858442,
+            0.018504,
+            0.013214
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p10_b9",
+          "block_type": "paragraph",
+          "text": "[Financial Times, 2021년3월17일]",
+          "bbox": [
+            0.224753,
+            0.859101,
+            0.147279,
+            0.007889
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p10_b10",
+          "block_type": "paragraph",
+          "text": "10",
+          "bbox": [
+            0.966945,
+            0.960985,
+            0.021165,
+            0.016252
+          ],
+          "reading_order": 10
+        }
+      ]
+    },
+    {
+      "page_number": 11,
+      "width": 595.3200073242188,
+      "height": 841.9199829101562,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p11_b0",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.197541,
+            0.189852,
+            0.604717,
+            0.195553
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p11_b1",
+          "block_type": "paragraph",
+          "text": "21",
+          "bbox": [
+            0.802657,
+            0.423583,
+            0.018504,
+            0.013214
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p11_b2",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.197742,
+            0.579818,
+            0.604717,
+            0.275086
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p11_b3",
+          "block_type": "paragraph",
+          "text": "22",
+          "bbox": [
+            0.802657,
+            0.858442,
+            0.018504,
+            0.013214
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p11_b4",
+          "block_type": "heading",
+          "text": "11",
+          "bbox": [
+            0.967752,
+            0.960985,
+            0.02053,
+            0.016252
+          ],
+          "reading_order": 4
+        }
+      ]
+    },
+    {
+      "page_number": 12,
+      "width": 595.3200073242188,
+      "height": 841.9199829101562,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p12_b0",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.317678,
+            0.168044,
+            0.373312,
+            0.177737
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p12_b1",
+          "block_type": "figure",
+          "text": "",
+          "bbox": [
+            0.343076,
+            0.346494,
+            0.339246,
+            0.088654
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p12_b2",
+          "block_type": "paragraph",
+          "text": "23",
+          "bbox": [
+            0.802851,
+            0.423724,
+            0.018504,
+            0.013214
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p12_b3",
+          "block_type": "heading",
+          "text": "12",
+          "bbox": [
+            0.966945,
+            0.960985,
+            0.021165,
+            0.016252
+          ],
+          "reading_order": 3
+        }
+      ]
+    }
+  ]
+}

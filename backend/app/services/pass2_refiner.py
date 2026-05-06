@@ -4,9 +4,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
 from app.models.document import RenderStatus, StageStatus
+from app.services.pass2_artifact_builder import Pass2ArtifactBuilder
 from app.services.openai_client import OpenAIClientError, OpenAIResponsesClient
 from app.services.storage import StorageService, get_storage_service
-from app.utils.validation import validate_payload
 
 
 class Pass2Refiner:
@@ -14,10 +14,12 @@ class Pass2Refiner:
         self,
         storage: StorageService | None = None,
         openai_client: OpenAIResponsesClient | None = None,
+        artifact_builder: Pass2ArtifactBuilder | None = None,
         max_workers: int = 2,
     ) -> None:
         self.storage = storage or get_storage_service()
         self.openai_client = openai_client or OpenAIResponsesClient(storage=self.storage)
+        self.artifact_builder = artifact_builder or Pass2ArtifactBuilder(storage=self.storage)
         self.max_workers = max(1, max_workers)
 
     def refine_page(self, document_id: str, page_number: int) -> dict[str, Any]:
@@ -158,7 +160,9 @@ class Pass2Refiner:
                 qa_warnings=qa_warnings,
             )
 
-        candidate_map = self._build_candidate_map(pass1_artifact["result"]["candidate_anchors"])
+        candidate_map = self.artifact_builder.build_candidate_map(
+            pass1_artifact["result"]["candidate_anchors"]
+        )
         candidate_types = {candidate["anchor_type"] for candidate in candidate_map.values()}
         if len(candidate_map) < 3:
             error_message = (
@@ -179,8 +183,6 @@ class Pass2Refiner:
                 ],
             )
 
-        valid_pass1_page_numbers = self._get_valid_pass1_page_numbers(document_id)
-
         try:
             envelope = self._run_pass2_with_timeout_retry(
                 image_path=image_path,
@@ -189,12 +191,15 @@ class Pass2Refiner:
                 pass1_result=pass1_artifact["result"],
                 document_summary_result=document_summary["result"],
             )
-            normalized_envelope, initial_warnings, needs_diversity_retry = self._normalize_envelope(
+            (
+                normalized_envelope,
+                initial_warnings,
+                needs_diversity_retry,
+            ) = self.artifact_builder.normalize_llm_envelope(
                 document_id=document_id,
                 page_number=page_number,
                 envelope=envelope,
-                candidate_map=candidate_map,
-                valid_pass1_page_numbers=valid_pass1_page_numbers,
+                pass1_result=pass1_artifact["result"],
                 document_summary_result=document_summary["result"],
             )
             qa_warnings.extend(initial_warnings)
@@ -371,169 +376,6 @@ class Pass2Refiner:
                 document_summary=document_summary_result,
                 extra_guidance=retry_guidance,
             )
-
-    def _build_candidate_map(self, candidate_anchors: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
-        return {
-            str(candidate["anchor_id"]): dict(candidate)
-            for candidate in candidate_anchors
-        }
-
-    def _get_valid_pass1_page_numbers(self, document_id: str) -> set[int]:
-        valid_page_numbers: set[int] = set()
-        for page in self.storage.get_pages(document_id):
-            try:
-                artifact = self.storage.load_pass1_result(document_id, page.page_number)
-            except ValueError:
-                continue
-            if artifact is not None:
-                valid_page_numbers.add(page.page_number)
-        return valid_page_numbers
-
-    def _normalize_envelope(
-        self,
-        *,
-        document_id: str,
-        page_number: int,
-        envelope: dict[str, Any],
-        candidate_map: dict[str, dict[str, Any]],
-        valid_pass1_page_numbers: set[int],
-        document_summary_result: dict[str, Any],
-    ) -> tuple[dict[str, Any], list[str], bool]:
-        if not isinstance(envelope, dict):
-            raise ValueError("Pass2 envelope must be a JSON object.")
-        if not isinstance(envelope.get("meta"), dict):
-            raise ValueError("Pass2 envelope must include a meta object.")
-        if not isinstance(envelope.get("result"), dict):
-            raise ValueError("Pass2 envelope must include a result object.")
-
-        validated_result = validate_payload(
-            "pass2",
-            {
-                **dict(envelope["result"]),
-                "document_id": document_id,
-                "page_number": page_number,
-            },
-        )
-
-        normalized_final_anchors = [
-            self._normalize_final_anchor(
-                anchor=anchor,
-                candidate_map=candidate_map,
-                current_page_number=page_number,
-                valid_pass1_page_numbers=valid_pass1_page_numbers,
-                document_summary_result=document_summary_result,
-            )
-            for anchor in validated_result["final_anchors"]
-        ]
-
-        normalized_result = {
-            **validated_result,
-            "document_id": document_id,
-            "page_number": page_number,
-            "final_anchors": normalized_final_anchors,
-        }
-        normalized_result = validate_payload("pass2", normalized_result)
-
-        final_types = {anchor["anchor_type"] for anchor in normalized_result["final_anchors"]}
-        candidate_types = {candidate["anchor_type"] for candidate in candidate_map.values()}
-        needs_diversity_retry = len(final_types) == 1 and len(candidate_types) > 1
-
-        return {
-            "meta": {
-                "schema_version": str(envelope["meta"]["schema_version"]),
-                "prompt_version": str(envelope["meta"]["prompt_version"]),
-                "model_name": str(envelope["meta"]["model_name"]),
-                "generated_at": str(envelope["meta"]["generated_at"]),
-            },
-            "result": normalized_result,
-        }, [], needs_diversity_retry
-
-    def _normalize_final_anchor(
-        self,
-        *,
-        anchor: dict[str, Any],
-        candidate_map: dict[str, dict[str, Any]],
-        current_page_number: int,
-        valid_pass1_page_numbers: set[int],
-        document_summary_result: dict[str, Any],
-    ) -> dict[str, Any]:
-        anchor_id = str(anchor["anchor_id"])
-        if anchor_id not in candidate_map:
-            raise ValueError(f"final_anchors contains anchor_id not found in pass1 candidates: {anchor_id}")
-
-        candidate = candidate_map[anchor_id]
-        return {
-            **anchor,
-            "anchor_id": candidate["anchor_id"],
-            "anchor_type": candidate["anchor_type"],
-            "bbox": candidate["bbox"],
-            "related_pages": self._normalize_related_pages(
-                related_pages=anchor["related_pages"],
-                current_page_number=current_page_number,
-                valid_pass1_page_numbers=valid_pass1_page_numbers,
-                document_summary_result=document_summary_result,
-            ),
-        }
-
-    def _normalize_related_pages(
-        self,
-        *,
-        related_pages: list[int],
-        current_page_number: int,
-        valid_pass1_page_numbers: set[int],
-        document_summary_result: dict[str, Any],
-    ) -> list[int]:
-        normalized_pages = sorted(set(int(page) for page in related_pages))
-        if any(page == current_page_number for page in normalized_pages):
-            raise ValueError("related_pages must not include the current page.")
-
-        invalid_pages = [page for page in normalized_pages if page not in valid_pass1_page_numbers]
-        if invalid_pages:
-            raise ValueError(
-                "related_pages contains pages without valid pass1 artifacts: "
-                + ", ".join(map(str, invalid_pages))
-            )
-
-        return sorted(
-            normalized_pages,
-            key=lambda page: (
-                -self._related_page_priority_score(
-                    current_page_number=current_page_number,
-                    related_page=page,
-                    document_summary_result=document_summary_result,
-                ),
-                abs(page - current_page_number),
-                page,
-            ),
-        )
-
-    def _related_page_priority_score(
-        self,
-        *,
-        current_page_number: int,
-        related_page: int,
-        document_summary_result: dict[str, Any],
-    ) -> int:
-        score = 0
-
-        for section in document_summary_result.get("sections", []):
-            pages = section.get("pages", [])
-            if current_page_number in pages and related_page in pages:
-                score += 3
-
-        for link in document_summary_result.get("prerequisite_links", []):
-            from_page = int(link["from_page"])
-            to_page = int(link["to_page"])
-            if from_page == current_page_number and to_page == related_page:
-                score += 4
-            elif to_page == current_page_number and from_page == related_page:
-                score += 4
-
-        difficult_pages = {int(page) for page in document_summary_result.get("difficult_pages", [])}
-        if related_page in difficult_pages:
-            score += 1
-
-        return score
 
     def _build_timeout_retry_guidance(self, existing_guidance: str | None = None) -> str:
         timeout_guidance = (

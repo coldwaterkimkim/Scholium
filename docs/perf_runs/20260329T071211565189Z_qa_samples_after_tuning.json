@@ -1,0 +1,569 @@
+{
+  "generated_at": "2026-03-29T09:13:57.239537+00:00",
+  "analysis_dir": "/Users/chansukim/Documents/개인/6-1. codex/Scholium/data/analysis",
+  "corpus_manifest_path": "/Users/chansukim/Documents/개인/6-1. codex/Scholium/docs/perf_runs/20260329T071211565189Z_corpus_manifest.json",
+  "sampled_document_count": 3,
+  "total_sample_count": 9,
+  "documents": [
+    {
+      "document_id": "doc_3cbb9bb19bea4a33bcf83b826e35eeed",
+      "source_pdf_relpath": "유우_질병면역학 발표논문.pdf",
+      "expected_type": "text_rich",
+      "has_compat_pages": true,
+      "has_llm_pages": true,
+      "samples": [
+        {
+          "document_id": "doc_3cbb9bb19bea4a33bcf83b826e35eeed",
+          "source_pdf_relpath": "유우_질병면역학 발표논문.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_3cbb9bb19bea4a33bcf83b826e35eeed.pdf",
+          "page_number": 17,
+          "page_image_relpath": "data/rendered_pages/doc_3cbb9bb19bea4a33bcf83b826e35eeed/17.png",
+          "expected_type": "text_rich",
+          "pass2_generation_mode": "compat",
+          "pass1_path": "text-first",
+          "route_label": "text-rich",
+          "hard_page_score": 0,
+          "recommended_execution": "text_first",
+          "planner_reason": "text_length=1169; block_count=4; non_empty_text_block_count=4; no_strong_visual_signal",
+          "candidate_anchor_count": 8,
+          "final_anchor_count": 3,
+          "anchor_labels": [
+            "CC BY-NC-ND 4.0 license",
+            "DOI link",
+            "Open Access notice"
+          ],
+          "anchor_types": [
+            "text",
+            "text",
+            "text"
+          ],
+          "short_explanations": [
+            "이 라이선스는 저자 표시를 요구하고, 비상업적 이용만 허용하며, 변경물 배포를 제한하는 조건을 담는다. 이 페이지에서 재사용 가능 범위를 가장 직접적으로 규정하는 부분이다.",
+            "DOI는 논문을 안정적으로 식별하고 직접 찾을 수 있게 해주는 영구 식별자다. 페이지 하단의 메타데이터 중 실제 접근성과 인용 정확성에 가장 중요하다.",
+            "이 문구는 논문이 공개 접근 형태로 배포된다는 점을 먼저 알린다. 이어지는 라이선스 조건을 해석하는 출발점이 되는 핵심 안내다."
+          ],
+          "long_explanations": [
+            "CC BY-NC-ND 4.0 license: 이 라이선스는 저자 표시를 요구하고, 비상업적 이용만 허용하며, 변경물 배포를 제한하는 조건을 담는다. 이 페이지는 참고문헌과 출판 정보 흐름에서 출판 메타데이터 및 오픈액세스 라이선스 안내 성격을 띠며, 이 페이지는 연구 내용 자체보다 논문의 공개 이용 조건과 출판 메타데이터를 제공하는 역할을 한다. 앞선 p.16의 참고문헌/근거 제시와 이어서 읽으면 이 페이지의 위치가 더 분명해진다.",
+            "DOI link: DOI는 논문을 안정적으로 식별하고 직접 찾을 수 있게 해주는 영구 식별자다. 이 페이지는 참고문헌과 출판 정보 흐름에서 출판 메타데이터 및 오픈액세스 라이선스 안내 성격을 띠며, 이 페이지는 연구 내용 자체보다 논문의 공개 이용 조건과 출판 메타데이터를 제공하는 역할을 한다. 앞선 p.16의 참고문헌/근거 제시와 이어서 읽으면 이 페이지의 위치가 더 분명해진다.",
+            "Open Access notice: 이 문구는 논문이 공개 접근 형태로 배포된다는 점을 먼저 알린다. 이 페이지는 참고문헌과 출판 정보 흐름에서 출판 메타데이터 및 오픈액세스 라이선스 안내 성격을 띠며, 이 페이지는 연구 내용 자체보다 논문의 공개 이용 조건과 출판 메타데이터를 제공하는 역할을 한다. 앞선 p.16의 참고문헌/근거 제시와 이어서 읽으면 이 페이지의 위치가 더 분명해진다."
+          ],
+          "related_pages": [
+            16
+          ],
+          "page_risk_note": "핵심 포인트는 비교적 명확하지만 관련 페이지를 함께 보면 이해가 더 좋아진다.",
+          "page_role": "출판 메타데이터 및 오픈액세스 라이선스 안내",
+          "page_summary": "이 페이지는 연구 내용 자체보다 논문의 공개 이용 조건과 출판 메타데이터를 제공하는 역할을 한다. 오픈액세스 여부, Creative Commons 라이선스 종류, 저작권 표기, 저널 서지정보와 DOI가 함께 제시되어 있다. 학습보다는 인용·공유·재사용 가능 범위를 확인할 때 중요한 페이지다.",
+          "prerequisites": [
+            "앞선 p.16의 참고문헌/근거 제시를 먼저 보면 이 페이지 맥락이 더 분명해진다."
+          ],
+          "anchor_questions": [
+            "Creative Commons Attribution-NonCommercial-NoDerivatives 4.0은 어떤 제한이 있다는 뜻이지?",
+            "이 DOI는 왜 중요한 거지?",
+            "이 논문이 Open Access라는 건 정확히 무슨 뜻이지?"
+          ],
+          "compat_prerequisite_source": "previous_section_page",
+          "compat_related_pages_source": "section_adjacent",
+          "compat_long_explanation_shape": "3_sentence",
+          "compat_used_section_title": true
+        },
+        {
+          "document_id": "doc_3cbb9bb19bea4a33bcf83b826e35eeed",
+          "source_pdf_relpath": "유우_질병면역학 발표논문.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_3cbb9bb19bea4a33bcf83b826e35eeed.pdf",
+          "page_number": 10,
+          "page_image_relpath": "data/rendered_pages/doc_3cbb9bb19bea4a33bcf83b826e35eeed/10.png",
+          "expected_type": "text_rich",
+          "pass2_generation_mode": "llm",
+          "pass1_path": "multimodal",
+          "route_label": "text-rich",
+          "hard_page_score": 35,
+          "recommended_execution": "selective_visual_enrichment",
+          "planner_reason": "text_length=1061; block_count=4; non_empty_text_block_count=3; no_strong_visual_signal",
+          "candidate_anchor_count": 12,
+          "final_anchor_count": 5,
+          "anchor_labels": [
+            "panel a microscopy grid",
+            "treatment condition labels",
+            "panel b bar chart",
+            "significance annotations above bars",
+            "figure caption and experimental setup"
+          ],
+          "anchor_types": [
+            "image",
+            "text",
+            "chart",
+            "chart",
+            "text"
+          ],
+          "short_explanations": [
+            "네 가지 암세포주와 다섯 가지 처리 조건을 한 번에 비교하는 형광 현미경 패널이다. 적색 형광이 적을수록 살아남은 표적 암세포가 적다는 뜻이다.",
+            "각 행은 대조군, 면역세포 단독, 그리고 면역세포와 cordycepin 또는 Cm-EE를 함께 준 조건을 뜻한다. 무엇과 무엇을 비교하는지 이해해야 이 그림의 결론을 제대로 읽을 수 있다.",
+            "위 패널에서 보인 차이를 % cell viability로 정량화한 결과다. 이미지에서 보이는 경향이 수치적으로도 유지되는지 확인하는 핵심 근거다.",
+            "막대 높이 차이가 우연이 아니라 통계적으로 의미 있는지 보여주는 표식이다. 특히 어떤 기준군과 비교한 표시인지 캡션과 함께 읽어야 한다.",
+            "E:T ratio 20:1, 24시간 처리, cordycepin 100 μM, Cm-EE 100 μg/mL, mean±SEM, one-way ANOVA 같은 해석의 전제가 여기 적혀 있다. 이 정보가 있어야 그림을 실험 맥락 안에서 읽을 수 있다."
+          ],
+          "long_explanations": [
+            "이 패널은 MCF-7, MDA-MB-231, Huh-7, SNU-449 네 암세포주에서 조건별로 얼마나 많은 표적 세포가 남아 있는지를 시각적으로 보여준다. 각 칸의 적색 형광은 살아남은 암세포를 반영하므로, 신호가 줄어들수록 effector immune cell의 살상 효과가 커졌다고 해석한다. 이 페이지에서의 역할은 단순한 수치 제시가 아니라, combined 처리군에서 실제로 세포가 더 적게 남는다는 점을 눈으로 먼저 확인하게 하는 것이다. 아래 bar chart는 바로 이 시각적 차이를 정량화한 대응 결과다.",
+            "이 라벨들은 행마다 어떤 실험 조건이 적용됐는지를 정의하는 핵심 안내선이다. Media와 Diluent는 기본 대조군이고, Immune cells는 effector immune cell만 넣었을 때의 기준선이며, Combined 행들은 여기에 cordycepin 또는 Cm-EE를 추가한 조건이다. 따라서 이 페이지의 진짜 질문은 '처리군이 대조군보다 낮은가'뿐 아니라 '면역세포 단독보다도 더 낮아지는가'이다. 즉 이 라벨을 알아야 cordycepin과 Cm-EE가 단순 독성이 아니라 면역세포 매개 살상을 강화했는지 판단할 수 있다.",
+            "이 bar chart는 위 형광 이미지에서 보였던 '남아 있는 암세포 양'의 차이를 수치로 옮긴 정량 패널이다. 세포주별로 다섯 조건의 평균 cell viability와 오차막대를 제시해, 시각적 인상이 아니라 재현 가능한 경향으로 결과를 읽게 해준다. 이 페이지에서 가장 중요한 메시지는 combined cordycepin과 combined Cm-EE가 여러 세포주에서 viability를 더 낮춘다는 점이다. 따라서 이 그래프는 현미경 사진의 보조 자료가 아니라, 면역세포 살상 강화 효과를 공식적으로 뒷받침하는 중심 결과다.",
+            "이 기호들은 단순한 막대 높이 차이를 넘어, 그 차이가 통계적으로 신뢰할 만한지 알려준다. 캡션에 따르면 별표, 달러 기호, 샵 기호는 서로 다른 비교 기준군에 대한 유의성을 뜻하므로, 기호의 종류를 구분하지 않으면 결과를 과대해석하기 쉽다. 이 페이지에서는 combined 처리군이 media나 diluent뿐 아니라 immune cell alone 조건과도 유의하게 다른지 판단하는 데 특히 중요하다. 즉 '낮아 보인다'를 '실제로 의미 있게 낮다'로 바꿔 주는 해석 장치다.",
+            "캡션은 이 figure를 제대로 해석하기 위한 실험 설계와 통계 조건을 압축해 제공한다. 특히 effector:target 비율 20:1, 처리 시간 24시간, 두 물질의 농도, mean±SEM, one-way ANOVA는 결과의 강도와 비교 가능성을 판단하는 기준이다. 이 페이지에서 캡션의 역할은 단순 설명문이 아니라, 이미지와 그래프가 어떤 조건에서 얻어진 데이터인지 고정해 주는 것이다. 따라서 시각적 차이나 막대값만 보고 결론을 내리기보다, 이 조건들이 동일하게 적용된 비교인지 먼저 확인해야 한다."
+          ],
+          "related_pages": [
+            8,
+            9,
+            6,
+            13
+          ],
+          "page_risk_note": "이 페이지는 막대 높이만 보거나 이미지의 어두움만 보고 결론내리면 오해하기 쉽다. 반드시 처리 조건 라벨과 유의성 기호를 함께 읽고, combined 군이 immune cell alone보다 추가로 얼마나 낮아지는지를 중심으로 해석해야 한다.",
+          "page_role": "결과/근거 제시",
+          "page_summary": "이 페이지는 Fig. 7로, cordycepin과 Cm-EE가 effector immune cell의 암세포 살상 효과에 어떤 영향을 주는지 현미경 이미지와 정량 bar chart로 함께 보여준다. 위쪽 패널은 네 가지 암세포주에서 처리 조건별 남아 있는 적색 형광 세포를 비교하고, 아래쪽 패널은 이를 % cell viability로 정량화해 조건 간 차이와 통계적 유의성을 제시한다.",
+          "prerequisites": [
+            "적색 형광이 남아 있는 표적 암세포를 나타내며, 형광 감소가 세포독성 증가를 뜻한다는 점.",
+            "대조군(control)과 병합 처리(combined treatment)의 비교 개념.",
+            "세로축의 값이 낮을수록 살아남은 암세포 비율이 낮고 세포독성이 강하다는 해석.",
+            "통계적 유의성의 기본 개념과, 비교 기준군이 하나가 아닐 수 있다는 점.",
+            "E:T ratio, 처리 시간, 농도, 평균±SEM 같은 기본 실험표현을 읽을 수 있으면 충분하다."
+          ],
+          "anchor_questions": [
+            "이 현미경 패널 전체는 무엇을 비교하는 거지?",
+            "왼쪽의 Media, Diluent, Immune cells, Combined 처리들은 어떻게 읽어야 하지?",
+            "이 막대그래프는 위 현미경 이미지와 어떤 관계가 있지?",
+            "별표와 # 기호는 무엇을 비교한 유의성 표시야?",
+            "캡션에서 꼭 확인해야 할 실험 조건은 무엇이지?"
+          ],
+          "compat_prerequisite_source": null,
+          "compat_related_pages_source": null,
+          "compat_long_explanation_shape": null,
+          "compat_used_section_title": null
+        },
+        {
+          "document_id": "doc_3cbb9bb19bea4a33bcf83b826e35eeed",
+          "source_pdf_relpath": "유우_질병면역학 발표논문.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_3cbb9bb19bea4a33bcf83b826e35eeed.pdf",
+          "page_number": 2,
+          "page_image_relpath": "data/rendered_pages/doc_3cbb9bb19bea4a33bcf83b826e35eeed/2.png",
+          "expected_type": "text_rich",
+          "pass2_generation_mode": "compat",
+          "pass1_path": "text-first",
+          "route_label": "text-rich",
+          "hard_page_score": 0,
+          "recommended_execution": "text_first",
+          "planner_reason": "text_length=6884; block_count=8; non_empty_text_block_count=8; no_strong_visual_signal",
+          "candidate_anchor_count": 12,
+          "final_anchor_count": 3,
+          "anchor_labels": [
+            "연구 목적과 시험 물질",
+            "Cordyceps militaris 배경",
+            "UPLC 성분 분석"
+          ],
+          "anchor_types": [
+            "text",
+            "text",
+            "text"
+          ],
+          "short_explanations": [
+            "이 문단은 cordycepin과 C. militaris ethanolic extract(Cm-EE)가 암 감작과 면역조절에 미치는 영향을 조사한다는 핵심 목적을 제시한다. 페이지 전체 결과 섹션을 읽는 기준점이 되는 문장이다.",
+            "이 문단은 C. militaris가 오랜 전통적 사용 이력과 다양한 생리활성을 가진 물질원임을 소개한다. 연구 대상 추출물과 cordycepin의 생물학적 의미를 이해하는 출발점이다.",
+            "이 부분은 UPLC로 Cm-EE 내 bioactive compounds를 확인했다는 점을 설명한다. 추출물에 어떤 주요 성분이 실제로 들어 있는지 규명해야 뒤의 생물학적 효과를 성분 수준에서 해석할 수 있다."
+          ],
+          "long_explanations": [
+            "연구 목적과 시험 물질: 이 문단은 cordycepin과 C. 이 페이지는 연구 배경과 질문 설정 흐름에서 연구 배경에서 결과 개요로 전환되는 페이지 성격을 띠며, 이 페이지는 먼저 면역치료 관련 선행 사례와 Cordyceps militaris의 생리활성을 소개한 뒤, cordycepin과 C. 앞선 p.1의 연구 논문 첫 페이지의 주제 소개와 이어서 읽으면 이 페이지의 위치가 더 분명해진다.",
+            "Cordyceps militaris 배경: 이 문단은 C. 이 페이지는 연구 배경과 질문 설정 흐름에서 연구 배경에서 결과 개요로 전환되는 페이지 성격을 띠며, 이 페이지는 먼저 면역치료 관련 선행 사례와 Cordyceps militaris의 생리활성을 소개한 뒤, cordycepin과 C. 앞선 p.1의 연구 논문 첫 페이지의 주제 소개와 이어서 읽으면 이 페이지의 위치가 더 분명해진다.",
+            "UPLC 성분 분석: 이 부분은 UPLC로 Cm-EE 내 bioactive compounds를 확인했다는 점을 설명한다. 이 페이지는 연구 배경과 질문 설정 흐름에서 연구 배경에서 결과 개요로 전환되는 페이지 성격을 띠며, 이 페이지는 먼저 면역치료 관련 선행 사례와 Cordyceps militaris의 생리활성을 소개한 뒤, cordycepin과 C. 앞선 p.1의 연구 논문 첫 페이지의 주제 소개와 이어서 읽으면 이 페이지의 위치가 더 분명해진다."
+          ],
+          "related_pages": [
+            1
+          ],
+          "page_risk_note": "핵심 포인트는 비교적 명확하지만 관련 페이지를 함께 보면 이해가 더 좋아진다.",
+          "page_role": "연구 배경에서 결과 개요로 전환되는 페이지",
+          "page_summary": "이 페이지는 먼저 면역치료 관련 선행 사례와 Cordyceps militaris의 생리활성을 소개한 뒤, cordycepin과 C. militaris ethanolic extract(Cm-EE)를 이용한 연구 목적을 제시한다. 이어서 Results 섹션에 들어가 Cm-EE 성분 분석, 세포독성 평가, 암세포 감작 관련 분석의 큰 흐름을 소개한다. 즉 배경 설명과 결과 하위 주제들이 한 페이지 안에서 연결되는 전환 지점이다.",
+          "prerequisites": [
+            "앞선 p.1의 연구 논문 첫 페이지의 주제 소개를 먼저 보면 이 페이지 맥락이 더 분명해진다."
+          ],
+          "anchor_questions": [
+            "이 연구는 정확히 무엇을 검증하려는 거지?",
+            "Cordyceps militaris는 왜 이 연구에서 중요한가?",
+            "UPLC를 사용한 이유는 무엇이고, 여기서 무엇을 찾는 거지?"
+          ],
+          "compat_prerequisite_source": "previous_section_page",
+          "compat_related_pages_source": "section_adjacent",
+          "compat_long_explanation_shape": "3_sentence",
+          "compat_used_section_title": true
+        }
+      ]
+    },
+    {
+      "document_id": "doc_49f948e346a949b49fee0181eb6f6cdf",
+      "source_pdf_relpath": "doc_f9ba1ef0e03446d1bcf11dcc686d1275.pdf",
+      "expected_type": "text_rich",
+      "has_compat_pages": true,
+      "has_llm_pages": true,
+      "samples": [
+        {
+          "document_id": "doc_49f948e346a949b49fee0181eb6f6cdf",
+          "source_pdf_relpath": "doc_f9ba1ef0e03446d1bcf11dcc686d1275.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_49f948e346a949b49fee0181eb6f6cdf.pdf",
+          "page_number": 1,
+          "page_image_relpath": "data/rendered_pages/doc_49f948e346a949b49fee0181eb6f6cdf/1.png",
+          "expected_type": "text_rich",
+          "pass2_generation_mode": "compat",
+          "pass1_path": "multimodal",
+          "route_label": "text-rich",
+          "hard_page_score": 10,
+          "recommended_execution": "text_first",
+          "planner_reason": "text_length=106; block_count=5; non_empty_text_block_count=5; no_strong_visual_signal",
+          "candidate_anchor_count": 10,
+          "final_anchor_count": 3,
+          "anchor_labels": [
+            "main title",
+            "topic list",
+            "Week 4"
+          ],
+          "anchor_types": [
+            "text",
+            "text",
+            "text"
+          ],
+          "short_explanations": [
+            "큰 제목은 이번 주차의 중심 메시지를 직접 제시한다. 이후에 나오는 세부 키워드들이 모두 이 주제를 중심으로 연결된다는 점에서 가장 중요한 앵커다.",
+            "이 줄은 이번 주차에서 다룰 주요 개념들의 목록이다. 제목이 큰 주제를 제시한다면, 이 목록은 실제 강의 범위를 구체화한다.",
+            "이 표시는 문서 내에서 현재 강의가 몇 번째 주차인지 알려준다. 학습 흐름상 이 페이지가 새로운 주차 또는 섹션의 시작임을 보여준다."
+          ],
+          "long_explanations": [
+            "main title: 큰 제목은 이번 주차의 중심 메시지를 직접 제시한다. 이 페이지는 Week 4 framing and shift to learning-based AI 흐름에서 주차 제목 및 학습 주제 개요 성격을 띠며, 이 페이지는 4주차 강의의 제목 슬라이드로, 핵심 주제를 'AI as a Learning Machine'으로 제시한다.",
+            "topic list: 이 줄은 이번 주차에서 다룰 주요 개념들의 목록이다. 이 페이지는 Week 4 framing and shift to learning-based AI 흐름에서 주차 제목 및 학습 주제 개요 성격을 띠며, 이 페이지는 4주차 강의의 제목 슬라이드로, 핵심 주제를 'AI as a Learning Machine'으로 제시한다.",
+            "Week 4: 이 표시는 문서 내에서 현재 강의가 몇 번째 주차인지 알려준다. 이 페이지는 Week 4 framing and shift to learning-based AI 흐름에서 주차 제목 및 학습 주제 개요 성격을 띠며, 이 페이지는 4주차 강의의 제목 슬라이드로, 핵심 주제를 'AI as a Learning Machine'으로 제시한다."
+          ],
+          "related_pages": [],
+          "page_risk_note": "핵심 포인트는 비교적 명확하지만 관련 페이지를 함께 보면 이해가 더 좋아진다.",
+          "page_role": "주차 제목 및 학습 주제 개요",
+          "page_summary": "이 페이지는 4주차 강의의 제목 슬라이드로, 핵심 주제를 'AI as a Learning Machine'으로 제시한다. 아래에는 이번 주에 다룰 주요 키워드로 ML, Deep Learning, Neural Networks, LLM, AIBT가 나열되어 있어 강의 범위를 미리 보여준다.",
+          "prerequisites": [],
+          "anchor_questions": [
+            "이 페이지의 핵심 주제가 무엇이지?",
+            "아래에 나열된 항목들은 어떤 역할을 하지?",
+            "왜 'Week 4'가 따로 강조되어 있지?"
+          ],
+          "compat_prerequisite_source": "none",
+          "compat_related_pages_source": "none",
+          "compat_long_explanation_shape": "2_sentence",
+          "compat_used_section_title": true
+        },
+        {
+          "document_id": "doc_49f948e346a949b49fee0181eb6f6cdf",
+          "source_pdf_relpath": "doc_f9ba1ef0e03446d1bcf11dcc686d1275.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_49f948e346a949b49fee0181eb6f6cdf.pdf",
+          "page_number": 14,
+          "page_image_relpath": "data/rendered_pages/doc_49f948e346a949b49fee0181eb6f6cdf/14.png",
+          "expected_type": "text_rich",
+          "pass2_generation_mode": "llm",
+          "pass1_path": "multimodal",
+          "route_label": "visual-rich",
+          "hard_page_score": 55,
+          "recommended_execution": "selective_visual_enrichment",
+          "planner_reason": "has_table; text_length=320",
+          "candidate_anchor_count": 10,
+          "final_anchor_count": 5,
+          "anchor_labels": [
+            "AI lineage tree",
+            "weighted nodes + backpropagation",
+            "Deep Learning branch",
+            "LLM and GenAI box",
+            "AIBT branch"
+          ],
+          "anchor_types": [
+            "flow",
+            "text",
+            "diagram",
+            "diagram",
+            "diagram"
+          ],
+          "short_explanations": [
+            "이 그림은 여러 AI 용어를 나열하는 것이 아니라, 신경망을 공통 기반으로 한 분기 관계를 보여주는 계보도다. 이 페이지에서는 개별 정의보다 '무엇이 무엇에서 이어지는가'를 읽는 것이 핵심이다.",
+            "이 문구는 신경망이 '가중치를 가진 연결'과 '오차를 거꾸로 전파하며 학습하는 방식'으로 움직인다는 점을 요약한다. 아래에 나오는 분기들은 모두 이 학습 메커니즘 위에 서 있다는 뜻이다.",
+            "이 박스는 딥러닝을 신경망과 별개 기술이 아니라, 더 많은 은닉층을 쌓은 신경망의 확장으로 설명한다. 즉 NN의 한 분기이지만 규모와 표현력이 커진 중요한 진화 단계라는 뜻이다.",
+            "이 박스는 GPT-4, Claude, Gemini 같은 LLM을 트랜스포머 계열의 대표 결과물로 묶는다. 생성형 AI를 독립 유행어가 아니라 트랜스포머 기반의 대규모 응용으로 읽게 해 주는 지점이다.",
+            "이 배치는 강의가 기술 설명에서 끝나지 않고, 신경망 기반 AI가 결국 비즈니스 전환으로 이어진다고 본다는 뜻이다. 즉 AIBT는 별도 주변 주제가 아니라, 기술 계보의 실천적 도착점으로 제시된다."
+          ],
+          "long_explanations": [
+            "이 도식의 핵심 메시지는 현대 AI의 중요한 흐름들이 서로 완전히 분리된 것이 아니라, 신경망이라는 공통 기반 위에서 발전했다는 점이다. 왼쪽은 딥러닝과 그 대표 아키텍처, 가운데는 트랜스포머와 LLM/GenAI, 오른쪽은 그 기술이 비즈니스 전환으로 이어지는 방향을 묶어 보여준다. 따라서 이 페이지는 세부 기술 설명보다 '계보와 연결 구조'를 압축 정리하는 역할을 한다. 다만 이것을 엄밀한 역사 순서나 완전한 분류표로 보기보다, 강의의 큰 흐름을 잡아주는 개념 지도라고 이해하는 편이 맞다.",
+            "weighted nodes는 신경망이 입력 특징마다 서로 다른 중요도를 학습한다는 뜻이고, backpropagation은 예측 오차를 이용해 그 가중치를 조정하는 학습 절차를 가리킨다. 이 두 요소를 함께 적어 둔 이유는 신경망이 단순한 박스가 아니라, 계산 구조와 학습 메커니즘을 동시에 가진 모델임을 보여주기 위해서다. 이 페이지에서는 딥러닝과 트랜스포머가 유행하는 별도 이름이 아니라, 결국 이런 신경망 학습 원리의 확장형이라는 점을 받쳐준다. 그래서 이 문구를 이해하면 중앙의 NN이 왜 전체 계보의 출발점인지 훨씬 명확해진다.",
+            "슬라이드는 딥러닝을 'multiple hidden layers'로 정의해, 신경망이 더 깊어지면서 복잡한 표현을 학습할 수 있게 된 흐름으로 제시한다. 이것은 딥러닝이 완전히 새로운 원리라기보다, 신경망 구조를 심화한 형태라는 점을 강조한다. 페이지 안에서는 왼쪽 가지를 통해 전통적 신경망 설명에서 CNN, RNN, LSTM 같은 실전 아키텍처들로 내려가는 연결고리를 만든다. 따라서 딥러닝 박스는 신경망의 일반 원리와 구체적 모델 계열 사이를 잇는 중간 허브 역할을 한다.",
+            "이 박스는 오늘날 가장 주목받는 생성형 AI가 어디서 나왔는지를 계보적으로 정리해 준다. 페이지의 주장에 따르면 LLM과 GenAI는 트랜스포머의 대규모화·응용 확장으로 이해하는 것이 핵심이다. 그래서 사용자는 'LLM/GenAI'를 별도 마법 기술처럼 보기보다, 신경망 → 트랜스포머 → 대규모 생성 모델로 이어지는 흐름 안에서 파악해야 한다. 이 요소는 앞선 기술 기초와 뒤의 비즈니스 적용을 연결하는 현대 AI의 대표 사례로 기능한다.",
+            "AIBT는 AI-Based Business Transformation으로, 모델 자체보다 그 모델이 조직의 운영과 가치 창출을 어떻게 바꾸는지를 가리킨다. 슬라이드가 이를 NN에서 직접 이어진 가지로 둔 이유는, 현대 AI의 발전이 단지 연구 성능 향상에 머물지 않고 실제 경영 변화로 연결된다는 강의의 큰 메시지를 강조하기 위해서다. 즉 왼쪽과 가운데가 기술 계보라면, 오른쪽은 그 기술이 어디에 쓰이는지 보여주는 적용 계보다. 이 요소를 이해하면 이후 페이지들이 왜 기술 설명에서 운영, 전략, 조직 설계 논의로 넘어가는지 자연스럽게 연결된다."
+          ],
+          "related_pages": [
+            12,
+            16,
+            6,
+            8,
+            9,
+            10,
+            13,
+            17
+          ],
+          "page_risk_note": "이 페이지를 역사 순서나 완전한 taxonomy로 읽기보다, 강의 전체 흐름을 압축한 개념 지도라고 이해해야 한다. 특히 AIBT는 트랜스포머와 같은 '동일 수준의 기술 아키텍처'라기보다, 신경망 계열 기술이 비즈니스로 이어지는 적용 축이라는 점을 놓치기 쉽다.",
+          "page_role": "개념 계보/구조도 설명",
+          "page_summary": "이 페이지는 신경망(NN)을 AI 계보의 공통 기반으로 두고, 그 위에서 딥러닝·트랜스포머·AIBT가 어떻게 갈라지는지 구조도로 보여준다. 특히 딥러닝의 대표 아키텍처와 트랜스포머 기반 LLM/GenAI를 NN의 연장선으로 연결해, 핵심 기술 계보와 비즈니스 연결점을 한눈에 정리한다.",
+          "prerequisites": [
+            "AI, 딥러닝, 트랜스포머 같은 기본 용어를 대략 구분할 수 있으면 충분하다.",
+            "가중치(weight), 층(layer), 오차를 줄이며 학습한다는 개념에 대한 아주 기본적인 이해.",
+            "은닉층(hidden layer)이 무엇이고, 층이 많아질수록 모델 표현력이 커진다는 정도의 이해.",
+            "트랜스포머와 대규모 언어모델(LLM)이 무엇인지에 대한 기본 개념.",
+            "AI 기술이 모델 성능뿐 아니라 업무 프로세스와 의사결정에도 적용된다는 관점."
+          ],
+          "anchor_questions": [
+            "이 도식 전체는 단순 목록이 아니라 어떤 관계를 보여주는 거지?",
+            "왜 여기서는 NN의 핵심을 weighted nodes와 backpropagation으로 압축해서 말할까?",
+            "딥러닝은 여기서 NN과 어떤 관계로 놓여 있고, 왜 별도 큰 가지로 그려졌지?",
+            "왜 LLM과 GenAI가 트랜스포머 아래에 배치되어 있고, 이것이 페이지에서 왜 중요하지?",
+            "AIBT는 왜 기술 아키텍처들과 함께 NN에서 직접 갈라지는 가지로 표현되었을까?"
+          ],
+          "compat_prerequisite_source": null,
+          "compat_related_pages_source": null,
+          "compat_long_explanation_shape": null,
+          "compat_used_section_title": null
+        },
+        {
+          "document_id": "doc_49f948e346a949b49fee0181eb6f6cdf",
+          "source_pdf_relpath": "doc_f9ba1ef0e03446d1bcf11dcc686d1275.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_49f948e346a949b49fee0181eb6f6cdf.pdf",
+          "page_number": 2,
+          "page_image_relpath": "data/rendered_pages/doc_49f948e346a949b49fee0181eb6f6cdf/2.png",
+          "expected_type": "text_rich",
+          "pass2_generation_mode": "compat",
+          "pass1_path": "text-first",
+          "route_label": "text-rich",
+          "hard_page_score": 0,
+          "recommended_execution": "text_first",
+          "planner_reason": "text_length=373; block_count=8; non_empty_text_block_count=8; no_strong_visual_signal",
+          "candidate_anchor_count": 9,
+          "final_anchor_count": 3,
+          "anchor_labels": [
+            "Weeks 1–3 recap heading",
+            "Question-to-answer transition",
+            "Learn from data answer"
+          ],
+          "anchor_types": [
+            "text",
+            "flow",
+            "text"
+          ],
+          "short_explanations": [
+            "This heading frames the page as a backward-looking recap. It helps the reader interpret the bullets below as a summary of prior course content rather than new standalone material.",
+            "Taken together, these two lines form the page's main argumentative move: Week 4 asks about the source of AI's power, and the answer is learning from data. This transition is likely the key takeaway of the slide.",
+            "This line gives the page's central answer: AI matters because it can learn from data. That answer sets up Week 4 as a move toward learning as the mechanism behind business transformation."
+          ],
+          "long_explanations": [
+            "Weeks 1–3 recap heading: This heading frames the page as a backward-looking recap. 이 페이지는 Week 4 framing and shift to learning-based AI 흐름에서 이전 주차 요약과 다음 주차 도입 성격을 띠며, This page recaps the first three weeks of the course by listing the main theme of each week. 앞선 p.1의 주차 제목 및 학습 주제 개요와 이어서 읽으면 이 페이지의 위치가 더 분명해진다.",
+            "Taken together, these two lines form the page's main argumentative move: Week 4 asks about the source of AI's power, and the answer is learning from data. 이 페이지는 Week 4 framing and shift to learning-based AI 흐름에서 이전 주차 요약과 다음 주차 도입 성격을 띠며, This page recaps the first three weeks of the course by listing the main theme of each week. 앞선 p.1의 주차 제목 및 학습 주제 개요와 이어서 읽으면 이 페이지의 위치가 더 분명해진다.",
+            "Learn from data answer: This line gives the page's central answer: AI matters because it can learn from data. 이 페이지는 Week 4 framing and shift to learning-based AI 흐름에서 이전 주차 요약과 다음 주차 도입 성격을 띠며, This page recaps the first three weeks of the course by listing the main theme of each week. 앞선 p.1의 주차 제목 및 학습 주제 개요와 이어서 읽으면 이 페이지의 위치가 더 분명해진다."
+          ],
+          "related_pages": [
+            1,
+            3
+          ],
+          "page_risk_note": "핵심 포인트는 비교적 명확하지만 관련 페이지를 함께 보면 이해가 더 좋아진다.",
+          "page_role": "이전 주차 요약과 다음 주차 도입",
+          "page_summary": "This page recaps the first three weeks of the course by listing the main theme of each week. It then identifies AIBT as the unifying concept across those weeks and introduces Week 4's central question. The page's answer is that AI enables AIBT because it can learn from data.",
+          "prerequisites": [
+            "앞선 p.1의 주차 제목 및 학습 주제 개요를 먼저 보면 이 페이지 맥락이 더 분명해진다."
+          ],
+          "anchor_questions": [
+            "이 페이지는 전체적으로 무엇을 하려는 거지?",
+            "이 부분의 질문과 답이 어떻게 연결되는 거지?",
+            "'learn from data'가 왜 이 질문의 답이 되지?"
+          ],
+          "compat_prerequisite_source": "previous_section_page",
+          "compat_related_pages_source": "section_adjacent",
+          "compat_long_explanation_shape": "3_sentence",
+          "compat_used_section_title": true
+        }
+      ]
+    },
+    {
+      "document_id": "doc_5d509baf7e5c4119bdd3e5193a3e2afe",
+      "source_pdf_relpath": "W2 Tutorial - Financial Management and Firm Value.pdf",
+      "expected_type": "mixed",
+      "has_compat_pages": true,
+      "has_llm_pages": true,
+      "samples": [
+        {
+          "document_id": "doc_5d509baf7e5c4119bdd3e5193a3e2afe",
+          "source_pdf_relpath": "W2 Tutorial - Financial Management and Firm Value.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_5d509baf7e5c4119bdd3e5193a3e2afe.pdf",
+          "page_number": 3,
+          "page_image_relpath": "data/rendered_pages/doc_5d509baf7e5c4119bdd3e5193a3e2afe/3.png",
+          "expected_type": "mixed",
+          "pass2_generation_mode": "compat",
+          "pass1_path": "text-first",
+          "route_label": "text-rich",
+          "hard_page_score": 0,
+          "recommended_execution": "text_first",
+          "planner_reason": "text_length=667; block_count=7; non_empty_text_block_count=7; no_strong_visual_signal",
+          "candidate_anchor_count": 8,
+          "final_anchor_count": 3,
+          "anchor_labels": [
+            "Agency Problem title",
+            "Goal of Financial Management title",
+            "Agency Problem section"
+          ],
+          "anchor_types": [
+            "text",
+            "text",
+            "text"
+          ],
+          "short_explanations": [
+            "이 제목은 두 번째 문제의 개념 축을 제시한다. 페이지에서는 경영자와 주주의 이해가 어긋날 수 있다는 점을 전제로, 이를 줄이는 장치를 묻고 있다.",
+            "이 제목은 첫 문제의 핵심 주제를 제시한다. 이 페이지에서는 재무관리의 목표를 단순한 비용 절감이나 배당 증가가 아니라 기업가치 관점에서 이해하는지가 중요하다.",
+            "제목과 문항을 함께 보면 대리인 문제와 유인 설계를 연결해서 점검하는 구성이다. 페이지의 역할은 주주이익과 연동된 보상 체계가 왜 중요한지 문제 형태로 확인시키는 데 있다."
+          ],
+          "long_explanations": [
+            "Agency Problem title: 이 제목은 두 번째 문제의 개념 축을 제시한다. 이 페이지는 기업가치 목표와 대리인 문제 흐름에서 개념 점검 문제 성격을 띠며, 이 페이지는 재무관리의 목표와 대리인 문제를 묻는 두 개의 객관식 문제로 구성되어 있다.",
+            "이 제목은 첫 문제의 핵심 주제를 제시한다로, '여기서 말하는 재무관리의 목표는 정확히 뭐지'라는 질문과 직접 맞닿아 있다. 이 페이지는 기업가치 목표와 대리인 문제 흐름에서 개념 점검 문제 성격을 띠며, 이 페이지는 재무관리의 목표와 대리인 문제를 묻는 두 개의 객관식 문제로 구성되어 있다.",
+            "Agency Problem section: 제목과 문항을 함께 보면 대리인 문제와 유인 설계를 연결해서 점검하는 구성이다. 이 페이지는 기업가치 목표와 대리인 문제 흐름에서 개념 점검 문제 성격을 띠며, 이 페이지는 재무관리의 목표와 대리인 문제를 묻는 두 개의 객관식 문제로 구성되어 있다."
+          ],
+          "related_pages": [],
+          "page_risk_note": "핵심 포인트는 비교적 명확하지만 관련 페이지를 함께 보면 이해가 더 좋아진다.",
+          "page_role": "개념 점검 문제",
+          "page_summary": "이 페이지는 재무관리의 목표와 대리인 문제를 묻는 두 개의 객관식 문제로 구성되어 있다. 첫 문제는 기업이 재무관리 목표를 제대로 따르고 있는지를 어떤 지표로 판단해야 하는지 점검한다. 두 번째 문제는 경영자와 주주의 이해를 일치시키는 유인 설계가 무엇인지 묻는다.",
+          "prerequisites": [],
+          "anchor_questions": [
+            "대리인 문제는 여기서 어떤 의미로 쓰인 거지?",
+            "여기서 말하는 재무관리의 목표는 정확히 뭐지?",
+            "두 번째 섹션 전체에서 학생이 이해해야 할 포인트는 뭐야?"
+          ],
+          "compat_prerequisite_source": "none",
+          "compat_related_pages_source": "none",
+          "compat_long_explanation_shape": "2_sentence",
+          "compat_used_section_title": true
+        },
+        {
+          "document_id": "doc_5d509baf7e5c4119bdd3e5193a3e2afe",
+          "source_pdf_relpath": "W2 Tutorial - Financial Management and Firm Value.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_5d509baf7e5c4119bdd3e5193a3e2afe.pdf",
+          "page_number": 12,
+          "page_image_relpath": "data/rendered_pages/doc_5d509baf7e5c4119bdd3e5193a3e2afe/12.png",
+          "expected_type": "mixed",
+          "pass2_generation_mode": "llm",
+          "pass1_path": "multimodal",
+          "route_label": "visual-rich",
+          "hard_page_score": 85,
+          "recommended_execution": "selective_visual_enrichment",
+          "planner_reason": "has_figure; text_length=4; non_empty_text_block_count=2",
+          "candidate_anchor_count": 10,
+          "final_anchor_count": 5,
+          "anchor_labels": [
+            "WSJ screenshot",
+            "WSJ Opinion masthead",
+            "anti-ESG headline cluster",
+            "$8.2 billion outflow claim",
+            "big firms exit Climate Action group"
+          ],
+          "anchor_types": [
+            "image",
+            "text",
+            "other",
+            "text",
+            "text"
+          ],
+          "short_explanations": [
+            "이 이미지는 개별 기사 한 편이 아니라, 한 화면 안에서 반복되는 반ESG 톤 자체를 보여 주기 위한 시각적 증거다. 페이지의 요점은 특정 주장보다도 그런 분위기가 실제 매체 화면에 축적돼 보인다는 데 있다.",
+            "이 표시는 자료가 일반 뉴스가 아니라 의견면에서 나온 것임을 알려 준다. 따라서 이 페이지는 '객관적 사실 정리'보다도 ESG를 둘러싼 해석과 프레이밍이 어떻게 형성되는지를 보여 준다.",
+            "핵심은 개별 문장보다도 '반복되는 패턴'이다. 여러 제목을 한 화면에 배치하면 ESG 비판이 우연한 한 번의 기사처럼 보이지 않고 누적된 담론처럼 읽힌다.",
+            "이 수치는 반ESG 정서를 단순 의견이 아니라 자금 이동의 신호와 연결해 준다. 즉 분위기 변화가 실제 투자 행동으로도 나타났다는 인상을 강화한다.",
+            "이 문구는 ESG 후퇴를 추상적 분위기가 아니라 실제 기관 행동으로 보여 준다. 특히 유명 대형사가 등장해 변화의 규모와 상징성을 키운다."
+          ],
+          "long_explanations": [
+            "이 캡처는 WSJ Opinion 지면에 실린 여러 ESG 비판 헤드라인을 한꺼번에 제시하는 시각 자료다. 그래서 독자는 단일 기사 내용보다도 '비판이 반복되고 있다'는 전체 인상을 먼저 받게 된다. 이 페이지에서 이미지는 ESG에 대한 시장·미디어 분위기 변화가 추상적 설명이 아니라 실제 사례로 관찰된다는 점을 뒷받침한다. 앞선 페이지의 ESG 개념 논의를, 여기서는 외부 담론과 투자 반응 사례로 연결하는 역할을 한다.",
+            "'WSJ Opinion'은 이 자료가 보도 기사라기보다 논평과 해석의 성격을 가진다는 점을 드러낸다. 이 구분은 중요하다. 왜냐하면 페이지의 목적이 ESG의 진실 여부를 단정하는 데 있지 않고, 시장과 언론 공간에서 ESG가 어떤 어조로 다뤄지는지 보여 주는 데 있기 때문이다. 즉 이 요소는 화면 속 메시지를 읽을 때, 그것을 여론·프레임의 사례로 받아들여야 한다는 해석 가이드를 제공한다.",
+            "이 헤드라인 묶음은 ESG 비판이 산발적인 사건이 아니라 하나의 흐름처럼 보이게 만드는 장치다. 독자는 서로 다른 제목들을 연속적으로 보면서, ESG에 대한 회의론이 매체 내에서 반복·증폭되고 있다는 인상을 받는다. 이 페이지에서 가장 중요한 기능은 바로 그 '누적 효과'를 전달하는 것이다. 따라서 이 앵커는 페이지 전체 메시지의 구조를 이해하는 데 핵심이다.",
+            "이 문구는 지속가능 펀드에서 자금이 빠져나갔다는 정량적 주장을 제시한다. 숫자가 들어가면 독자는 ESG 비판을 단순 수사로만 보지 않고, 성과·수요·시장 반응의 문제로 읽게 된다. 이 페이지에서 이 수치는 앞의 부정적 헤드라인들을 실질적 시장 반응과 연결하는 역할을 한다. 결국 ESG 논쟁이 가치 논쟁을 넘어 투자자금의 흐름과도 얽혀 있음을 보여 준다.",
+            "이 부제는 JP모건, 블랙록, 스테이트스트리트 같은 대형 기관이 기후 행동 관련 연합에서 빠졌다는 점을 강조한다. 이런 사례는 ESG 회의론이 말의 수준을 넘어 조직의 선택과 포지셔닝 변화로 나타난다는 인상을 준다. 이 페이지에서 이 요소는 반ESG 담론이 금융권 내부의 제도적 참여 방식에도 영향을 줄 수 있음을 보여 주는 구체 사례다. 따라서 앞선 헤드라인 묶음을 실제 행위자 변화와 연결해 주는 맥락 앵커로 기능한다."
+          ],
+          "related_pages": [
+            9,
+            11,
+            6
+          ],
+          "page_risk_note": "이 페이지는 ESG에 대한 '부정적 미디어 프레임의 사례'를 보여 주는 것이지, ESG의 성패를 최종적으로 증명하는 페이지는 아니다. 특히 WSJ Opinion이라는 출처 특성 때문에, 사실자료와 의견 프레이밍을 구분해서 읽어야 한다.",
+          "page_role": "예시 제시",
+          "page_summary": "이 페이지는 WSJ Opinion 화면 캡처를 통해 ESG에 비판적인 기사 헤드라인이 여러 개 연달아 제시되는 모습을 보여준다. 핵심 메시지는 ESG에 대한 부정적 미디어 서사와 시장 분위기 변화가 실제로 관찰되며, 이는 앞선 ESG·지속가능성 논의를 시장 반응의 사례로 이어 준다는 점이다.",
+          "prerequisites": [
+            "ESG가 기업의 환경·사회·지배구조를 둘러싼 투자·경영 논의라는 정도의 기본 이해.",
+            "기사 보도와 의견면(opinion)의 성격 차이를 아는 정도면 충분함.",
+            "없음",
+            "펀드 자금 유입·유출이 투자자 선호와 시장 분위기의 신호가 될 수 있다는 기본 이해.",
+            "블랙록 등 대형 자산운용사가 시장에서 상징적 영향력이 큰 기관이라는 정도의 이해."
+          ],
+          "anchor_questions": [
+            "이 큰 캡처 이미지는 왜 페이지 중심에 놓여 있지?",
+            "왜 'WSJ Opinion'이라는 출처 표기가 굳이 중요할까?",
+            "왜 여러 반ESG 헤드라인을 묶어서 보여 주는 게 중요한가?",
+            "82억 달러 유출 수치는 왜 굳이 강조될까?",
+            "왜 대형 운용사의 Climate Action 그룹 이탈이 중요하지?"
+          ],
+          "compat_prerequisite_source": null,
+          "compat_related_pages_source": null,
+          "compat_long_explanation_shape": null,
+          "compat_used_section_title": null
+        },
+        {
+          "document_id": "doc_5d509baf7e5c4119bdd3e5193a3e2afe",
+          "source_pdf_relpath": "W2 Tutorial - Financial Management and Firm Value.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_5d509baf7e5c4119bdd3e5193a3e2afe.pdf",
+          "page_number": 4,
+          "page_image_relpath": "data/rendered_pages/doc_5d509baf7e5c4119bdd3e5193a3e2afe/4.png",
+          "expected_type": "mixed",
+          "pass2_generation_mode": "compat",
+          "pass1_path": "text-first",
+          "route_label": "text-rich",
+          "hard_page_score": 0,
+          "recommended_execution": "text_first",
+          "planner_reason": "text_length=487; block_count=12; non_empty_text_block_count=12; no_strong_visual_signal",
+          "candidate_anchor_count": 9,
+          "final_anchor_count": 3,
+          "anchor_labels": [
+            "Agency Problem title (upper)",
+            "corporate governance question",
+            "comparison prompt"
+          ],
+          "anchor_types": [
+            "text",
+            "text",
+            "text"
+          ],
+          "short_explanations": [
+            "페이지 상단의 핵심 주제 제목이다. 아래의 비교 질문들이 모두 경영자와 주주 사이의 이해상충 문제를 판단하게 만드는 틀이라는 점을 보여준다.",
+            "하단의 핵심 질문으로, agency problem을 줄이기 위한 제도적 통제 수단을 묻는다. 이 페이지가 단순 비교를 넘어 corporate governance 논의로 확장된다는 점에서 중요하다.",
+            "서로 반대되는 기업 특성 쌍 중 어느 쪽이 agency problem이 더 큰지 생각하게 하는 안내 문장이다. 뒤에 나오는 A~E 항목 전체를 해석하는 기준이 된다."
+          ],
+          "long_explanations": [
+            "페이지 상단의 핵심 주제 제목이다. 이 페이지는 기업가치 목표와 대리인 문제 흐름에서 토론 질문 및 개념 전환 성격을 띠며, 이 페이지는 agency problem을 주제로, 어떤 기업 특성이 대리인 문제를 더 심하게 만들지 비교하도록 묻는 질문들을 제시한다. 기업지배구조 논의는 대리인 문제와 재무관리 목표를 먼저 이해해야 왜 통제장치가 필요한지 파악할 수 있다.",
+            "하단의 핵심 질문으로, agency problem을 줄이기 위한 제도적 통제 수단을 묻는다. 이 페이지는 기업가치 목표와 대리인 문제 흐름에서 토론 질문 및 개념 전환 성격을 띠며, 이 페이지는 agency problem을 주제로, 어떤 기업 특성이 대리인 문제를 더 심하게 만들지 비교하도록 묻는 질문들을 제시한다. 기업지배구조 논의는 대리인 문제와 재무관리 목표를 먼저 이해해야 왜 통제장치가 필요한지 파악할 수 있다.",
+            "comparison prompt: 서로 반대되는 기업 특성 쌍 중 어느 쪽이 agency problem이 더 큰지 생각하게 하는 안내 문장이다. 이 페이지는 기업가치 목표와 대리인 문제 흐름에서 토론 질문 및 개념 전환 성격을 띠며, 이 페이지는 agency problem을 주제로, 어떤 기업 특성이 대리인 문제를 더 심하게 만들지 비교하도록 묻는 질문들을 제시한다. 기업지배구조 논의는 대리인 문제와 재무관리 목표를 먼저 이해해야 왜 통제장치가 필요한지 파악할 수 있다."
+          ],
+          "related_pages": [
+            3
+          ],
+          "page_risk_note": "이 페이지는 주변 맥락과 함께 읽어야 의미가 더 안정적이다.",
+          "page_role": "토론 질문 및 개념 전환",
+          "page_summary": "이 페이지는 agency problem을 주제로, 어떤 기업 특성이 대리인 문제를 더 심하게 만들지 비교하도록 묻는 질문들을 제시한다. 이어서 경영자가 주주 이익보다 자신의 이익을 추구하는 경향을 어떻게 통제할지라는 corporate governance 주제로 연결한다.",
+          "prerequisites": [
+            "기업지배구조 논의는 대리인 문제와 재무관리 목표를 먼저 이해해야 왜 통제장치가 필요한지 파악할 수 있다."
+          ],
+          "anchor_questions": [
+            "여기서 말하는 agency problem은 정확히 무엇이지?",
+            "경영자의 사익추구를 막는 효과적인 장치는 무엇이며, 왜 corporate governance와 연결되나?",
+            "이 질문은 학생에게 무엇을 판단하라고 요구하는 거지?"
+          ],
+          "compat_prerequisite_source": "direct",
+          "compat_related_pages_source": "direct",
+          "compat_long_explanation_shape": "3_sentence",
+          "compat_used_section_title": true
+        }
+      ]
+    }
+  ]
+}

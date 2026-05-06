@@ -1,0 +1,42 @@
+{
+  "generated_at": "2026-03-29T07:16:27.565660+00:00",
+  "stamp": "20260329T071211565189Z",
+  "corpus_dir": "/Users/chansukim/Documents/개인/6-1. codex/Scholium/data/raw_pdfs/_active_pass2_eval_20260329T071211565189Z",
+  "document_count": 5,
+  "reserve_replacements": [
+    "heartfailurepptsam-170511135108.pdf",
+    "백승준_4 Principles of electronic materials and device En.pdf"
+  ],
+  "documents": [
+    {
+      "source_pdf_relpath": "W1.Lecture01-Financial Management and Firm Value.pdf",
+      "filename": "W1.Lecture01-Financial Management and Firm Value.pdf",
+      "expected_type": "mixed",
+      "notes": "7p 슬라이드형이고 첫 페이지 이미지 비중이 높아서 visual-rich 혼합 문서 대표로 포함."
+    },
+    {
+      "source_pdf_relpath": "W2 Tutorial - Financial Management and Firm Value.pdf",
+      "filename": "W2 Tutorial - Financial Management and Firm Value.pdf",
+      "expected_type": "mixed",
+      "notes": "12p 튜토리얼형이라 text와 문제풀이형 구조가 섞여 active planner 분기 확인에 적합."
+    },
+    {
+      "source_pdf_relpath": "26_통계학과.pdf",
+      "filename": "26_통계학과.pdf",
+      "expected_type": "graph_heavy",
+      "notes": "17p 통계 자료라 그래프/도표성 페이지가 섞인 edge case 후보로 포함."
+    },
+    {
+      "source_pdf_relpath": "유우_질병면역학 발표논문.pdf",
+      "filename": "유우_질병면역학 발표논문.pdf",
+      "expected_type": "text_rich",
+      "notes": "17p 논문형으로 텍스트 밀도가 높아 text-first benefit 확인용 대표 문서."
+    },
+    {
+      "source_pdf_relpath": "doc_f9ba1ef0e03446d1bcf11dcc686d1275.pdf",
+      "filename": "doc_f9ba1ef0e03446d1bcf11dcc686d1275.pdf",
+      "expected_type": "text_rich",
+      "notes": "23p long control이며 기존 artifact에서 text-rich 22 / visual-rich 1로 확인된 핵심 control 문서."
+    }
+  ]
+}

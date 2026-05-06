@@ -1,0 +1,3287 @@
+{
+  "document_id": "doc_fac5a54f33cb49a5b41d963c5202b546",
+  "parser_source": "pymupdf4llm+fitz",
+  "schema_version": "parser_v0_2",
+  "pages": [
+    {
+      "page_number": 1,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p1_b0",
+          "block_type": "paragraph",
+          "text": "Week 4: AI as a Learning",
+          "bbox": [
+            0.084767,
+            0.207075,
+            0.85068,
+            0.142854
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p1_b1",
+          "block_type": "paragraph",
+          "text": "Machine",
+          "bbox": [
+            0.359472,
+            0.33752,
+            0.281153,
+            0.142854
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p1_b2",
+          "block_type": "paragraph",
+          "text": "ML · Deep Learning (DL)· Neural Networks · LLM (Large",
+          "bbox": [
+            0.0811,
+            0.563768,
+            0.84669,
+            0.064969
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p1_b3",
+          "block_type": "paragraph",
+          "text": "Language Model)· AIBT",
+          "bbox": [
+            0.323639,
+            0.623027,
+            0.35262,
+            0.064969
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p1_b4",
+          "block_type": "paragraph",
+          "text": "1",
+          "bbox": [
+            0.912736,
+            0.941585,
+            0.008467,
+            0.029689
+          ],
+          "reading_order": 4
+        }
+      ]
+    },
+    {
+      "page_number": 2,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p2_b0",
+          "block_type": "heading",
+          "text": "Weeks 1–3: Where We've Been",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.64187,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p2_b1",
+          "block_type": "paragraph",
+          "text": "•\nWeek 1 → New Machine Age: AI as a civilizational shift",
+          "bbox": [
+            0.06,
+            0.205931,
+            0.785908,
+            0.058356
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p2_b2",
+          "block_type": "paragraph",
+          "text": "•\nWeek 2 → Management Paradigm Shift: GenAI redefines\nstrategy",
+          "bbox": [
+            0.06,
+            0.279051,
+            0.809787,
+            0.111828
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p2_b3",
+          "block_type": "paragraph",
+          "text": "•\nWeek 3 → History of AI: From ancient myths to modern\nbreakthroughs",
+          "bbox": [
+            0.06,
+            0.405709,
+            0.797358,
+            0.111689
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p2_b4",
+          "block_type": "paragraph",
+          "text": "•\nKey concept across all 3 weeks: AIBT (AI-Based Business\nTransformation)",
+          "bbox": [
+            0.06,
+            0.532277,
+            0.837014,
+            0.111393
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p2_b5",
+          "block_type": "paragraph",
+          "text": "•\nWeek 4 asks: What makes AI capable of AIBT ?",
+          "bbox": [
+            0.06,
+            0.658499,
+            0.682608,
+            0.058356
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p2_b6",
+          "block_type": "paragraph",
+          "text": "→ Answer: The ability to LEARN from data",
+          "bbox": [
+            0.06,
+            0.731624,
+            0.577169,
+            0.058433
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p2_b7",
+          "block_type": "paragraph",
+          "text": "2",
+          "bbox": [
+            0.912736,
+            0.941585,
+            0.008467,
+            0.029689
+          ],
+          "reading_order": 7
+        }
+      ]
+    },
+    {
+      "page_number": 3,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p3_b0",
+          "block_type": "heading",
+          "text": "From Rules to Learning: A Fundamental\nShift",
+          "bbox": [
+            0.05,
+            0.016073,
+            0.852269,
+            0.173427
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p3_b1",
+          "block_type": "paragraph",
+          "text": "Old AI: Rule-Based\nModern AI: Learning-Based",
+          "bbox": [
+            0.147194,
+            0.209106,
+            0.757501,
+            0.051742
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p3_b2",
+          "block_type": "paragraph",
+          "text": "•\nHand-coded rules by humans",
+          "bbox": [
+            0.06,
+            0.295995,
+            0.388403,
+            0.051742
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p3_b3",
+          "block_type": "paragraph",
+          "text": "•\nLearns patterns from data",
+          "bbox": [
+            0.540097,
+            0.295995,
+            0.35619,
+            0.051742
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p3_b4",
+          "block_type": "paragraph",
+          "text": "•\nRigid: breaks on new input",
+          "bbox": [
+            0.06,
+            0.363254,
+            0.361012,
+            0.051742
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p3_b5",
+          "block_type": "paragraph",
+          "text": "•\nAdapts to new situations",
+          "bbox": [
+            0.540097,
+            0.363254,
+            0.340541,
+            0.051742
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p3_b6",
+          "block_type": "paragraph",
+          "text": "•\nExpert systems (1980s–90s)",
+          "bbox": [
+            0.06,
+            0.430217,
+            0.379206,
+            0.051742
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p3_b7",
+          "block_type": "paragraph",
+          "text": "•\nML/DL models (2000s–now)",
+          "bbox": [
+            0.540097,
+            0.430217,
+            0.365627,
+            0.051742
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p3_b8",
+          "block_type": "paragraph",
+          "text": "•\nCannot improve over time",
+          "bbox": [
+            0.06,
+            0.497411,
+            0.348333,
+            0.05182
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p3_b9",
+          "block_type": "paragraph",
+          "text": "•\nImproves with more data",
+          "bbox": [
+            0.540097,
+            0.497411,
+            0.340064,
+            0.05182
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p3_b10",
+          "block_type": "paragraph",
+          "text": "e.g., IF-THEN logic trees",
+          "bbox": [
+            0.097367,
+            0.564785,
+            0.296621,
+            0.051742
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p3_b11",
+          "block_type": "paragraph",
+          "text": "e.g., ChatGPT/Claude/Gemini,\nAgentic AI, Claude agents",
+          "bbox": [
+            0.540097,
+            0.564785,
+            0.399429,
+            0.099149
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p3_b12",
+          "block_type": "paragraph",
+          "text": "3",
+          "bbox": [
+            0.912736,
+            0.941585,
+            0.008467,
+            0.029689
+          ],
+          "reading_order": 12
+        }
+      ]
+    },
+    {
+      "page_number": 4,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p4_b0",
+          "block_type": "heading",
+          "text": "What is Machine Learning (ML)?",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.679195,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p4_b1",
+          "block_type": "paragraph",
+          "text": "•\nA subset of AI that learns patterns from data",
+          "bbox": [
+            0.06,
+            0.205931,
+            0.652758,
+            0.058356
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p4_b2",
+          "block_type": "paragraph",
+          "text": "•\nNo explicit programming of rules",
+          "bbox": [
+            0.06,
+            0.279051,
+            0.48911,
+            0.058433
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p4_b3",
+          "block_type": "paragraph",
+          "text": "•\nAlgorithm finds the best model by minimizing errors",
+          "bbox": [
+            0.06,
+            0.352375,
+            0.746483,
+            0.058356
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p4_b4",
+          "block_type": "paragraph",
+          "text": "•\nTypes: Supervised · Unsupervised · Reinforcement Learning",
+          "bbox": [
+            0.06,
+            0.425264,
+            0.855658,
+            0.058356
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p4_b5",
+          "block_type": "paragraph",
+          "text": "•\nOutput: a trained model that generalizes to new data",
+          "bbox": [
+            0.06,
+            0.498384,
+            0.760771,
+            0.058433
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p4_b6",
+          "block_type": "paragraph",
+          "text": "•\nCore principle: f(input data) → prediction / decision",
+          "bbox": [
+            0.06,
+            0.571684,
+            0.733708,
+            0.058356
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p4_b7",
+          "block_type": "paragraph",
+          "text": "** f => Function. (ex) f(input data) Function trained by input data )",
+          "bbox": [
+            0.116989,
+            0.655634,
+            0.735498,
+            0.045517
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p4_b8",
+          "block_type": "paragraph",
+          "text": "4",
+          "bbox": [
+            0.912736,
+            0.941585,
+            0.008467,
+            0.029689
+          ],
+          "reading_order": 8
+        }
+      ]
+    },
+    {
+      "page_number": 5,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p5_b0",
+          "block_type": "heading",
+          "text": "Core ML Algorithms",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.418856,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p5_b1",
+          "block_type": "heading",
+          "text": "LR",
+          "bbox": [
+            0.153736,
+            0.235268,
+            0.05233,
+            0.084499
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p5_b2",
+          "block_type": "heading",
+          "text": "DT",
+          "bbox": [
+            0.462806,
+            0.235268,
+            0.054303,
+            0.084499
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p5_b3",
+          "block_type": "heading",
+          "text": "SVM",
+          "bbox": [
+            0.755833,
+            0.235268,
+            0.088473,
+            0.084499
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p5_b4",
+          "block_type": "paragraph",
+          "text": "Logistic Regression",
+          "bbox": [
+            0.097067,
+            0.347296,
+            0.165707,
+            0.035791
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p5_b5",
+          "block_type": "paragraph",
+          "text": "Decision Tree",
+          "bbox": [
+            0.432306,
+            0.347296,
+            0.115567,
+            0.035791
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p5_b6",
+          "block_type": "paragraph",
+          "text": "Support Vector Machine",
+          "bbox": [
+            0.698833,
+            0.347296,
+            0.202323,
+            0.035791
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p5_b7",
+          "block_type": "paragraph",
+          "text": "Classification; predicts probability",
+          "bbox": [
+            0.078067,
+            0.431793,
+            0.204139,
+            0.027421
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p5_b8",
+          "block_type": "paragraph",
+          "text": "Rule-based splits; interpretable",
+          "bbox": [
+            0.394806,
+            0.431793,
+            0.190285,
+            0.027421
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p5_b9",
+          "block_type": "paragraph",
+          "text": "Margin maximization; robust",
+          "bbox": [
+            0.7135,
+            0.431793,
+            0.173069,
+            0.027421
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p5_b10",
+          "block_type": "heading",
+          "text": "NB",
+          "bbox": [
+            0.150736,
+            0.591012,
+            0.058304,
+            0.084421
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p5_b11",
+          "block_type": "heading",
+          "text": "NN",
+          "bbox": [
+            0.459806,
+            0.591012,
+            0.060294,
+            0.084421
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p5_b12",
+          "block_type": "paragraph",
+          "text": "← NN is the gateway to Deep\nLearning (DL)",
+          "bbox": [
+            0.670097,
+            0.671904,
+            0.293256,
+            0.080534
+          ],
+          "reading_order": 12
+        },
+        {
+          "block_id": "p5_b13",
+          "block_type": "paragraph",
+          "text": "Naive Bayesian",
+          "bbox": [
+            0.1154,
+            0.702901,
+            0.129229,
+            0.035791
+          ],
+          "reading_order": 13
+        },
+        {
+          "block_id": "p5_b14",
+          "block_type": "paragraph",
+          "text": "Neural Network",
+          "bbox": [
+            0.424139,
+            0.702901,
+            0.131652,
+            0.035791
+          ],
+          "reading_order": 14
+        },
+        {
+          "block_id": "p5_b15",
+          "block_type": "paragraph",
+          "text": "Probabilistic; fast & simple",
+          "bbox": [
+            0.099233,
+            0.787462,
+            0.161394,
+            0.027421
+          ],
+          "reading_order": 15
+        },
+        {
+          "block_id": "p5_b16",
+          "block_type": "paragraph",
+          "text": "Foundation of deep learning",
+          "bbox": [
+            0.404306,
+            0.787462,
+            0.171284,
+            0.027421
+          ],
+          "reading_order": 16
+        },
+        {
+          "block_id": "p5_b17",
+          "block_type": "paragraph",
+          "text": "5",
+          "bbox": [
+            0.912736,
+            0.941585,
+            0.008467,
+            0.029689
+          ],
+          "reading_order": 17
+        }
+      ]
+    },
+    {
+      "page_number": 6,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p6_b0",
+          "block_type": "heading",
+          "text": "Neural Network: Basic Architecture",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.760745,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p6_b1",
+          "block_type": "paragraph",
+          "text": "Raw Data",
+          "bbox": [
+            0.018367,
+            0.311714,
+            0.077771,
+            0.03229
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p6_b2",
+          "block_type": "paragraph",
+          "text": "Prediction",
+          "bbox": [
+            0.816333,
+            0.326528,
+            0.077536,
+            0.03229
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p6_b3",
+          "block_type": "paragraph",
+          "text": "In\n(features)",
+          "bbox": [
+            0.0182,
+            0.341343,
+            0.073552,
+            0.06192
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p6_b4",
+          "block_type": "paragraph",
+          "text": "(output)",
+          "bbox": [
+            0.825333,
+            0.356158,
+            0.059705,
+            0.03229
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p6_b5",
+          "block_type": "paragraph",
+          "text": "INPUT LAYER\nHIDDEN LAYER\nOUTPUT LAYER",
+          "bbox": [
+            0.067333,
+            0.769012,
+            0.77336,
+            0.03229
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p6_b6",
+          "block_type": "paragraph",
+          "text": "Hidden nodes\nlearn weights",
+          "bbox": [
+            0.403597,
+            0.836272,
+            0.102962,
+            0.06192
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p6_b7",
+          "block_type": "paragraph",
+          "text": "& biases",
+          "bbox": [
+            0.421931,
+            0.895531,
+            0.066082,
+            0.03229
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p6_b8",
+          "block_type": "heading",
+          "text": "6\n** Feedforward: IL -> HL -> OL,    Backpropagation: OL->HL->IL",
+          "bbox": [
+            0.188361,
+            0.941585,
+            0.732842,
+            0.035378
+          ],
+          "reading_order": 8
+        }
+      ]
+    },
+    {
+      "page_number": 7,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p7_b0",
+          "block_type": "heading",
+          "text": "The Hidden Layer: The Power Center",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.781909,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p7_b1",
+          "block_type": "paragraph",
+          "text": "•\nInput layer: receives raw data (pixels, words, numbers)",
+          "bbox": [
+            0.06,
+            0.205931,
+            0.792358,
+            0.058356
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p7_b2",
+          "block_type": "paragraph",
+          "text": "•\nHidden layer(s): learns abstract representations",
+          "bbox": [
+            0.06,
+            0.279051,
+            0.696486,
+            0.058433
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p7_b3",
+          "block_type": "paragraph",
+          "text": "→ Detects patterns invisible to humans",
+          "bbox": [
+            0.076667,
+            0.352375,
+            0.537525,
+            0.058356
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p7_b4",
+          "block_type": "paragraph",
+          "text": "→ Each neuron = a learned feature detector",
+          "bbox": [
+            0.076667,
+            0.425264,
+            0.597825,
+            0.058356
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p7_b5",
+          "block_type": "paragraph",
+          "text": "•\nOutput layer: produces final prediction",
+          "bbox": [
+            0.06,
+            0.498384,
+            0.566613,
+            0.058433
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p7_b6",
+          "block_type": "paragraph",
+          "text": "•\nMore hidden layers → More complex patterns learned",
+          "bbox": [
+            0.06,
+            0.571684,
+            0.769158,
+            0.058356
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p7_b7",
+          "block_type": "paragraph",
+          "text": "•\nDeep Learning = many stacked hidden layers",
+          "bbox": [
+            0.06,
+            0.644573,
+            0.651658,
+            0.058356
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p7_b8",
+          "block_type": "paragraph",
+          "text": "7",
+          "bbox": [
+            0.912736,
+            0.941585,
+            0.008467,
+            0.029689
+          ],
+          "reading_order": 8
+        }
+      ]
+    },
+    {
+      "page_number": 8,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p8_b0",
+          "block_type": "heading",
+          "text": "How Neural Networks Learn",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.60215,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p8_b1",
+          "block_type": "paragraph",
+          "text": "•\nStep 1: Forward pass → predict output from input",
+          "bbox": [
+            0.06,
+            0.205931,
+            0.711358,
+            0.058356
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p8_b2",
+          "block_type": "paragraph",
+          "text": "•\nStep 2: Calculate error (loss function)",
+          "bbox": [
+            0.06,
+            0.279051,
+            0.552444,
+            0.058433
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p8_b3",
+          "block_type": "paragraph",
+          "text": "•\nStep 3: Backpropagation → adjust weights to reduce error",
+          "bbox": [
+            0.06,
+            0.352375,
+            0.833258,
+            0.058356
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p8_b4",
+          "block_type": "paragraph",
+          "text": "•\nStep 4: Gradient descent → iterative weight optimization",
+          "bbox": [
+            0.06,
+            0.425264,
+            0.812833,
+            0.058356
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p8_b5",
+          "block_type": "paragraph",
+          "text": "•\nRepeat over thousands/millions of examples",
+          "bbox": [
+            0.06,
+            0.498384,
+            0.639985,
+            0.058433
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p8_b6",
+          "block_type": "paragraph",
+          "text": "•\nKey insight: Learning = minimizing prediction errors",
+          "bbox": [
+            0.06,
+            0.571684,
+            0.748483,
+            0.058356
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p8_b7",
+          "block_type": "paragraph",
+          "text": "•\nThis self-improving loop is what makes AI powerful",
+          "bbox": [
+            0.06,
+            0.644573,
+            0.734594,
+            0.058356
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p8_b8",
+          "block_type": "paragraph",
+          "text": "8",
+          "bbox": [
+            0.912736,
+            0.941585,
+            0.008467,
+            0.029689
+          ],
+          "reading_order": 8
+        }
+      ]
+    },
+    {
+      "page_number": 9,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p9_b0",
+          "block_type": "heading",
+          "text": "What is Deep Learning (DL)?",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.602227,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p9_b1",
+          "block_type": "paragraph",
+          "text": "•\nDL = Neural Networks with many hidden layers (deep)",
+          "bbox": [
+            0.06,
+            0.205931,
+            0.774683,
+            0.058356
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p9_b2",
+          "block_type": "paragraph",
+          "text": "•\nAutomates feature extraction — no manual engineering",
+          "bbox": [
+            0.06,
+            0.279051,
+            0.79462,
+            0.058433
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p9_b3",
+          "block_type": "paragraph",
+          "text": "•\nRequires large datasets + high computational power (GPUs)",
+          "bbox": [
+            0.06,
+            0.352375,
+            0.855458,
+            0.058356
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p9_b4",
+          "block_type": "paragraph",
+          "text": "•\nOutperforms all other ML algorithms on complex tasks:",
+          "bbox": [
+            0.06,
+            0.425264,
+            0.791858,
+            0.058356
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p9_b5",
+          "block_type": "paragraph",
+          "text": "→ Image recognition · Speech · Language · Games",
+          "bbox": [
+            0.076667,
+            0.498384,
+            0.68699,
+            0.058433
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p9_b6",
+          "block_type": "paragraph",
+          "text": "•\nFoundation of ALL modern AI breakthroughs (2012–now)",
+          "bbox": [
+            0.06,
+            0.571684,
+            0.807289,
+            0.058356
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p9_b7",
+          "block_type": "paragraph",
+          "text": "•\nAlexNet (2012) triggered the 'Deep Learning Revolution'",
+          "bbox": [
+            0.06,
+            0.644573,
+            0.800608,
+            0.058356
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p9_b8",
+          "block_type": "paragraph",
+          "text": "9",
+          "bbox": [
+            0.912736,
+            0.941585,
+            0.008467,
+            0.029689
+          ],
+          "reading_order": 8
+        }
+      ]
+    },
+    {
+      "page_number": 10,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p10_b0",
+          "block_type": "heading",
+          "text": "Core Deep Learning Algorithms",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.664361,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p10_b1",
+          "block_type": "paragraph",
+          "text": "Convolutional Neural\nNetwork",
+          "bbox": [
+            0.170028,
+            0.228225,
+            0.211626,
+            0.080534
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p10_b2",
+          "block_type": "paragraph",
+          "text": "Recurrent Neural Network",
+          "bbox": [
+            0.650097,
+            0.247484,
+            0.26028,
+            0.042016
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p10_b3",
+          "block_type": "heading",
+          "text": "CNN",
+          "bbox": [
+            0.061033,
+            0.332015,
+            0.068025,
+            0.064969
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p10_b4",
+          "block_type": "heading",
+          "text": "RNN",
+          "bbox": [
+            0.541139,
+            0.332015,
+            0.068025,
+            0.064969
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p10_b5",
+          "block_type": "paragraph",
+          "text": "Image & video recognition\nSpatial pattern detection",
+          "bbox": [
+            0.170028,
+            0.379827,
+            0.192433,
+            0.068593
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p10_b6",
+          "block_type": "paragraph",
+          "text": "Sequential data: text, time series\nMemory of past inputs",
+          "bbox": [
+            0.650097,
+            0.379827,
+            0.24125,
+            0.068593
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p10_b7",
+          "block_type": "paragraph",
+          "text": "Deep Neural Network",
+          "bbox": [
+            0.170028,
+            0.620941,
+            0.211788,
+            0.042016
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p10_b8",
+          "block_type": "paragraph",
+          "text": "Long Short-Term Memory",
+          "bbox": [
+            0.650097,
+            0.620941,
+            0.249829,
+            0.042016
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p10_b9",
+          "block_type": "heading",
+          "text": "DNN",
+          "bbox": [
+            0.061033,
+            0.705337,
+            0.068106,
+            0.065047
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p10_b10",
+          "block_type": "heading",
+          "text": "LSTM",
+          "bbox": [
+            0.532472,
+            0.705337,
+            0.085105,
+            0.065047
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p10_b11",
+          "block_type": "paragraph",
+          "text": "Multi-layer perceptron\nGeneral-purpose deep model",
+          "bbox": [
+            0.170028,
+            0.753161,
+            0.2162,
+            0.068705
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p10_b12",
+          "block_type": "paragraph",
+          "text": "Extended RNN\nLong-range sequence memory",
+          "bbox": [
+            0.650097,
+            0.753161,
+            0.226917,
+            0.068705
+          ],
+          "reading_order": 12
+        },
+        {
+          "block_id": "p10_b13",
+          "block_type": "paragraph",
+          "text": "10",
+          "bbox": [
+            0.904236,
+            0.941585,
+            0.016967,
+            0.029689
+          ],
+          "reading_order": 13
+        }
+      ]
+    },
+    {
+      "page_number": 11,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p11_b0",
+          "block_type": "heading",
+          "text": "ML vs. Deep Learning: Key Differences",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.821325,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p11_b1",
+          "block_type": "paragraph",
+          "text": "Machine Learning\nDeep Learning",
+          "bbox": [
+            0.151694,
+            0.209106,
+            0.676361,
+            0.051742
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p11_b2",
+          "block_type": "paragraph",
+          "text": "•\nManual feature engineering",
+          "bbox": [
+            0.06,
+            0.295995,
+            0.369923,
+            0.051742
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p11_b3",
+          "block_type": "paragraph",
+          "text": "•\nAutomatic feature learning",
+          "bbox": [
+            0.540097,
+            0.295995,
+            0.364458,
+            0.051742
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p11_b4",
+          "block_type": "paragraph",
+          "text": "•\nWorks with small datasets",
+          "bbox": [
+            0.06,
+            0.363254,
+            0.359416,
+            0.051742
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p11_b5",
+          "block_type": "paragraph",
+          "text": "•\nNeeds large datasets",
+          "bbox": [
+            0.540097,
+            0.363254,
+            0.29654,
+            0.051742
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p11_b6",
+          "block_type": "paragraph",
+          "text": "•\nFaster to train",
+          "bbox": [
+            0.06,
+            0.430217,
+            0.211121,
+            0.051742
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p11_b7",
+          "block_type": "paragraph",
+          "text": "•\nComputationally intensive",
+          "bbox": [
+            0.540097,
+            0.430217,
+            0.353663,
+            0.051742
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p11_b8",
+          "block_type": "paragraph",
+          "text": "•\nInterpretable (DT, LR)",
+          "bbox": [
+            0.06,
+            0.497411,
+            0.29976,
+            0.05182
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p11_b9",
+          "block_type": "paragraph",
+          "text": "•\nOften 'black box'",
+          "bbox": [
+            0.540097,
+            0.497411,
+            0.241274,
+            0.05182
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p11_b10",
+          "block_type": "paragraph",
+          "text": "•\nBest for structured data",
+          "bbox": [
+            0.06,
+            0.564785,
+            0.330156,
+            0.051742
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p11_b11",
+          "block_type": "paragraph",
+          "text": "•\nBest for images, text, audio",
+          "bbox": [
+            0.540097,
+            0.564785,
+            0.373768,
+            0.051742
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p11_b12",
+          "block_type": "paragraph",
+          "text": "e.g., fraud detection, CRM",
+          "bbox": [
+            0.06,
+            0.631748,
+            0.315942,
+            0.051742
+          ],
+          "reading_order": 12
+        },
+        {
+          "block_id": "p11_b13",
+          "block_type": "paragraph",
+          "text": "e.g., GPT, face recognition",
+          "bbox": [
+            0.540097,
+            0.631748,
+            0.320131,
+            0.051742
+          ],
+          "reading_order": 13
+        },
+        {
+          "block_id": "p11_b14",
+          "block_type": "paragraph",
+          "text": "11",
+          "bbox": [
+            0.904236,
+            0.941585,
+            0.016967,
+            0.029689
+          ],
+          "reading_order": 14
+        }
+      ]
+    },
+    {
+      "page_number": 12,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p12_b0",
+          "block_type": "heading",
+          "text": "Large Language Models (LLM): The New\nFrontier",
+          "bbox": [
+            0.05,
+            0.016073,
+            0.865289,
+            0.173427
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p12_b1",
+          "block_type": "paragraph",
+          "text": "•\nLLM = Massive DL model trained on trillion-word corpora",
+          "bbox": [
+            0.06,
+            0.205931,
+            0.811222,
+            0.058356
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p12_b2",
+          "block_type": "paragraph",
+          "text": "•\nExamples: GPT-4, Claude, Gemini, Grok, LLaMA",
+          "bbox": [
+            0.06,
+            0.279051,
+            0.68352,
+            0.058433
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p12_b3",
+          "block_type": "paragraph",
+          "text": "•\nCapabilities: text generation, reasoning, coding, translation",
+          "bbox": [
+            0.06,
+            0.352375,
+            0.852958,
+            0.058356
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p12_b4",
+          "block_type": "paragraph",
+          "text": "•\nScale: GPT-4 estimated 1.8 trillion parameters",
+          "bbox": [
+            0.06,
+            0.425264,
+            0.670028,
+            0.058356
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p12_b5",
+          "block_type": "paragraph",
+          "text": "•\nEmergent behaviors: abilities not explicitly trained for",
+          "bbox": [
+            0.06,
+            0.498384,
+            0.777043,
+            0.058433
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p12_b6",
+          "block_type": "paragraph",
+          "text": "•\nFoundation of the 'ChatGPT moment' (November 2022)",
+          "bbox": [
+            0.06,
+            0.571684,
+            0.780133,
+            0.058356
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p12_b7",
+          "block_type": "paragraph",
+          "text": "•\nLLM = DL + Transformer architecture + Massive Scale",
+          "bbox": [
+            0.06,
+            0.644573,
+            0.771433,
+            0.058356
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p12_b8",
+          "block_type": "paragraph",
+          "text": "12",
+          "bbox": [
+            0.904236,
+            0.941585,
+            0.016967,
+            0.029689
+          ],
+          "reading_order": 8
+        }
+      ]
+    },
+    {
+      "page_number": 13,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p13_b0",
+          "block_type": "heading",
+          "text": "Transformer: Architecture Behind LLMs",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.841169,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p13_b1",
+          "block_type": "paragraph",
+          "text": "Self-Attention: The Key Innovation",
+          "bbox": [
+            0.530097,
+            0.207511,
+            0.365415,
+            0.045517
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p13_b2",
+          "block_type": "paragraph",
+          "text": "•\nEach word 'attends' to every other\nword\n•\nCaptures long-range context\n•\nExtension of NN weighted\nconnections\n•\n'Attention is All You Need' (Vaswani\n2017)\n•\nTransformer = stacked NN blocks +\nself-attention mechanism +\npositional encoding",
+          "bbox": [
+            0.530097,
+            0.290409,
+            0.431662,
+            0.419039
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p13_b3",
+          "block_type": "paragraph",
+          "text": "Output Prediction",
+          "bbox": [
+            0.175597,
+            0.339733,
+            0.188663,
+            0.045517
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p13_b4",
+          "block_type": "paragraph",
+          "text": "Add & Normalize",
+          "bbox": [
+            0.180264,
+            0.464178,
+            0.179459,
+            0.045517
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p13_b5",
+          "block_type": "paragraph",
+          "text": "Feed-Forward NN",
+          "bbox": [
+            0.177931,
+            0.588671,
+            0.184057,
+            0.045517
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p13_b6",
+          "block_type": "paragraph",
+          "text": "Self-Attention Layer",
+          "bbox": [
+            0.163597,
+            0.713116,
+            0.212829,
+            0.045517
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p13_b7",
+          "block_type": "paragraph",
+          "text": "Input Embedding",
+          "bbox": [
+            0.179931,
+            0.837625,
+            0.179985,
+            0.045517
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p13_b8",
+          "block_type": "paragraph",
+          "text": "13",
+          "bbox": [
+            0.904236,
+            0.941585,
+            0.016967,
+            0.029689
+          ],
+          "reading_order": 8
+        }
+      ]
+    },
+    {
+      "page_number": 14,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p14_b0",
+          "block_type": "heading",
+          "text": "The AI Lineage: Everything Traces to NN",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.86711,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p14_b1",
+          "block_type": "table",
+          "text": "Neural Network (NN)\nCore: Weighted nodes +\nbackpropagation\nAIBT\nAI-Based Business\nTransformer\nSelf-attention + NN blocks\nTransformation\nLLM: GPT-4, Claude, Gemini\nGenAI = Transformer at scale",
+          "bbox": [
+            0.352583,
+            0.213481,
+            0.611,
+            0.608889
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p14_b2",
+          "block_type": "table",
+          "text": "Deep Learning\nMultiple hidden layers\nCNN / RNN / LSTM / DNN\nSpecialized DL architectures",
+          "bbox": [
+            0.033583,
+            0.423526,
+            0.29,
+            0.398844
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p14_b3",
+          "block_type": "paragraph",
+          "text": "14",
+          "bbox": [
+            0.904236,
+            0.941585,
+            0.016967,
+            0.029689
+          ],
+          "reading_order": 3
+        }
+      ]
+    },
+    {
+      "page_number": 15,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p15_b0",
+          "block_type": "heading",
+          "text": "MLOps & AIOps: Operationalizing AI",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.763735,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p15_b1",
+          "block_type": "paragraph",
+          "text": "MLOps\nAIOps\n•\nML models need deployment\n& upkeep",
+          "bbox": [
+            0.06,
+            0.184119,
+            0.715307,
+            0.156804
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p15_b2",
+          "block_type": "paragraph",
+          "text": "•\nApplying AI to IT operations",
+          "bbox": [
+            0.538972,
+            0.256637,
+            0.377603,
+            0.051742
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p15_b3",
+          "block_type": "paragraph",
+          "text": "•\nAI monitors IT infrastructure",
+          "bbox": [
+            0.538972,
+            0.323896,
+            0.387224,
+            0.051742
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p15_b4",
+          "block_type": "paragraph",
+          "text": "•\nMLOps = DevOps for ML\npipelines",
+          "bbox": [
+            0.06,
+            0.35644,
+            0.332394,
+            0.099149
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p15_b5",
+          "block_type": "paragraph",
+          "text": "•\nAuto-detects anomalies &\nfailures",
+          "bbox": [
+            0.538972,
+            0.390933,
+            0.360312,
+            0.099149
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p15_b6",
+          "block_type": "paragraph",
+          "text": "•\nAutomates: data → model →\ndeploy",
+          "bbox": [
+            0.06,
+            0.470745,
+            0.385718,
+            0.099264
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p15_b7",
+          "block_type": "paragraph",
+          "text": "•\nPredictive maintenance of\nsystems",
+          "bbox": [
+            0.538972,
+            0.5056,
+            0.36519,
+            0.099162
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p15_b8",
+          "block_type": "paragraph",
+          "text": "•\nCI/CD* for machine learning",
+          "bbox": [
+            0.06,
+            0.585526,
+            0.374999,
+            0.051742
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p15_b9",
+          "block_type": "paragraph",
+          "text": "•\nReduces manual IT workload",
+          "bbox": [
+            0.538972,
+            0.620316,
+            0.389839,
+            0.051742
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p15_b10",
+          "block_type": "paragraph",
+          "text": "•\nTools: MLflow, Kubeflow,\nSageMaker",
+          "bbox": [
+            0.06,
+            0.652785,
+            0.344763,
+            0.099162
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p15_b11",
+          "block_type": "paragraph",
+          "text": "•\nTools: Dynatrace, Datadog,\nServiceNow",
+          "bbox": [
+            0.538972,
+            0.687279,
+            0.372217,
+            0.099149
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p15_b12",
+          "block_type": "paragraph",
+          "text": "•\nEnsures model accuracy over\ntime",
+          "bbox": [
+            0.06,
+            0.76722,
+            0.402397,
+            0.099149
+          ],
+          "reading_order": 12
+        },
+        {
+          "block_id": "p15_b13",
+          "block_type": "paragraph",
+          "text": "*CI/CD for ML= > the application of Continuous Integration and Continuous Delivery/Deployment principles and\npractices from traditional software development to the machine learning workflow. It automates the process of\nbuilding, testing, and deploying ML models to ensure rapid, reliable, and high-quality updates to production\nsystems.",
+          "bbox": [
+            0.013367,
+            0.876474,
+            0.460384,
+            0.078745
+          ],
+          "reading_order": 13
+        },
+        {
+          "block_id": "p15_b14",
+          "block_type": "paragraph",
+          "text": "15",
+          "bbox": [
+            0.904236,
+            0.941585,
+            0.016967,
+            0.029689
+          ],
+          "reading_order": 14
+        }
+      ]
+    },
+    {
+      "page_number": 16,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p16_b0",
+          "block_type": "heading",
+          "text": "AIBT: Powered by NN Learning Capability",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.880002,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p16_b1",
+          "block_type": "paragraph",
+          "text": "•\nAIBT = AI-Based Business Transformation (Weeks 1–3)",
+          "bbox": [
+            0.06,
+            0.205931,
+            0.781031,
+            0.058356
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p16_b2",
+          "block_type": "paragraph",
+          "text": "•\nEvery AIBT use case relies on a learning algorithm:",
+          "bbox": [
+            0.06,
+            0.279051,
+            0.739994,
+            0.058433
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p16_b3",
+          "block_type": "paragraph",
+          "text": "→ Supply chain optimization → DNN + RL",
+          "bbox": [
+            0.076667,
+            0.352375,
+            0.5579,
+            0.058356
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p16_b4",
+          "block_type": "paragraph",
+          "text": "→ Customer personalization → RNN + Collaborative Filtering",
+          "bbox": [
+            0.076667,
+            0.425264,
+            0.823325,
+            0.058356
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p16_b5",
+          "block_type": "paragraph",
+          "text": "→ Fraud detection → CNN + Gradient Boosting",
+          "bbox": [
+            0.076667,
+            0.498384,
+            0.633493,
+            0.058433
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p16_b6",
+          "block_type": "paragraph",
+          "text": "→ HR talent matching → NLP (Transformer-based)",
+          "bbox": [
+            0.076667,
+            0.571684,
+            0.681464,
+            0.058356
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p16_b7",
+          "block_type": "paragraph",
+          "text": "•\nStrategic AI transformation = deploying NN-based models at\nscale",
+          "bbox": [
+            0.06,
+            0.644869,
+            0.870322,
+            0.111405
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p16_b8",
+          "block_type": "paragraph",
+          "text": "16",
+          "bbox": [
+            0.904236,
+            0.941585,
+            0.016967,
+            0.029689
+          ],
+          "reading_order": 8
+        }
+      ]
+    },
+    {
+      "page_number": 17,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p17_b0",
+          "block_type": "heading",
+          "text": "AIBT: What It Is — and What Powers It",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.812528,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p17_b1",
+          "block_type": "heading",
+          "text": "What is AIBT?",
+          "bbox": [
+            0.189764,
+            0.22244,
+            0.170506,
+            0.051742
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p17_b2",
+          "block_type": "heading",
+          "text": "The Engine Behind AIBT",
+          "bbox": [
+            0.602097,
+            0.225049,
+            0.276,
+            0.04863
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p17_b3",
+          "block_type": "paragraph",
+          "text": "•\nML algorithms → pattern learning\nfrom data",
+          "bbox": [
+            0.550097,
+            0.302373,
+            0.373272,
+            0.080534
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p17_b4",
+          "block_type": "paragraph",
+          "text": "•\nStrategic integration of AI across\nentire org",
+          "bbox": [
+            0.07,
+            0.320151,
+            0.375231,
+            0.080534
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p17_b5",
+          "block_type": "paragraph",
+          "text": "•\nDL (CNN, RNN, LSTM) → complex\nintelligence",
+          "bbox": [
+            0.550097,
+            0.399262,
+            0.371094,
+            0.080534
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p17_b6",
+          "block_type": "paragraph",
+          "text": "•\nCovers operations, decisions &\nbusiness models",
+          "bbox": [
+            0.07,
+            0.409632,
+            0.350589,
+            0.080535
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p17_b7",
+          "block_type": "paragraph",
+          "text": "•\nLLM (Transformer) → language &\nreasoning",
+          "bbox": [
+            0.550097,
+            0.496085,
+            0.367961,
+            0.080649
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p17_b8",
+          "block_type": "paragraph",
+          "text": "•\nAchieves superior, measurable\nperformance",
+          "bbox": [
+            0.07,
+            0.499048,
+            0.346156,
+            0.080649
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p17_b9",
+          "block_type": "paragraph",
+          "text": "•\nNOT automation — reimagines what\nis possible",
+          "bbox": [
+            0.07,
+            0.588348,
+            0.399146,
+            0.080535
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p17_b10",
+          "block_type": "paragraph",
+          "text": "Traditional BT  vs.  AIBT",
+          "bbox": [
+            0.610764,
+            0.617116,
+            0.258726,
+            0.045517
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p17_b11",
+          "block_type": "paragraph",
+          "text": "Optimizes existing\n→\nReimagines\nprocesses",
+          "bbox": [
+            0.549167,
+            0.670578,
+            0.307918,
+            0.06192
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p17_b12",
+          "block_type": "paragraph",
+          "text": "•\nEnables new capabilities previously\nimpossible",
+          "bbox": [
+            0.07,
+            0.67783,
+            0.397731,
+            0.080535
+          ],
+          "reading_order": 12
+        },
+        {
+          "block_id": "p17_b13",
+          "block_type": "paragraph",
+          "text": "Rule-based RPA\n→\nLearning-based ML/DL",
+          "bbox": [
+            0.549167,
+            0.742221,
+            0.381915,
+            0.032368
+          ],
+          "reading_order": 13
+        },
+        {
+          "block_id": "p17_b14",
+          "block_type": "paragraph",
+          "text": "Reactive data\n→\nPredictive &\nprescriptive",
+          "bbox": [
+            0.549167,
+            0.777309,
+            0.313867,
+            0.06192
+          ],
+          "reading_order": 14
+        },
+        {
+          "block_id": "p17_b15",
+          "block_type": "paragraph",
+          "text": "Incremental gains\n→\nExponential value\ncreation",
+          "bbox": [
+            0.549167,
+            0.847531,
+            0.35509,
+            0.06192
+          ],
+          "reading_order": 15
+        },
+        {
+          "block_id": "p17_b16",
+          "block_type": "paragraph",
+          "text": "17",
+          "bbox": [
+            0.904236,
+            0.941585,
+            0.016967,
+            0.029689
+          ],
+          "reading_order": 16
+        }
+      ]
+    },
+    {
+      "page_number": 18,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p18_b0",
+          "block_type": "heading",
+          "text": "AIBT Value Creation: ML/DL in Action",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.787812,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p18_b1",
+          "block_type": "heading",
+          "text": "Each of AIBT's four value dimensions is directly powered by ML/DL learning algorithms:",
+          "bbox": [
+            0.06,
+            0.204817,
+            0.862218,
+            0.042016
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p18_b2",
+          "block_type": "heading",
+          "text": "①Operational Value",
+          "bbox": [
+            0.065,
+            0.293807,
+            0.220394,
+            0.045864
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p18_b3",
+          "block_type": "heading",
+          "text": "②Customer Value",
+          "bbox": [
+            0.545097,
+            0.293807,
+            0.19834,
+            0.045864
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p18_b4",
+          "block_type": "paragraph",
+          "text": "AI automates rule-based tasks → lower cost,\nfaster throughput, fewer errors",
+          "bbox": [
+            0.065,
+            0.382555,
+            0.379742,
+            0.068384
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p18_b5",
+          "block_type": "paragraph",
+          "text": "Hyper-personalization at scale → right\nproduct to right customer in real time",
+          "bbox": [
+            0.545097,
+            0.382555,
+            0.324489,
+            0.068384
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p18_b6",
+          "block_type": "paragraph",
+          "text": "ML/DL: ML (DT, SVM) · CNN for defect detection",
+          "bbox": [
+            0.068,
+            0.477343,
+            0.360884,
+            0.03229
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p18_b7",
+          "block_type": "paragraph",
+          "text": "ML/DL: RNN · LSTM · Collaborative Filtering",
+          "bbox": [
+            0.548097,
+            0.477343,
+            0.328818,
+            0.03229
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p18_b8",
+          "block_type": "paragraph",
+          "text": "e.g. Manufacturing quality control: defect rates reduced 40–\n60%",
+          "bbox": [
+            0.065,
+            0.528628,
+            0.363613,
+            0.056561
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p18_b9",
+          "block_type": "paragraph",
+          "text": "e.g. Netflix recommendation engine: drives 80% of content\nwatched",
+          "bbox": [
+            0.545097,
+            0.528628,
+            0.361379,
+            0.056561
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p18_b10",
+          "block_type": "heading",
+          "text": "③Strategic Value",
+          "bbox": [
+            0.065,
+            0.649412,
+            0.194986,
+            0.045864
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p18_b11",
+          "block_type": "heading",
+          "text": "④Innovation Value",
+          "bbox": [
+            0.545097,
+            0.649412,
+            0.207329,
+            0.045864
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p18_b12",
+          "block_type": "paragraph",
+          "text": "AI augments executive decisions with\npredictive analytics & market intelligence",
+          "bbox": [
+            0.065,
+            0.7381,
+            0.352605,
+            0.068508
+          ],
+          "reading_order": 12
+        },
+        {
+          "block_id": "p18_b13",
+          "block_type": "paragraph",
+          "text": "Enables entirely new products, services &\nbusiness models",
+          "bbox": [
+            0.545097,
+            0.7381,
+            0.358905,
+            0.068508
+          ],
+          "reading_order": 13
+        },
+        {
+          "block_id": "p18_b14",
+          "block_type": "paragraph",
+          "text": "ML/DL: DNN · Gradient Boosting · Transformer\n(LLM)\ne.g. AI-driven demand forecasting → dynamic pricing &\ninventory optimization",
+          "bbox": [
+            0.065,
+            0.818198,
+            0.355252,
+            0.122611
+          ],
+          "reading_order": 14
+        },
+        {
+          "block_id": "p18_b15",
+          "block_type": "paragraph",
+          "text": "ML/DL: Generative AI (LLM) · Reinforcement\nLearning\ne.g. AI-co-created products → new revenue streams & first-\nmover advantage",
+          "bbox": [
+            0.545097,
+            0.818198,
+            0.364148,
+            0.122611
+          ],
+          "reading_order": 15
+        },
+        {
+          "block_id": "p18_b16",
+          "block_type": "heading",
+          "text": "18",
+          "bbox": [
+            0.904236,
+            0.941585,
+            0.016967,
+            0.029689
+          ],
+          "reading_order": 16
+        }
+      ]
+    },
+    {
+      "page_number": 19,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p19_b0",
+          "block_type": "heading",
+          "text": "5 Key Components of AIBT",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.570695,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p19_b1",
+          "block_type": "paragraph",
+          "text": "All five pillars must be in place — all grounded in ML/DL learning capability:",
+          "bbox": [
+            0.06,
+            0.204817,
+            0.744723,
+            0.042016
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p19_b2",
+          "block_type": "paragraph",
+          "text": "C1\nData Strategy\nQuality data pipelines · Governance (GDPR) · Cloud data lakes\nML/DL link: Models are only as good as the data they train on",
+          "bbox": [
+            0.077567,
+            0.300462,
+            0.80657,
+            0.065486
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p19_b3",
+          "block_type": "paragraph",
+          "text": "C2\nAI Technology Stack\nTensorFlow · PyTorch · MLOps (MLflow, Kubeflow) · Cloud AI\nML/DL link: The tech stack IS the ML/DL infrastructure",
+          "bbox": [
+            0.077567,
+            0.435712,
+            0.794845,
+            0.065346
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p19_b4",
+          "block_type": "paragraph",
+          "text": "C3\nOrganizational\nAlignment",
+          "bbox": [
+            0.077567,
+            0.566069,
+            0.215461,
+            0.074459
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p19_b5",
+          "block_type": "paragraph",
+          "text": "Data-driven culture · New roles: ML engineers, AI ethics officers\nML/DL link: People who understand models drive adoption",
+          "bbox": [
+            0.390069,
+            0.570873,
+            0.510493,
+            0.065346
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p19_b6",
+          "block_type": "paragraph",
+          "text": "C4\nGovernance & Ethics\nAI ethics policy · XAI (Explainability) · Bias detection · Privacy\nML/DL link: Black-box DL requires governance to be trusted",
+          "bbox": [
+            0.077567,
+            0.705984,
+            0.808192,
+            0.065364
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p19_b7",
+          "block_type": "paragraph",
+          "text": "AI designed in from the start — not retrofitted onto legacy systems\nML/DL link: AI-native firms build ML/DL into every process by\ndefault",
+          "bbox": [
+            0.390069,
+            0.825574,
+            0.534084,
+            0.096517
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p19_b8",
+          "block_type": "paragraph",
+          "text": "C5\nAI Native-ness",
+          "bbox": [
+            0.077567,
+            0.84657,
+            0.208961,
+            0.04863
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p19_b9",
+          "block_type": "paragraph",
+          "text": "19",
+          "bbox": [
+            0.904236,
+            0.941585,
+            0.016967,
+            0.029689
+          ],
+          "reading_order": 9
+        }
+      ]
+    },
+    {
+      "page_number": 20,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p20_b0",
+          "block_type": "heading",
+          "text": "ML/DL Business Impact: Cross-Industry",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.833331,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p20_b1",
+          "block_type": "paragraph",
+          "text": "Defect detection · Digital\ntwin · Predictive\nmaintenance",
+          "bbox": [
+            0.210028,
+            0.257741,
+            0.215004,
+            0.101051
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p20_b2",
+          "block_type": "paragraph",
+          "text": "Medical imaging · Drug\ndiscovery · Patient risk\nscoring",
+          "bbox": [
+            0.690097,
+            0.257741,
+            0.198077,
+            0.101051
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p20_b3",
+          "block_type": "paragraph",
+          "text": "Manufacturin",
+          "bbox": [
+            0.054733,
+            0.270769,
+            0.120541,
+            0.038982
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p20_b4",
+          "block_type": "paragraph",
+          "text": "Healthcare",
+          "bbox": [
+            0.544333,
+            0.288547,
+            0.101235,
+            0.038982
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p20_b5",
+          "block_type": "paragraph",
+          "text": "g",
+          "bbox": [
+            0.109433,
+            0.306464,
+            0.011117,
+            0.038904
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p20_b6",
+          "block_type": "paragraph",
+          "text": "Fraud detection ·\nAlgorithmic trading · Credit\nscoring",
+          "bbox": [
+            0.210028,
+            0.503083,
+            0.232469,
+            0.101091
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p20_b7",
+          "block_type": "paragraph",
+          "text": "Recommendation engines ·\nChurn prediction · Ad\ntargeting",
+          "bbox": [
+            0.690097,
+            0.503083,
+            0.232283,
+            0.101091
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p20_b8",
+          "block_type": "paragraph",
+          "text": "Finance",
+          "bbox": [
+            0.078767,
+            0.534069,
+            0.072383,
+            0.038904
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p20_b9",
+          "block_type": "paragraph",
+          "text": "Marketing",
+          "bbox": [
+            0.549167,
+            0.534069,
+            0.091567,
+            0.038904
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p20_b10",
+          "block_type": "paragraph",
+          "text": "Resume screening ·\nRetention risk ·\nPerformance analytics",
+          "bbox": [
+            0.210028,
+            0.748471,
+            0.188799,
+            0.101101
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p20_b11",
+          "block_type": "paragraph",
+          "text": "Route optimization ·\nDemand forecasting ·\nAutonomous delivery",
+          "bbox": [
+            0.690097,
+            0.748471,
+            0.183709,
+            0.101101
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p20_b12",
+          "block_type": "paragraph",
+          "text": "HR",
+          "bbox": [
+            0.1016,
+            0.779467,
+            0.0268,
+            0.038904
+          ],
+          "reading_order": 12
+        },
+        {
+          "block_id": "p20_b13",
+          "block_type": "paragraph",
+          "text": "Logistics",
+          "bbox": [
+            0.553333,
+            0.779467,
+            0.0833,
+            0.038904
+          ],
+          "reading_order": 13
+        },
+        {
+          "block_id": "p20_b14",
+          "block_type": "paragraph",
+          "text": "20",
+          "bbox": [
+            0.904236,
+            0.941585,
+            0.016967,
+            0.029689
+          ],
+          "reading_order": 14
+        }
+      ]
+    },
+    {
+      "page_number": 21,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p21_b0",
+          "block_type": "heading",
+          "text": "The Executive's AI Decision Framework",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.844897,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p21_b1",
+          "block_type": "paragraph",
+          "text": "•\nQ1: Which business problems benefit most from pattern\nlearning?",
+          "bbox": [
+            0.06,
+            0.206227,
+            0.808883,
+            0.111405
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p21_b2",
+          "block_type": "paragraph",
+          "text": "•\nQ2: Do we have sufficient quality data to train models?",
+          "bbox": [
+            0.06,
+            0.332523,
+            0.788133,
+            0.058356
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p21_b3",
+          "block_type": "paragraph",
+          "text": "•\nQ3: Build (own NN), Buy (vendor API), or Partner?",
+          "bbox": [
+            0.06,
+            0.405709,
+            0.709308,
+            0.058356
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p21_b4",
+          "block_type": "paragraph",
+          "text": "•\nQ4: How do we operationalize models? (MLOps strategy)",
+          "bbox": [
+            0.06,
+            0.478532,
+            0.811138,
+            0.058433
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p21_b5",
+          "block_type": "paragraph",
+          "text": "•\nQ5: Can we explain AI decisions to regulators? (XAI)",
+          "bbox": [
+            0.06,
+            0.551832,
+            0.754334,
+            0.058356
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p21_b6",
+          "block_type": "paragraph",
+          "text": "•\nQ6: How does AI reshape our workforce & value chain?",
+          "bbox": [
+            0.06,
+            0.625017,
+            0.793008,
+            0.058356
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p21_b7",
+          "block_type": "paragraph",
+          "text": "•\nKey: AI strategy = knowing WHEN and HOW to deploy\nlearning",
+          "bbox": [
+            0.06,
+            0.698137,
+            0.775066,
+            0.111522
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p21_b8",
+          "block_type": "paragraph",
+          "text": "21",
+          "bbox": [
+            0.904236,
+            0.941585,
+            0.016967,
+            0.029689
+          ],
+          "reading_order": 8
+        }
+      ]
+    },
+    {
+      "page_number": 22,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p22_b0",
+          "block_type": "heading",
+          "text": "Weeks 1–4: The Integrated Story",
+          "bbox": [
+            0.05,
+            0.057373,
+            0.693907,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p22_b1",
+          "block_type": "heading",
+          "text": "Week 1",
+          "bbox": [
+            0.101233,
+            0.238326,
+            0.077512,
+            0.045517
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p22_b2",
+          "block_type": "heading",
+          "text": "Week 2",
+          "bbox": [
+            0.333264,
+            0.238326,
+            0.077513,
+            0.045517
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p22_b3",
+          "block_type": "heading",
+          "text": "Week 3",
+          "bbox": [
+            0.565306,
+            0.238326,
+            0.077513,
+            0.045517
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p22_b4",
+          "block_type": "heading",
+          "text": "Week 4",
+          "bbox": [
+            0.797333,
+            0.238326,
+            0.077512,
+            0.045517
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p22_b5",
+          "block_type": "paragraph",
+          "text": "Mgmt Paradigm",
+          "bbox": [
+            0.300597,
+            0.324242,
+            0.148283,
+            0.038904
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p22_b6",
+          "block_type": "paragraph",
+          "text": "AI as Learning",
+          "bbox": [
+            0.769833,
+            0.324242,
+            0.137933,
+            0.038904
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p22_b7",
+          "block_type": "paragraph",
+          "text": "New Machine Age",
+          "bbox": [
+            0.058033,
+            0.34202,
+            0.163667,
+            0.038904
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p22_b8",
+          "block_type": "paragraph",
+          "text": "History of AI",
+          "bbox": [
+            0.546139,
+            0.34202,
+            0.115867,
+            0.038904
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p22_b9",
+          "block_type": "paragraph",
+          "text": "Shift",
+          "bbox": [
+            0.350764,
+            0.359797,
+            0.042583,
+            0.038904
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p22_b10",
+          "block_type": "paragraph",
+          "text": "Machine",
+          "bbox": [
+            0.797833,
+            0.359797,
+            0.076584,
+            0.038904
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p22_b11",
+          "block_type": "paragraph",
+          "text": "AI as civilizational shift",
+          "bbox": [
+            0.063367,
+            0.484491,
+            0.153563,
+            0.030394
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p22_b12",
+          "block_type": "paragraph",
+          "text": "GenAI reshapes business",
+          "bbox": [
+            0.284764,
+            0.484491,
+            0.174647,
+            0.030394
+          ],
+          "reading_order": 12
+        },
+        {
+          "block_id": "p22_b13",
+          "block_type": "paragraph",
+          "text": "Path to modern AI",
+          "bbox": [
+            0.542639,
+            0.484491,
+            0.122743,
+            0.030394
+          ],
+          "reading_order": 13
+        },
+        {
+          "block_id": "p22_b14",
+          "block_type": "paragraph",
+          "text": "NN is the engine",
+          "bbox": [
+            0.779667,
+            0.484491,
+            0.112991,
+            0.030394
+          ],
+          "reading_order": 14
+        },
+        {
+          "block_id": "p22_b15",
+          "block_type": "heading",
+          "text": "→ AIBT is only possible because AI can LEARN — and learning is",
+          "bbox": [
+            0.1061,
+            0.733021,
+            0.795185,
+            0.05182
+          ],
+          "reading_order": 15
+        },
+        {
+          "block_id": "p22_b16",
+          "block_type": "heading",
+          "text": "grounded in NN",
+          "bbox": [
+            0.405972,
+            0.780553,
+            0.187929,
+            0.051742
+          ],
+          "reading_order": 16
+        },
+        {
+          "block_id": "p22_b17",
+          "block_type": "paragraph",
+          "text": "22",
+          "bbox": [
+            0.904236,
+            0.941585,
+            0.016967,
+            0.029689
+          ],
+          "reading_order": 17
+        }
+      ]
+    },
+    {
+      "page_number": 23,
+      "width": 720.0,
+      "height": 405.0,
+      "ocr_used": false,
+      "blocks": [
+        {
+          "block_id": "p23_b0",
+          "block_type": "heading",
+          "text": "KEY TAKEAWAYS — Week 4",
+          "bbox": [
+            0.0584,
+            0.006484,
+            0.592396,
+            0.090646
+          ],
+          "reading_order": 0
+        },
+        {
+          "block_id": "p23_b1",
+          "block_type": "list",
+          "text": "Modern AI derives its transformative power fundamentally from the ability of neural\nnetworks to learn complex patterns from large-scale data.",
+          "bbox": [
+            0.06,
+            0.124213,
+            0.846301,
+            0.091347
+          ],
+          "reading_order": 1
+        },
+        {
+          "block_id": "p23_b2",
+          "block_type": "list",
+          "text": "Machine learning algorithms (LR, DT, SVM, NB, NN) form the first generation of\nlearnable AI, while deep learning (CNN, RNN, LSTM, DNN) extended this to highly\ncomplex, unstructured data.",
+          "bbox": [
+            0.06,
+            0.23853,
+            0.817959,
+            0.138882
+          ],
+          "reading_order": 2
+        },
+        {
+          "block_id": "p23_b3",
+          "block_type": "list",
+          "text": "The hidden layers of a neural network are where abstract feature representations are\nlearned, making deep networks far more powerful than shallow models.",
+          "bbox": [
+            0.06,
+            0.400731,
+            0.871793,
+            0.091359
+          ],
+          "reading_order": 3
+        },
+        {
+          "block_id": "p23_b4",
+          "block_type": "list",
+          "text": "All large language models (LLMs) — including ChatGPT, Claude, Gemini — are built\nupon the Transformer architecture, which is itself an advanced extension of the neural\nnetwork paradigm using self-attention.",
+          "bbox": [
+            0.06,
+            0.515447,
+            0.864559,
+            0.138754
+          ],
+          "reading_order": 4
+        },
+        {
+          "block_id": "p23_b5",
+          "block_type": "list",
+          "text": "The AI-Based Business Transformation (AIBT) discussed in Weeks 1–3 is\noperationally grounded in the learning capability of neural networks deployed across\nindustries.",
+          "bbox": [
+            0.06,
+            0.677172,
+            0.831427,
+            0.138867
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p23_b6",
+          "block_type": "list",
+          "text": "Executive leaders must understand not just what AI can do, but why — and the\nanswer always traces back to NN learnability, data quality, and scale.",
+          "bbox": [
+            0.06,
+            0.839359,
+            0.81231,
+            0.091359
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p23_b7",
+          "block_type": "heading",
+          "text": "23\n- END -",
+          "bbox": [
+            0.708736,
+            0.941585,
+            0.212467,
+            0.058415
+          ],
+          "reading_order": 7
+        }
+      ]
+    }
+  ]
+}

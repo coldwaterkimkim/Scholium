@@ -1,0 +1,121 @@
+{
+  "generated_at": "2026-03-29T03:18:55.580246+00:00",
+  "reference_run_key": "baseline_hybrid_all_pages",
+  "runs": [
+    {
+      "run_key": "baseline_hybrid_all_pages",
+      "mode_name": "baseline_hybrid_all_pages",
+      "path": "/private/tmp/scholium_compare_runs/baseline.json",
+      "run_id": "run_baseline",
+      "git_head": "abc123",
+      "pipeline_mode": "hybrid",
+      "spine_mode": "shadow",
+      "pass2_execution_mode": "all_pages",
+      "source_root": "/tmp/corpus_a"
+    },
+    {
+      "run_key": "v2_spine_active_hard_pages_only",
+      "mode_name": "v2_spine_active_hard_pages_only",
+      "path": "/private/tmp/scholium_compare_runs/active.json",
+      "run_id": "run_active",
+      "git_head": "def456",
+      "pipeline_mode": "v2_spine",
+      "spine_mode": "active",
+      "pass2_execution_mode": "hard_pages_only",
+      "source_root": "/tmp/corpus_b"
+    }
+  ],
+  "matched_document_count": 1,
+  "unmatched_documents_by_run": {
+    "baseline_hybrid_all_pages": [
+      {
+        "source_pdf_relpath": "finance/doc_only_baseline.pdf",
+        "filename": "doc_only_baseline.pdf",
+        "document_id": "doc_old_extra"
+      }
+    ],
+    "v2_spine_active_hard_pages_only": [
+      {
+        "source_pdf_relpath": "finance/doc_only_active.pdf",
+        "filename": "doc_only_active.pdf",
+        "document_id": "doc_new_extra"
+      }
+    ]
+  },
+  "excluded_documents_missing_key": {
+    "baseline_hybrid_all_pages": [
+      {
+        "filename": "missing_key.pdf",
+        "document_id": "doc_missing_key"
+      }
+    ],
+    "v2_spine_active_hard_pages_only": []
+  },
+  "warnings": [
+    "Run summaries use different source_root values. Serious comparison should use the same corpus layout and the same --pdf-dir basis."
+  ],
+  "corpus_aggregate_comparison": {
+    "baseline_hybrid_all_pages": {
+      "completed_docs": 3,
+      "failed_docs": 0,
+      "avg_total_processing_time_seconds": null,
+      "median_total_processing_time_seconds": null,
+      "total_openai_call_count": null,
+      "total_openai_pass2_call_count": null,
+      "total_pass2_llm_count": null,
+      "total_pass2_compat_count": null
+    },
+    "v2_spine_active_hard_pages_only": {
+      "completed_docs": 2,
+      "failed_docs": 0,
+      "avg_total_processing_time_seconds": 9.25,
+      "median_total_processing_time_seconds": 9.25,
+      "total_openai_call_count": 9,
+      "total_openai_pass2_call_count": 2,
+      "total_pass2_llm_count": 2,
+      "total_pass2_compat_count": 3
+    }
+  },
+  "documents": [
+    {
+      "source_pdf_relpath": "finance/doc_a.pdf",
+      "filename": "doc_a.pdf",
+      "runs": {
+        "baseline_hybrid_all_pages": {
+          "document_id": "doc_old_a",
+          "final_status": "completed",
+          "total_processing_time_seconds": 12.5,
+          "rendered_pages": 3,
+          "pass1_text_first_pages": 2,
+          "pass1_multimodal_pages": 1,
+          "pass1_escalated_pages": 0,
+          "pass2_llm_count": null,
+          "pass2_compat_count": null,
+          "openai_call_count_total": 7,
+          "openai_pass2_call_count": 3
+        },
+        "v2_spine_active_hard_pages_only": {
+          "document_id": "doc_new_a",
+          "final_status": "completed",
+          "total_processing_time_seconds": 10.0,
+          "rendered_pages": 3,
+          "pass1_text_first_pages": 2,
+          "pass1_multimodal_pages": 1,
+          "pass1_escalated_pages": 0,
+          "pass2_llm_count": 1,
+          "pass2_compat_count": 2,
+          "openai_call_count_total": 5,
+          "openai_pass2_call_count": 1
+        }
+      },
+      "deltas_vs_reference": {
+        "v2_spine_active_hard_pages_only": {
+          "delta_total_processing_time_seconds": -2.5,
+          "delta_openai_call_count_total": -2,
+          "delta_openai_pass2_call_count": -2,
+          "delta_pass2_llm_count": null
+        }
+      }
+    }
+  ]
+}

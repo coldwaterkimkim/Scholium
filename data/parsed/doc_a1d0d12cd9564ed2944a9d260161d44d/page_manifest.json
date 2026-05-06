@@ -1,0 +1,19 @@
+{
+  "document_id": "doc_a1d0d12cd9564ed2944a9d260161d44d",
+  "parser_source": "pymupdf4llm+fitz",
+  "schema_version": "parser_v0_2",
+  "pages": [
+    {
+      "page_number": 1,
+      "route_label": "text-rich",
+      "route_reason": "text_length=123; block_count=2; non_empty_text_block_count=2; no_strong_visual_signal",
+      "text_length": 123,
+      "block_count": 2,
+      "non_empty_text_block_count": 2,
+      "image_count": 0,
+      "has_table": false,
+      "has_figure": false,
+      "ocr_used": false
+    }
+  ]
+}

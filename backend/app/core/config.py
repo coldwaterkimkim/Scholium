@@ -11,6 +11,9 @@ StageName = Literal["pass1", "document_synthesis", "pass2"]
 ReasoningEffort = Literal["minimal", "low", "medium", "high", "xhigh"]
 DocumentParserBackend = Literal["stub", "pymupdf4llm"]
 Pass1RoutingMode = Literal["legacy", "hybrid"]
+PipelineMode = Literal["legacy", "hybrid", "v2_spine"]
+V2SpineMode = Literal["off", "shadow", "active"]
+Pass2ExecutionMode = Literal["all_pages", "hard_pages_only"]
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 ENV_FILE_PATH = PROJECT_ROOT / ".env"
@@ -37,6 +40,9 @@ class AppSettings:
     parser_schema_version: str
     document_parser_backend: DocumentParserBackend
     pass1_routing_mode: Pass1RoutingMode
+    pipeline_mode: PipelineMode
+    v2_spine_mode: V2SpineMode
+    pass2_execution_mode: Pass2ExecutionMode
     frontend_port: int
     backend_port: int
     document_db_path: str
@@ -108,6 +114,27 @@ def _load_pass1_routing_mode() -> Pass1RoutingMode:
     return "hybrid"
 
 
+def _load_pipeline_mode() -> PipelineMode:
+    pipeline_mode = os.getenv("PIPELINE_MODE", "hybrid").strip().lower()
+    if pipeline_mode in {"legacy", "hybrid", "v2_spine"}:
+        return pipeline_mode  # type: ignore[return-value]
+    return "hybrid"
+
+
+def _load_v2_spine_mode() -> V2SpineMode:
+    spine_mode = os.getenv("V2_SPINE_MODE", "shadow").strip().lower()
+    if spine_mode in {"off", "shadow", "active"}:
+        return spine_mode  # type: ignore[return-value]
+    return "shadow"
+
+
+def _load_pass2_execution_mode() -> Pass2ExecutionMode:
+    execution_mode = os.getenv("PASS2_EXECUTION_MODE", "all_pages").strip().lower()
+    if execution_mode in {"all_pages", "hard_pages_only"}:
+        return execution_mode  # type: ignore[return-value]
+    return "all_pages"
+
+
 def _load_env_file(env_path: Path) -> None:
     if not env_path.exists():
         return
@@ -154,6 +181,9 @@ def _build_settings() -> AppSettings:
         parser_schema_version=os.getenv("PARSER_SCHEMA_VERSION", "parser_v0_2"),
         document_parser_backend=_load_document_parser_backend(),
         pass1_routing_mode=_load_pass1_routing_mode(),
+        pipeline_mode=_load_pipeline_mode(),
+        v2_spine_mode=_load_v2_spine_mode(),
+        pass2_execution_mode=_load_pass2_execution_mode(),
         frontend_port=int(os.getenv("FRONTEND_PORT", "3000")),
         backend_port=int(os.getenv("BACKEND_PORT", "8000")),
         document_db_path=os.getenv("DOCUMENT_DB_PATH", "./data/scholium_dev.sqlite3"),

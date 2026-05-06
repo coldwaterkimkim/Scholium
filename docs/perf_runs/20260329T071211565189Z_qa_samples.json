@@ -1,0 +1,758 @@
+{
+  "generated_at": "2026-03-29T08:31:37.347359+00:00",
+  "analysis_dir": "/Users/chansukim/Documents/개인/6-1. codex/Scholium/data/analysis",
+  "corpus_manifest_path": "/Users/chansukim/Documents/개인/6-1. codex/Scholium/docs/perf_runs/20260329T071211565189Z_corpus_manifest.json",
+  "sampled_document_count": 5,
+  "total_sample_count": 15,
+  "documents": [
+    {
+      "document_id": "doc_3cbb9bb19bea4a33bcf83b826e35eeed",
+      "source_pdf_relpath": "유우_질병면역학 발표논문.pdf",
+      "expected_type": "text_rich",
+      "has_compat_pages": true,
+      "has_llm_pages": true,
+      "samples": [
+        {
+          "document_id": "doc_3cbb9bb19bea4a33bcf83b826e35eeed",
+          "source_pdf_relpath": "유우_질병면역학 발표논문.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_3cbb9bb19bea4a33bcf83b826e35eeed.pdf",
+          "page_number": 17,
+          "page_image_relpath": "data/rendered_pages/doc_3cbb9bb19bea4a33bcf83b826e35eeed/17.png",
+          "expected_type": "text_rich",
+          "pass2_generation_mode": "compat",
+          "pass1_path": "text-first",
+          "route_label": "text-rich",
+          "hard_page_score": 0,
+          "recommended_execution": "text_first",
+          "planner_reason": "text_length=1169; block_count=4; non_empty_text_block_count=4; no_strong_visual_signal",
+          "candidate_anchor_count": 8,
+          "final_anchor_count": 3,
+          "anchor_labels": [
+            "CC BY-NC-ND 4.0 license",
+            "DOI link",
+            "Open Access notice"
+          ],
+          "anchor_types": [
+            "text",
+            "text",
+            "text"
+          ],
+          "short_explanations": [
+            "이 라이선스는 저자 표시를 요구하고, 비상업적 이용만 허용하며, 변경물 배포를 제한하는 조건을 담는다. 이 페이지에서 재사용 가능 범위를 가장 직접적으로 규정하는 부분이다.",
+            "DOI는 논문을 안정적으로 식별하고 직접 찾을 수 있게 해주는 영구 식별자다. 페이지 하단의 메타데이터 중 실제 접근성과 인용 정확성에 가장 중요하다.",
+            "이 문구는 논문이 공개 접근 형태로 배포된다는 점을 먼저 알린다. 이어지는 라이선스 조건을 해석하는 출발점이 되는 핵심 안내다."
+          ],
+          "long_explanations": [
+            "이 라이선스는 저자 표시를 요구하고, 비상업적 이용만 허용하며, 변경물 배포를 제한하는 조건을 담는다. 이 페이지에서 재사용 가능 범위를 가장 직접적으로 규정하는 부분이다. 이 페이지는 연구 내용 자체보다 논문의 공개 이용 조건과 출판 메타데이터를 제공하는 역할을 한다. 오픈액세스 여부, Creative Commons 라이선스 종류, 저작권 표기, 저널 서지정보와 DOI가 함께 제시되어 있다. 학습보다는 인용·공유·재사용 가능 범위를 확인할 때 중요한 페이지다.",
+            "DOI는 논문을 안정적으로 식별하고 직접 찾을 수 있게 해주는 영구 식별자다. 페이지 하단의 메타데이터 중 실제 접근성과 인용 정확성에 가장 중요하다. 이 페이지는 연구 내용 자체보다 논문의 공개 이용 조건과 출판 메타데이터를 제공하는 역할을 한다. 오픈액세스 여부, Creative Commons 라이선스 종류, 저작권 표기, 저널 서지정보와 DOI가 함께 제시되어 있다. 학습보다는 인용·공유·재사용 가능 범위를 확인할 때 중요한 페이지다.",
+            "이 문구는 논문이 공개 접근 형태로 배포된다는 점을 먼저 알린다. 이어지는 라이선스 조건을 해석하는 출발점이 되는 핵심 안내다. 이 페이지는 연구 내용 자체보다 논문의 공개 이용 조건과 출판 메타데이터를 제공하는 역할을 한다. 오픈액세스 여부, Creative Commons 라이선스 종류, 저작권 표기, 저널 서지정보와 DOI가 함께 제시되어 있다. 학습보다는 인용·공유·재사용 가능 범위를 확인할 때 중요한 페이지다."
+          ],
+          "related_pages": [
+            16
+          ],
+          "page_risk_note": "핵심 포인트는 비교적 명확하지만 관련 페이지를 함께 보면 이해가 더 좋아진다.",
+          "page_role": "출판 메타데이터 및 오픈액세스 라이선스 안내",
+          "page_summary": "이 페이지는 연구 내용 자체보다 논문의 공개 이용 조건과 출판 메타데이터를 제공하는 역할을 한다. 오픈액세스 여부, Creative Commons 라이선스 종류, 저작권 표기, 저널 서지정보와 DOI가 함께 제시되어 있다. 학습보다는 인용·공유·재사용 가능 범위를 확인할 때 중요한 페이지다."
+        },
+        {
+          "document_id": "doc_3cbb9bb19bea4a33bcf83b826e35eeed",
+          "source_pdf_relpath": "유우_질병면역학 발표논문.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_3cbb9bb19bea4a33bcf83b826e35eeed.pdf",
+          "page_number": 10,
+          "page_image_relpath": "data/rendered_pages/doc_3cbb9bb19bea4a33bcf83b826e35eeed/10.png",
+          "expected_type": "text_rich",
+          "pass2_generation_mode": "llm",
+          "pass1_path": "multimodal",
+          "route_label": "text-rich",
+          "hard_page_score": 35,
+          "recommended_execution": "selective_visual_enrichment",
+          "planner_reason": "text_length=1061; block_count=4; non_empty_text_block_count=3; no_strong_visual_signal",
+          "candidate_anchor_count": 12,
+          "final_anchor_count": 5,
+          "anchor_labels": [
+            "panel a microscopy grid",
+            "treatment condition labels",
+            "panel b bar chart",
+            "significance annotations above bars",
+            "figure caption and experimental setup"
+          ],
+          "anchor_types": [
+            "image",
+            "text",
+            "chart",
+            "chart",
+            "text"
+          ],
+          "short_explanations": [
+            "네 가지 암세포주와 다섯 가지 처리 조건을 한 번에 비교하는 형광 현미경 패널이다. 적색 형광이 적을수록 살아남은 표적 암세포가 적다는 뜻이다.",
+            "각 행은 대조군, 면역세포 단독, 그리고 면역세포와 cordycepin 또는 Cm-EE를 함께 준 조건을 뜻한다. 무엇과 무엇을 비교하는지 이해해야 이 그림의 결론을 제대로 읽을 수 있다.",
+            "위 패널에서 보인 차이를 % cell viability로 정량화한 결과다. 이미지에서 보이는 경향이 수치적으로도 유지되는지 확인하는 핵심 근거다.",
+            "막대 높이 차이가 우연이 아니라 통계적으로 의미 있는지 보여주는 표식이다. 특히 어떤 기준군과 비교한 표시인지 캡션과 함께 읽어야 한다.",
+            "E:T ratio 20:1, 24시간 처리, cordycepin 100 μM, Cm-EE 100 μg/mL, mean±SEM, one-way ANOVA 같은 해석의 전제가 여기 적혀 있다. 이 정보가 있어야 그림을 실험 맥락 안에서 읽을 수 있다."
+          ],
+          "long_explanations": [
+            "이 패널은 MCF-7, MDA-MB-231, Huh-7, SNU-449 네 암세포주에서 조건별로 얼마나 많은 표적 세포가 남아 있는지를 시각적으로 보여준다. 각 칸의 적색 형광은 살아남은 암세포를 반영하므로, 신호가 줄어들수록 effector immune cell의 살상 효과가 커졌다고 해석한다. 이 페이지에서의 역할은 단순한 수치 제시가 아니라, combined 처리군에서 실제로 세포가 더 적게 남는다는 점을 눈으로 먼저 확인하게 하는 것이다. 아래 bar chart는 바로 이 시각적 차이를 정량화한 대응 결과다.",
+            "이 라벨들은 행마다 어떤 실험 조건이 적용됐는지를 정의하는 핵심 안내선이다. Media와 Diluent는 기본 대조군이고, Immune cells는 effector immune cell만 넣었을 때의 기준선이며, Combined 행들은 여기에 cordycepin 또는 Cm-EE를 추가한 조건이다. 따라서 이 페이지의 진짜 질문은 '처리군이 대조군보다 낮은가'뿐 아니라 '면역세포 단독보다도 더 낮아지는가'이다. 즉 이 라벨을 알아야 cordycepin과 Cm-EE가 단순 독성이 아니라 면역세포 매개 살상을 강화했는지 판단할 수 있다.",
+            "이 bar chart는 위 형광 이미지에서 보였던 '남아 있는 암세포 양'의 차이를 수치로 옮긴 정량 패널이다. 세포주별로 다섯 조건의 평균 cell viability와 오차막대를 제시해, 시각적 인상이 아니라 재현 가능한 경향으로 결과를 읽게 해준다. 이 페이지에서 가장 중요한 메시지는 combined cordycepin과 combined Cm-EE가 여러 세포주에서 viability를 더 낮춘다는 점이다. 따라서 이 그래프는 현미경 사진의 보조 자료가 아니라, 면역세포 살상 강화 효과를 공식적으로 뒷받침하는 중심 결과다.",
+            "이 기호들은 단순한 막대 높이 차이를 넘어, 그 차이가 통계적으로 신뢰할 만한지 알려준다. 캡션에 따르면 별표, 달러 기호, 샵 기호는 서로 다른 비교 기준군에 대한 유의성을 뜻하므로, 기호의 종류를 구분하지 않으면 결과를 과대해석하기 쉽다. 이 페이지에서는 combined 처리군이 media나 diluent뿐 아니라 immune cell alone 조건과도 유의하게 다른지 판단하는 데 특히 중요하다. 즉 '낮아 보인다'를 '실제로 의미 있게 낮다'로 바꿔 주는 해석 장치다.",
+            "캡션은 이 figure를 제대로 해석하기 위한 실험 설계와 통계 조건을 압축해 제공한다. 특히 effector:target 비율 20:1, 처리 시간 24시간, 두 물질의 농도, mean±SEM, one-way ANOVA는 결과의 강도와 비교 가능성을 판단하는 기준이다. 이 페이지에서 캡션의 역할은 단순 설명문이 아니라, 이미지와 그래프가 어떤 조건에서 얻어진 데이터인지 고정해 주는 것이다. 따라서 시각적 차이나 막대값만 보고 결론을 내리기보다, 이 조건들이 동일하게 적용된 비교인지 먼저 확인해야 한다."
+          ],
+          "related_pages": [
+            8,
+            9,
+            6,
+            13
+          ],
+          "page_risk_note": "이 페이지는 막대 높이만 보거나 이미지의 어두움만 보고 결론내리면 오해하기 쉽다. 반드시 처리 조건 라벨과 유의성 기호를 함께 읽고, combined 군이 immune cell alone보다 추가로 얼마나 낮아지는지를 중심으로 해석해야 한다.",
+          "page_role": "결과/근거 제시",
+          "page_summary": "이 페이지는 Fig. 7로, cordycepin과 Cm-EE가 effector immune cell의 암세포 살상 효과에 어떤 영향을 주는지 현미경 이미지와 정량 bar chart로 함께 보여준다. 위쪽 패널은 네 가지 암세포주에서 처리 조건별 남아 있는 적색 형광 세포를 비교하고, 아래쪽 패널은 이를 % cell viability로 정량화해 조건 간 차이와 통계적 유의성을 제시한다."
+        },
+        {
+          "document_id": "doc_3cbb9bb19bea4a33bcf83b826e35eeed",
+          "source_pdf_relpath": "유우_질병면역학 발표논문.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_3cbb9bb19bea4a33bcf83b826e35eeed.pdf",
+          "page_number": 2,
+          "page_image_relpath": "data/rendered_pages/doc_3cbb9bb19bea4a33bcf83b826e35eeed/2.png",
+          "expected_type": "text_rich",
+          "pass2_generation_mode": "compat",
+          "pass1_path": "text-first",
+          "route_label": "text-rich",
+          "hard_page_score": 0,
+          "recommended_execution": "text_first",
+          "planner_reason": "text_length=6884; block_count=8; non_empty_text_block_count=8; no_strong_visual_signal",
+          "candidate_anchor_count": 12,
+          "final_anchor_count": 3,
+          "anchor_labels": [
+            "연구 목적과 시험 물질",
+            "Cordyceps militaris 배경",
+            "UPLC 성분 분석"
+          ],
+          "anchor_types": [
+            "text",
+            "text",
+            "text"
+          ],
+          "short_explanations": [
+            "이 문단은 cordycepin과 C. militaris ethanolic extract(Cm-EE)가 암 감작과 면역조절에 미치는 영향을 조사한다는 핵심 목적을 제시한다. 페이지 전체 결과 섹션을 읽는 기준점이 되는 문장이다.",
+            "이 문단은 C. militaris가 오랜 전통적 사용 이력과 다양한 생리활성을 가진 물질원임을 소개한다. 연구 대상 추출물과 cordycepin의 생물학적 의미를 이해하는 출발점이다.",
+            "이 부분은 UPLC로 Cm-EE 내 bioactive compounds를 확인했다는 점을 설명한다. 추출물에 어떤 주요 성분이 실제로 들어 있는지 규명해야 뒤의 생물학적 효과를 성분 수준에서 해석할 수 있다."
+          ],
+          "long_explanations": [
+            "이 문단은 cordycepin과 C. militaris ethanolic extract(Cm-EE)가 암 감작과 면역조절에 미치는 영향을 조사한다는 핵심 목적을 제시한다. 페이지 전체 결과 섹션을 읽는 기준점이 되는 문장이다. 이 페이지는 먼저 면역치료 관련 선행 사례와 Cordyceps militaris의 생리활성을 소개한 뒤, cordycepin과 C. militaris ethanolic extract(Cm-EE)를 이용한 연구 목적을 제시한다. 이어서 Results 섹션에 들어가 Cm-EE 성분 분석, 세포독성 평가, 암세포 감작 관련 분석의 큰 흐름을 소개한다. 즉 배경 설명과 결과 하위 주제들이 한 페이지 안에서 연결되는 전환 지점이다.",
+            "이 문단은 C. militaris가 오랜 전통적 사용 이력과 다양한 생리활성을 가진 물질원임을 소개한다. 연구 대상 추출물과 cordycepin의 생물학적 의미를 이해하는 출발점이다. 이 페이지는 먼저 면역치료 관련 선행 사례와 Cordyceps militaris의 생리활성을 소개한 뒤, cordycepin과 C. militaris ethanolic extract(Cm-EE)를 이용한 연구 목적을 제시한다. 이어서 Results 섹션에 들어가 Cm-EE 성분 분석, 세포독성 평가, 암세포 감작 관련 분석의 큰 흐름을 소개한다. 즉 배경 설명과 결과 하위 주제들이 한 페이지 안에서 연결되는 전환 지점이다.",
+            "이 부분은 UPLC로 Cm-EE 내 bioactive compounds를 확인했다는 점을 설명한다. 추출물에 어떤 주요 성분이 실제로 들어 있는지 규명해야 뒤의 생물학적 효과를 성분 수준에서 해석할 수 있다. 이 페이지는 먼저 면역치료 관련 선행 사례와 Cordyceps militaris의 생리활성을 소개한 뒤, cordycepin과 C. militaris ethanolic extract(Cm-EE)를 이용한 연구 목적을 제시한다. 이어서 Results 섹션에 들어가 Cm-EE 성분 분석, 세포독성 평가, 암세포 감작 관련 분석의 큰 흐름을 소개한다. 즉 배경 설명과 결과 하위 주제들이 한 페이지 안에서 연결되는 전환 지점이다."
+          ],
+          "related_pages": [
+            1
+          ],
+          "page_risk_note": "핵심 포인트는 비교적 명확하지만 관련 페이지를 함께 보면 이해가 더 좋아진다.",
+          "page_role": "연구 배경에서 결과 개요로 전환되는 페이지",
+          "page_summary": "이 페이지는 먼저 면역치료 관련 선행 사례와 Cordyceps militaris의 생리활성을 소개한 뒤, cordycepin과 C. militaris ethanolic extract(Cm-EE)를 이용한 연구 목적을 제시한다. 이어서 Results 섹션에 들어가 Cm-EE 성분 분석, 세포독성 평가, 암세포 감작 관련 분석의 큰 흐름을 소개한다. 즉 배경 설명과 결과 하위 주제들이 한 페이지 안에서 연결되는 전환 지점이다."
+        }
+      ]
+    },
+    {
+      "document_id": "doc_49f948e346a949b49fee0181eb6f6cdf",
+      "source_pdf_relpath": "doc_f9ba1ef0e03446d1bcf11dcc686d1275.pdf",
+      "expected_type": "text_rich",
+      "has_compat_pages": true,
+      "has_llm_pages": true,
+      "samples": [
+        {
+          "document_id": "doc_49f948e346a949b49fee0181eb6f6cdf",
+          "source_pdf_relpath": "doc_f9ba1ef0e03446d1bcf11dcc686d1275.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_49f948e346a949b49fee0181eb6f6cdf.pdf",
+          "page_number": 1,
+          "page_image_relpath": "data/rendered_pages/doc_49f948e346a949b49fee0181eb6f6cdf/1.png",
+          "expected_type": "text_rich",
+          "pass2_generation_mode": "compat",
+          "pass1_path": "multimodal",
+          "route_label": "text-rich",
+          "hard_page_score": 10,
+          "recommended_execution": "text_first",
+          "planner_reason": "text_length=106; block_count=5; non_empty_text_block_count=5; no_strong_visual_signal",
+          "candidate_anchor_count": 10,
+          "final_anchor_count": 3,
+          "anchor_labels": [
+            "main title",
+            "topic list",
+            "Week 4"
+          ],
+          "anchor_types": [
+            "text",
+            "text",
+            "text"
+          ],
+          "short_explanations": [
+            "큰 제목은 이번 주차의 중심 메시지를 직접 제시한다. 이후에 나오는 세부 키워드들이 모두 이 주제를 중심으로 연결된다는 점에서 가장 중요한 앵커다.",
+            "이 줄은 이번 주차에서 다룰 주요 개념들의 목록이다. 제목이 큰 주제를 제시한다면, 이 목록은 실제 강의 범위를 구체화한다.",
+            "이 표시는 문서 내에서 현재 강의가 몇 번째 주차인지 알려준다. 학습 흐름상 이 페이지가 새로운 주차 또는 섹션의 시작임을 보여준다."
+          ],
+          "long_explanations": [
+            "큰 제목은 이번 주차의 중심 메시지를 직접 제시한다. 이후에 나오는 세부 키워드들이 모두 이 주제를 중심으로 연결된다는 점에서 가장 중요한 앵커다. 이 페이지는 4주차 강의의 제목 슬라이드로, 핵심 주제를 'AI as a Learning Machine'으로 제시한다. 아래에는 이번 주에 다룰 주요 키워드로 ML, Deep Learning, Neural Networks, LLM, AIBT가 나열되어 있어 강의 범위를 미리 보여준다.",
+            "이 줄은 이번 주차에서 다룰 주요 개념들의 목록이다. 제목이 큰 주제를 제시한다면, 이 목록은 실제 강의 범위를 구체화한다. 이 페이지는 4주차 강의의 제목 슬라이드로, 핵심 주제를 'AI as a Learning Machine'으로 제시한다. 아래에는 이번 주에 다룰 주요 키워드로 ML, Deep Learning, Neural Networks, LLM, AIBT가 나열되어 있어 강의 범위를 미리 보여준다.",
+            "이 표시는 문서 내에서 현재 강의가 몇 번째 주차인지 알려준다. 학습 흐름상 이 페이지가 새로운 주차 또는 섹션의 시작임을 보여준다. 이 페이지는 4주차 강의의 제목 슬라이드로, 핵심 주제를 'AI as a Learning Machine'으로 제시한다. 아래에는 이번 주에 다룰 주요 키워드로 ML, Deep Learning, Neural Networks, LLM, AIBT가 나열되어 있어 강의 범위를 미리 보여준다."
+          ],
+          "related_pages": [
+            2,
+            3
+          ],
+          "page_risk_note": "핵심 포인트는 비교적 명확하지만 관련 페이지를 함께 보면 이해가 더 좋아진다.",
+          "page_role": "주차 제목 및 학습 주제 개요",
+          "page_summary": "이 페이지는 4주차 강의의 제목 슬라이드로, 핵심 주제를 'AI as a Learning Machine'으로 제시한다. 아래에는 이번 주에 다룰 주요 키워드로 ML, Deep Learning, Neural Networks, LLM, AIBT가 나열되어 있어 강의 범위를 미리 보여준다."
+        },
+        {
+          "document_id": "doc_49f948e346a949b49fee0181eb6f6cdf",
+          "source_pdf_relpath": "doc_f9ba1ef0e03446d1bcf11dcc686d1275.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_49f948e346a949b49fee0181eb6f6cdf.pdf",
+          "page_number": 14,
+          "page_image_relpath": "data/rendered_pages/doc_49f948e346a949b49fee0181eb6f6cdf/14.png",
+          "expected_type": "text_rich",
+          "pass2_generation_mode": "llm",
+          "pass1_path": "multimodal",
+          "route_label": "visual-rich",
+          "hard_page_score": 55,
+          "recommended_execution": "selective_visual_enrichment",
+          "planner_reason": "has_table; text_length=320",
+          "candidate_anchor_count": 10,
+          "final_anchor_count": 5,
+          "anchor_labels": [
+            "AI lineage tree",
+            "weighted nodes + backpropagation",
+            "Deep Learning branch",
+            "LLM and GenAI box",
+            "AIBT branch"
+          ],
+          "anchor_types": [
+            "flow",
+            "text",
+            "diagram",
+            "diagram",
+            "diagram"
+          ],
+          "short_explanations": [
+            "이 그림은 여러 AI 용어를 나열하는 것이 아니라, 신경망을 공통 기반으로 한 분기 관계를 보여주는 계보도다. 이 페이지에서는 개별 정의보다 '무엇이 무엇에서 이어지는가'를 읽는 것이 핵심이다.",
+            "이 문구는 신경망이 '가중치를 가진 연결'과 '오차를 거꾸로 전파하며 학습하는 방식'으로 움직인다는 점을 요약한다. 아래에 나오는 분기들은 모두 이 학습 메커니즘 위에 서 있다는 뜻이다.",
+            "이 박스는 딥러닝을 신경망과 별개 기술이 아니라, 더 많은 은닉층을 쌓은 신경망의 확장으로 설명한다. 즉 NN의 한 분기이지만 규모와 표현력이 커진 중요한 진화 단계라는 뜻이다.",
+            "이 박스는 GPT-4, Claude, Gemini 같은 LLM을 트랜스포머 계열의 대표 결과물로 묶는다. 생성형 AI를 독립 유행어가 아니라 트랜스포머 기반의 대규모 응용으로 읽게 해 주는 지점이다.",
+            "이 배치는 강의가 기술 설명에서 끝나지 않고, 신경망 기반 AI가 결국 비즈니스 전환으로 이어진다고 본다는 뜻이다. 즉 AIBT는 별도 주변 주제가 아니라, 기술 계보의 실천적 도착점으로 제시된다."
+          ],
+          "long_explanations": [
+            "이 도식의 핵심 메시지는 현대 AI의 중요한 흐름들이 서로 완전히 분리된 것이 아니라, 신경망이라는 공통 기반 위에서 발전했다는 점이다. 왼쪽은 딥러닝과 그 대표 아키텍처, 가운데는 트랜스포머와 LLM/GenAI, 오른쪽은 그 기술이 비즈니스 전환으로 이어지는 방향을 묶어 보여준다. 따라서 이 페이지는 세부 기술 설명보다 '계보와 연결 구조'를 압축 정리하는 역할을 한다. 다만 이것을 엄밀한 역사 순서나 완전한 분류표로 보기보다, 강의의 큰 흐름을 잡아주는 개념 지도라고 이해하는 편이 맞다.",
+            "weighted nodes는 신경망이 입력 특징마다 서로 다른 중요도를 학습한다는 뜻이고, backpropagation은 예측 오차를 이용해 그 가중치를 조정하는 학습 절차를 가리킨다. 이 두 요소를 함께 적어 둔 이유는 신경망이 단순한 박스가 아니라, 계산 구조와 학습 메커니즘을 동시에 가진 모델임을 보여주기 위해서다. 이 페이지에서는 딥러닝과 트랜스포머가 유행하는 별도 이름이 아니라, 결국 이런 신경망 학습 원리의 확장형이라는 점을 받쳐준다. 그래서 이 문구를 이해하면 중앙의 NN이 왜 전체 계보의 출발점인지 훨씬 명확해진다.",
+            "슬라이드는 딥러닝을 'multiple hidden layers'로 정의해, 신경망이 더 깊어지면서 복잡한 표현을 학습할 수 있게 된 흐름으로 제시한다. 이것은 딥러닝이 완전히 새로운 원리라기보다, 신경망 구조를 심화한 형태라는 점을 강조한다. 페이지 안에서는 왼쪽 가지를 통해 전통적 신경망 설명에서 CNN, RNN, LSTM 같은 실전 아키텍처들로 내려가는 연결고리를 만든다. 따라서 딥러닝 박스는 신경망의 일반 원리와 구체적 모델 계열 사이를 잇는 중간 허브 역할을 한다.",
+            "이 박스는 오늘날 가장 주목받는 생성형 AI가 어디서 나왔는지를 계보적으로 정리해 준다. 페이지의 주장에 따르면 LLM과 GenAI는 트랜스포머의 대규모화·응용 확장으로 이해하는 것이 핵심이다. 그래서 사용자는 'LLM/GenAI'를 별도 마법 기술처럼 보기보다, 신경망 → 트랜스포머 → 대규모 생성 모델로 이어지는 흐름 안에서 파악해야 한다. 이 요소는 앞선 기술 기초와 뒤의 비즈니스 적용을 연결하는 현대 AI의 대표 사례로 기능한다.",
+            "AIBT는 AI-Based Business Transformation으로, 모델 자체보다 그 모델이 조직의 운영과 가치 창출을 어떻게 바꾸는지를 가리킨다. 슬라이드가 이를 NN에서 직접 이어진 가지로 둔 이유는, 현대 AI의 발전이 단지 연구 성능 향상에 머물지 않고 실제 경영 변화로 연결된다는 강의의 큰 메시지를 강조하기 위해서다. 즉 왼쪽과 가운데가 기술 계보라면, 오른쪽은 그 기술이 어디에 쓰이는지 보여주는 적용 계보다. 이 요소를 이해하면 이후 페이지들이 왜 기술 설명에서 운영, 전략, 조직 설계 논의로 넘어가는지 자연스럽게 연결된다."
+          ],
+          "related_pages": [
+            12,
+            16,
+            6,
+            8,
+            9,
+            10,
+            13,
+            17
+          ],
+          "page_risk_note": "이 페이지를 역사 순서나 완전한 taxonomy로 읽기보다, 강의 전체 흐름을 압축한 개념 지도라고 이해해야 한다. 특히 AIBT는 트랜스포머와 같은 '동일 수준의 기술 아키텍처'라기보다, 신경망 계열 기술이 비즈니스로 이어지는 적용 축이라는 점을 놓치기 쉽다.",
+          "page_role": "개념 계보/구조도 설명",
+          "page_summary": "이 페이지는 신경망(NN)을 AI 계보의 공통 기반으로 두고, 그 위에서 딥러닝·트랜스포머·AIBT가 어떻게 갈라지는지 구조도로 보여준다. 특히 딥러닝의 대표 아키텍처와 트랜스포머 기반 LLM/GenAI를 NN의 연장선으로 연결해, 핵심 기술 계보와 비즈니스 연결점을 한눈에 정리한다."
+        },
+        {
+          "document_id": "doc_49f948e346a949b49fee0181eb6f6cdf",
+          "source_pdf_relpath": "doc_f9ba1ef0e03446d1bcf11dcc686d1275.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_49f948e346a949b49fee0181eb6f6cdf.pdf",
+          "page_number": 2,
+          "page_image_relpath": "data/rendered_pages/doc_49f948e346a949b49fee0181eb6f6cdf/2.png",
+          "expected_type": "text_rich",
+          "pass2_generation_mode": "compat",
+          "pass1_path": "text-first",
+          "route_label": "text-rich",
+          "hard_page_score": 0,
+          "recommended_execution": "text_first",
+          "planner_reason": "text_length=373; block_count=8; non_empty_text_block_count=8; no_strong_visual_signal",
+          "candidate_anchor_count": 9,
+          "final_anchor_count": 3,
+          "anchor_labels": [
+            "Weeks 1–3 recap heading",
+            "Question-to-answer transition",
+            "Learn from data answer"
+          ],
+          "anchor_types": [
+            "text",
+            "flow",
+            "text"
+          ],
+          "short_explanations": [
+            "This heading frames the page as a backward-looking recap. It helps the reader interpret the bullets below as a summary of prior course content rather than new standalone material.",
+            "Taken together, these two lines form the page's main argumentative move: Week 4 asks about the source of AI's power, and the answer is learning from data. This transition is likely the key takeaway of the slide.",
+            "This line gives the page's central answer: AI matters because it can learn from data. That answer sets up Week 4 as a move toward learning as the mechanism behind business transformation."
+          ],
+          "long_explanations": [
+            "This heading frames the page as a backward-looking recap. It helps the reader interpret the bullets below as a summary of prior course content rather than new standalone material. This page recaps the first three weeks of the course by listing the main theme of each week. It then identifies AIBT as the unifying concept across those weeks and introduces Week 4's central question. The page's answer is that AI enable...",
+            "Taken together, these two lines form the page's main argumentative move: Week 4 asks about the source of AI's power, and the answer is learning from data. This transition is likely the key takeaway of the slide. This page recaps the first three weeks of the course by listing the main theme of each week. It then identifies AIBT as the unifying concept across those weeks and introduces Week 4's central question. The...",
+            "This line gives the page's central answer: AI matters because it can learn from data. That answer sets up Week 4 as a move toward learning as the mechanism behind business transformation. This page recaps the first three weeks of the course by listing the main theme of each week. It then identifies AIBT as the unifying concept across those weeks and introduces Week 4's central question. The page's answer is that A..."
+          ],
+          "related_pages": [
+            1,
+            3
+          ],
+          "page_risk_note": "핵심 포인트는 비교적 명확하지만 관련 페이지를 함께 보면 이해가 더 좋아진다.",
+          "page_role": "이전 주차 요약과 다음 주차 도입",
+          "page_summary": "This page recaps the first three weeks of the course by listing the main theme of each week. It then identifies AIBT as the unifying concept across those weeks and introduces Week 4's central question. The page's answer is that AI enables AIBT because it can learn from data."
+        }
+      ]
+    },
+    {
+      "document_id": "doc_5d509baf7e5c4119bdd3e5193a3e2afe",
+      "source_pdf_relpath": "W2 Tutorial - Financial Management and Firm Value.pdf",
+      "expected_type": "mixed",
+      "has_compat_pages": true,
+      "has_llm_pages": true,
+      "samples": [
+        {
+          "document_id": "doc_5d509baf7e5c4119bdd3e5193a3e2afe",
+          "source_pdf_relpath": "W2 Tutorial - Financial Management and Firm Value.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_5d509baf7e5c4119bdd3e5193a3e2afe.pdf",
+          "page_number": 3,
+          "page_image_relpath": "data/rendered_pages/doc_5d509baf7e5c4119bdd3e5193a3e2afe/3.png",
+          "expected_type": "mixed",
+          "pass2_generation_mode": "compat",
+          "pass1_path": "text-first",
+          "route_label": "text-rich",
+          "hard_page_score": 0,
+          "recommended_execution": "text_first",
+          "planner_reason": "text_length=667; block_count=7; non_empty_text_block_count=7; no_strong_visual_signal",
+          "candidate_anchor_count": 8,
+          "final_anchor_count": 3,
+          "anchor_labels": [
+            "Agency Problem title",
+            "Goal of Financial Management title",
+            "Agency Problem section"
+          ],
+          "anchor_types": [
+            "text",
+            "text",
+            "text"
+          ],
+          "short_explanations": [
+            "이 제목은 두 번째 문제의 개념 축을 제시한다. 페이지에서는 경영자와 주주의 이해가 어긋날 수 있다는 점을 전제로, 이를 줄이는 장치를 묻고 있다.",
+            "이 제목은 첫 문제의 핵심 주제를 제시한다. 이 페이지에서는 재무관리의 목표를 단순한 비용 절감이나 배당 증가가 아니라 기업가치 관점에서 이해하는지가 중요하다.",
+            "제목과 문항을 함께 보면 대리인 문제와 유인 설계를 연결해서 점검하는 구성이다. 페이지의 역할은 주주이익과 연동된 보상 체계가 왜 중요한지 문제 형태로 확인시키는 데 있다."
+          ],
+          "long_explanations": [
+            "이 제목은 두 번째 문제의 개념 축을 제시한다. 페이지에서는 경영자와 주주의 이해가 어긋날 수 있다는 점을 전제로, 이를 줄이는 장치를 묻고 있다. 이 페이지는 재무관리의 목표와 대리인 문제를 묻는 두 개의 객관식 문제로 구성되어 있다. 첫 문제는 기업이 재무관리 목표를 제대로 따르고 있는지를 어떤 지표로 판단해야 하는지 점검한다. 두 번째 문제는 경영자와 주주의 이해를 일치시키는 유인 설계가 무엇인지 묻는다.",
+            "이 제목은 첫 문제의 핵심 주제를 제시한다. 이 페이지에서는 재무관리의 목표를 단순한 비용 절감이나 배당 증가가 아니라 기업가치 관점에서 이해하는지가 중요하다. 이 페이지는 재무관리의 목표와 대리인 문제를 묻는 두 개의 객관식 문제로 구성되어 있다. 첫 문제는 기업이 재무관리 목표를 제대로 따르고 있는지를 어떤 지표로 판단해야 하는지 점검한다. 두 번째 문제는 경영자와 주주의 이해를 일치시키는 유인 설계가 무엇인지 묻는다.",
+            "제목과 문항을 함께 보면 대리인 문제와 유인 설계를 연결해서 점검하는 구성이다. 페이지의 역할은 주주이익과 연동된 보상 체계가 왜 중요한지 문제 형태로 확인시키는 데 있다. 이 페이지는 재무관리의 목표와 대리인 문제를 묻는 두 개의 객관식 문제로 구성되어 있다. 첫 문제는 기업이 재무관리 목표를 제대로 따르고 있는지를 어떤 지표로 판단해야 하는지 점검한다. 두 번째 문제는 경영자와 주주의 이해를 일치시키는 유인 설계가 무엇인지 묻는다."
+          ],
+          "related_pages": [
+            4
+          ],
+          "page_risk_note": "핵심 포인트는 비교적 명확하지만 관련 페이지를 함께 보면 이해가 더 좋아진다.",
+          "page_role": "개념 점검 문제",
+          "page_summary": "이 페이지는 재무관리의 목표와 대리인 문제를 묻는 두 개의 객관식 문제로 구성되어 있다. 첫 문제는 기업이 재무관리 목표를 제대로 따르고 있는지를 어떤 지표로 판단해야 하는지 점검한다. 두 번째 문제는 경영자와 주주의 이해를 일치시키는 유인 설계가 무엇인지 묻는다."
+        },
+        {
+          "document_id": "doc_5d509baf7e5c4119bdd3e5193a3e2afe",
+          "source_pdf_relpath": "W2 Tutorial - Financial Management and Firm Value.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_5d509baf7e5c4119bdd3e5193a3e2afe.pdf",
+          "page_number": 12,
+          "page_image_relpath": "data/rendered_pages/doc_5d509baf7e5c4119bdd3e5193a3e2afe/12.png",
+          "expected_type": "mixed",
+          "pass2_generation_mode": "llm",
+          "pass1_path": "multimodal",
+          "route_label": "visual-rich",
+          "hard_page_score": 85,
+          "recommended_execution": "selective_visual_enrichment",
+          "planner_reason": "has_figure; text_length=4; non_empty_text_block_count=2",
+          "candidate_anchor_count": 10,
+          "final_anchor_count": 5,
+          "anchor_labels": [
+            "WSJ screenshot",
+            "WSJ Opinion masthead",
+            "anti-ESG headline cluster",
+            "$8.2 billion outflow claim",
+            "big firms exit Climate Action group"
+          ],
+          "anchor_types": [
+            "image",
+            "text",
+            "other",
+            "text",
+            "text"
+          ],
+          "short_explanations": [
+            "이 이미지는 개별 기사 한 편이 아니라, 한 화면 안에서 반복되는 반ESG 톤 자체를 보여 주기 위한 시각적 증거다. 페이지의 요점은 특정 주장보다도 그런 분위기가 실제 매체 화면에 축적돼 보인다는 데 있다.",
+            "이 표시는 자료가 일반 뉴스가 아니라 의견면에서 나온 것임을 알려 준다. 따라서 이 페이지는 '객관적 사실 정리'보다도 ESG를 둘러싼 해석과 프레이밍이 어떻게 형성되는지를 보여 준다.",
+            "핵심은 개별 문장보다도 '반복되는 패턴'이다. 여러 제목을 한 화면에 배치하면 ESG 비판이 우연한 한 번의 기사처럼 보이지 않고 누적된 담론처럼 읽힌다.",
+            "이 수치는 반ESG 정서를 단순 의견이 아니라 자금 이동의 신호와 연결해 준다. 즉 분위기 변화가 실제 투자 행동으로도 나타났다는 인상을 강화한다.",
+            "이 문구는 ESG 후퇴를 추상적 분위기가 아니라 실제 기관 행동으로 보여 준다. 특히 유명 대형사가 등장해 변화의 규모와 상징성을 키운다."
+          ],
+          "long_explanations": [
+            "이 캡처는 WSJ Opinion 지면에 실린 여러 ESG 비판 헤드라인을 한꺼번에 제시하는 시각 자료다. 그래서 독자는 단일 기사 내용보다도 '비판이 반복되고 있다'는 전체 인상을 먼저 받게 된다. 이 페이지에서 이미지는 ESG에 대한 시장·미디어 분위기 변화가 추상적 설명이 아니라 실제 사례로 관찰된다는 점을 뒷받침한다. 앞선 페이지의 ESG 개념 논의를, 여기서는 외부 담론과 투자 반응 사례로 연결하는 역할을 한다.",
+            "'WSJ Opinion'은 이 자료가 보도 기사라기보다 논평과 해석의 성격을 가진다는 점을 드러낸다. 이 구분은 중요하다. 왜냐하면 페이지의 목적이 ESG의 진실 여부를 단정하는 데 있지 않고, 시장과 언론 공간에서 ESG가 어떤 어조로 다뤄지는지 보여 주는 데 있기 때문이다. 즉 이 요소는 화면 속 메시지를 읽을 때, 그것을 여론·프레임의 사례로 받아들여야 한다는 해석 가이드를 제공한다.",
+            "이 헤드라인 묶음은 ESG 비판이 산발적인 사건이 아니라 하나의 흐름처럼 보이게 만드는 장치다. 독자는 서로 다른 제목들을 연속적으로 보면서, ESG에 대한 회의론이 매체 내에서 반복·증폭되고 있다는 인상을 받는다. 이 페이지에서 가장 중요한 기능은 바로 그 '누적 효과'를 전달하는 것이다. 따라서 이 앵커는 페이지 전체 메시지의 구조를 이해하는 데 핵심이다.",
+            "이 문구는 지속가능 펀드에서 자금이 빠져나갔다는 정량적 주장을 제시한다. 숫자가 들어가면 독자는 ESG 비판을 단순 수사로만 보지 않고, 성과·수요·시장 반응의 문제로 읽게 된다. 이 페이지에서 이 수치는 앞의 부정적 헤드라인들을 실질적 시장 반응과 연결하는 역할을 한다. 결국 ESG 논쟁이 가치 논쟁을 넘어 투자자금의 흐름과도 얽혀 있음을 보여 준다.",
+            "이 부제는 JP모건, 블랙록, 스테이트스트리트 같은 대형 기관이 기후 행동 관련 연합에서 빠졌다는 점을 강조한다. 이런 사례는 ESG 회의론이 말의 수준을 넘어 조직의 선택과 포지셔닝 변화로 나타난다는 인상을 준다. 이 페이지에서 이 요소는 반ESG 담론이 금융권 내부의 제도적 참여 방식에도 영향을 줄 수 있음을 보여 주는 구체 사례다. 따라서 앞선 헤드라인 묶음을 실제 행위자 변화와 연결해 주는 맥락 앵커로 기능한다."
+          ],
+          "related_pages": [
+            9,
+            11,
+            6
+          ],
+          "page_risk_note": "이 페이지는 ESG에 대한 '부정적 미디어 프레임의 사례'를 보여 주는 것이지, ESG의 성패를 최종적으로 증명하는 페이지는 아니다. 특히 WSJ Opinion이라는 출처 특성 때문에, 사실자료와 의견 프레이밍을 구분해서 읽어야 한다.",
+          "page_role": "예시 제시",
+          "page_summary": "이 페이지는 WSJ Opinion 화면 캡처를 통해 ESG에 비판적인 기사 헤드라인이 여러 개 연달아 제시되는 모습을 보여준다. 핵심 메시지는 ESG에 대한 부정적 미디어 서사와 시장 분위기 변화가 실제로 관찰되며, 이는 앞선 ESG·지속가능성 논의를 시장 반응의 사례로 이어 준다는 점이다."
+        },
+        {
+          "document_id": "doc_5d509baf7e5c4119bdd3e5193a3e2afe",
+          "source_pdf_relpath": "W2 Tutorial - Financial Management and Firm Value.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_5d509baf7e5c4119bdd3e5193a3e2afe.pdf",
+          "page_number": 4,
+          "page_image_relpath": "data/rendered_pages/doc_5d509baf7e5c4119bdd3e5193a3e2afe/4.png",
+          "expected_type": "mixed",
+          "pass2_generation_mode": "compat",
+          "pass1_path": "text-first",
+          "route_label": "text-rich",
+          "hard_page_score": 0,
+          "recommended_execution": "text_first",
+          "planner_reason": "text_length=487; block_count=12; non_empty_text_block_count=12; no_strong_visual_signal",
+          "candidate_anchor_count": 9,
+          "final_anchor_count": 3,
+          "anchor_labels": [
+            "Agency Problem title (upper)",
+            "corporate governance question",
+            "comparison prompt"
+          ],
+          "anchor_types": [
+            "text",
+            "text",
+            "text"
+          ],
+          "short_explanations": [
+            "페이지 상단의 핵심 주제 제목이다. 아래의 비교 질문들이 모두 경영자와 주주 사이의 이해상충 문제를 판단하게 만드는 틀이라는 점을 보여준다.",
+            "하단의 핵심 질문으로, agency problem을 줄이기 위한 제도적 통제 수단을 묻는다. 이 페이지가 단순 비교를 넘어 corporate governance 논의로 확장된다는 점에서 중요하다.",
+            "서로 반대되는 기업 특성 쌍 중 어느 쪽이 agency problem이 더 큰지 생각하게 하는 안내 문장이다. 뒤에 나오는 A~E 항목 전체를 해석하는 기준이 된다."
+          ],
+          "long_explanations": [
+            "페이지 상단의 핵심 주제 제목이다. 아래의 비교 질문들이 모두 경영자와 주주 사이의 이해상충 문제를 판단하게 만드는 틀이라는 점을 보여준다. 이 페이지는 agency problem을 주제로, 어떤 기업 특성이 대리인 문제를 더 심하게 만들지 비교하도록 묻는 질문들을 제시한다. 이어서 경영자가 주주 이익보다 자신의 이익을 추구하는 경향을 어떻게 통제할지라는 corporate governance 주제로 연결한다.",
+            "하단의 핵심 질문으로, agency problem을 줄이기 위한 제도적 통제 수단을 묻는다. 이 페이지가 단순 비교를 넘어 corporate governance 논의로 확장된다는 점에서 중요하다. 이 페이지는 agency problem을 주제로, 어떤 기업 특성이 대리인 문제를 더 심하게 만들지 비교하도록 묻는 질문들을 제시한다. 이어서 경영자가 주주 이익보다 자신의 이익을 추구하는 경향을 어떻게 통제할지라는 corporate governance 주제로 연결한다.",
+            "서로 반대되는 기업 특성 쌍 중 어느 쪽이 agency problem이 더 큰지 생각하게 하는 안내 문장이다. 뒤에 나오는 A~E 항목 전체를 해석하는 기준이 된다. 이 페이지는 agency problem을 주제로, 어떤 기업 특성이 대리인 문제를 더 심하게 만들지 비교하도록 묻는 질문들을 제시한다. 이어서 경영자가 주주 이익보다 자신의 이익을 추구하는 경향을 어떻게 통제할지라는 corporate governance 주제로 연결한다."
+          ],
+          "related_pages": [
+            3
+          ],
+          "page_risk_note": "이 페이지는 주변 맥락과 함께 읽어야 의미가 더 안정적이다.",
+          "page_role": "토론 질문 및 개념 전환",
+          "page_summary": "이 페이지는 agency problem을 주제로, 어떤 기업 특성이 대리인 문제를 더 심하게 만들지 비교하도록 묻는 질문들을 제시한다. 이어서 경영자가 주주 이익보다 자신의 이익을 추구하는 경향을 어떻게 통제할지라는 corporate governance 주제로 연결한다."
+        }
+      ]
+    },
+    {
+      "document_id": "doc_b6fb79a4bd514f0ea5d6284b26d9d545",
+      "source_pdf_relpath": "26_통계학과.pdf",
+      "expected_type": "graph_heavy",
+      "has_compat_pages": true,
+      "has_llm_pages": true,
+      "samples": [
+        {
+          "document_id": "doc_b6fb79a4bd514f0ea5d6284b26d9d545",
+          "source_pdf_relpath": "26_통계학과.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_b6fb79a4bd514f0ea5d6284b26d9d545.pdf",
+          "page_number": 1,
+          "page_image_relpath": "data/rendered_pages/doc_b6fb79a4bd514f0ea5d6284b26d9d545/1.png",
+          "expected_type": "graph_heavy",
+          "pass2_generation_mode": "compat",
+          "pass1_path": "multimodal",
+          "route_label": "text-rich",
+          "hard_page_score": 30,
+          "recommended_execution": "text_first",
+          "planner_reason": "text_length=72; block_count=2; non_empty_text_block_count=2; no_strong_visual_signal",
+          "candidate_anchor_count": 4,
+          "final_anchor_count": 3,
+          "anchor_labels": [
+            "chapter title",
+            "title banner",
+            "Analysis of collinear data"
+          ],
+          "anchor_types": [
+            "text",
+            "other",
+            "text"
+          ],
+          "short_explanations": [
+            "이 문장은 이 페이지의 핵심 제목이다. 이후 슬라이드들이 다루는 범위를 'collinear data의 분석'으로 명확히 설정한다.",
+            "이 배너는 제목을 시각적으로 강조하는 영역이다. 내용 설명보다는 이 페이지가 본문이 아니라 장의 도입부임을 강하게 신호한다.",
+            "이 구절은 장의 실제 학습 주제를 나타낸다. 이후 페이지에서 공선성 또는 강한 상관을 가진 데이터의 해석·분석 문제가 중심이 될 가능성을 보여준다."
+          ],
+          "long_explanations": [
+            "이 문장은 이 페이지의 핵심 제목이다. 이후 슬라이드들이 다루는 범위를 'collinear data의 분석'으로 명확히 설정한다. 이 페이지는 장의 시작을 알리는 제목 슬라이드다. 핵심 주제는 'collinear data'의 분석이며, 이후 내용이 이 장의 방법론이나 개념 설명으로 이어질 가능성이 크다.",
+            "이 배너는 제목을 시각적으로 강조하는 영역이다. 내용 설명보다는 이 페이지가 본문이 아니라 장의 도입부임을 강하게 신호한다. 이 페이지는 장의 시작을 알리는 제목 슬라이드다. 핵심 주제는 'collinear data'의 분석이며, 이후 내용이 이 장의 방법론이나 개념 설명으로 이어질 가능성이 크다.",
+            "이 구절은 장의 실제 학습 주제를 나타낸다. 이후 페이지에서 공선성 또는 강한 상관을 가진 데이터의 해석·분석 문제가 중심이 될 가능성을 보여준다. 이 페이지는 장의 시작을 알리는 제목 슬라이드다. 핵심 주제는 'collinear data'의 분석이며, 이후 내용이 이 장의 방법론이나 개념 설명으로 이어질 가능성이 크다."
+          ],
+          "related_pages": [
+            2,
+            3
+          ],
+          "page_risk_note": "핵심 포인트는 비교적 명확하지만 관련 페이지를 함께 보면 이해가 더 좋아진다.",
+          "page_role": "장 제목/도입",
+          "page_summary": "이 페이지는 장의 시작을 알리는 제목 슬라이드다. 핵심 주제는 'collinear data'의 분석이며, 이후 내용이 이 장의 방법론이나 개념 설명으로 이어질 가능성이 크다."
+        },
+        {
+          "document_id": "doc_b6fb79a4bd514f0ea5d6284b26d9d545",
+          "source_pdf_relpath": "26_통계학과.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_b6fb79a4bd514f0ea5d6284b26d9d545.pdf",
+          "page_number": 8,
+          "page_image_relpath": "data/rendered_pages/doc_b6fb79a4bd514f0ea5d6284b26d9d545/8.png",
+          "expected_type": "graph_heavy",
+          "pass2_generation_mode": "llm",
+          "pass1_path": "multimodal",
+          "route_label": "visual-rich",
+          "hard_page_score": 55,
+          "recommended_execution": "selective_visual_enrichment",
+          "planner_reason": "has_table; text_length=388",
+          "candidate_anchor_count": 10,
+          "final_anchor_count": 5,
+          "anchor_labels": [
+            "Residuals vs Fitted",
+            "Scale-Location",
+            "Normal Q-Q",
+            "Residuals vs Leverage",
+            "Cook’s distance marker"
+          ],
+          "anchor_types": [
+            "chart",
+            "chart",
+            "chart",
+            "chart",
+            "text"
+          ],
+          "short_explanations": [
+            "적합값 대비 잔차를 그려 선형성 가정과 전반적 적합 패턴을 점검하는 그래프다. 점들이 무작위로 퍼지는지, 스무딩 선이 휘는지가 핵심이다.",
+            "표준화 잔차의 크기를 적합값에 따라 비교해 오차 분산이 일정한지 보는 그래프다. 빨간 선이 올라가거나 퍼짐이 커지면 등분산성 가정이 약할 수 있다.",
+            "잔차가 정규분포와 얼마나 비슷한지 직선 기준과 비교해 보는 그래프다. 가운데는 잘 맞아도 양끝이 벗어나면 꼬리 쪽 비정규성을 의심한다.",
+            "잔차 크기만이 아니라 각 점이 회귀선 추정에 얼마나 큰 영향을 줄 수 있는지도 함께 보는 그래프다. 레버리지가 큰 점은 잔차가 아주 크지 않아도 모델을 흔들 수 있다.",
+            "Cook's distance는 한 관측치를 뺐을 때 회귀계수가 얼마나 달라질지를 요약한 영향도 지표다. 잔차와 레버리지를 함께 해석할 때 어떤 점이 특히 위험한지 판단하는 기준선 역할을 한다."
+          ],
+          "long_explanations": [
+            "Residuals vs Fitted는 회귀모형이 데이터의 평균 관계를 얼마나 잘 따라가는지 가장 먼저 확인하는 진단 그래프다. 이상적이면 잔차가 0을 중심으로 특별한 패턴 없이 흩어져야 하고, 빨간 스무딩 선도 거의 수평이어야 한다. 이 페이지에서는 선이 완전히 평평하지 않고 구간에 따라 휘어 보여, 단순 선형식이 일부 구간의 구조를 충분히 설명하지 못할 가능성을 시사한다. 따라서 이 그래프는 뒤의 다른 진단 그림들을 읽는 출발점 역할을 한다.",
+            "Scale-Location 그래프는 잔차의 절대적 크기가 적합값 수준에 따라 달라지는지, 즉 등분산성을 점검하기 위한 그림이다. 점들의 세로 퍼짐이 특정 구간에서 더 커지거나 빨간 선이 한쪽으로 상승하면 오차 분산이 일정하지 않을 수 있다. 이 페이지에서는 완전히 평평한 모습이 아니라 약한 변화가 보여, 적합값이 커질수록 변동성이 조금 달라질 가능성을 의심하게 만든다. 그래서 이 그래프는 Residuals vs Fitted에서 본 패턴이 단순 모양 문제인지, 분산 구조 문제까지 포함하는지 보완해 준다.",
+            "Normal Q-Q 플롯은 표준화 잔차의 분위수를 정규분포의 이론적 분위수와 비교해 정규성 가정을 점검하는 도구다. 점들이 기준 직선 근처에 놓이면 정규성 가정이 크게 문제되지 않는다고 본다. 이 페이지에서는 전체적으로는 직선에 비교적 잘 맞지만, 꼬리 쪽 일부 점들이 조금씩 벗어나 보여 극단값이나 꼬리 왜곡 가능성을 함께 살펴야 한다. 즉 정규성이 완전히 붕괴했다기보다, 라벨된 관측치들이 해석의 민감한 부분임을 알려주는 역할을 한다.",
+            "Residuals vs Leverage는 관측치가 얼마나 특이한 x값 위치에 있는지와, 그 점의 오차가 얼마나 큰지를 동시에 본다. 그래서 단순한 이상치와 모델 추정 자체를 크게 바꾸는 영향점을 구분하는 데 중요하다. 이 페이지에서는 오른쪽에 있는 몇몇 라벨된 점들이 상대적으로 높은 레버리지를 보여, 단순 잔차 플롯만으로는 놓칠 수 있는 위험 관측치를 드러낸다. 즉 이 그래프는 회귀계수의 안정성을 점검하는 마지막 안전장치 역할을 한다.",
+            "Cook's distance는 특정 관측치가 회귀모형 전체 추정 결과를 얼마나 강하게 흔드는지 요약한 영향도 척도다. 잔차가 크기만 한 점과, x공간에서 멀리 떨어져 있어 계수 추정까지 크게 바꿀 수 있는 점을 구분할 때 특히 유용하다. 이 페이지에서는 Residuals vs Leverage 그래프를 읽을 때 단순히 눈에 띄는 점을 찾는 데서 멈추지 않고, 실제로 영향력이 큰 점인지 판단하는 해석 기준을 제공한다. 따라서 라벨된 관측치를 '이상해 보인다' 수준이 아니라 '모형을 얼마나 바꾸는가'라는 관점으로 보게 만든다."
+          ],
+          "related_pages": [
+            7,
+            9,
+            3
+          ],
+          "page_risk_note": "이 페이지의 네 그래프는 각각 따로 결론내리기보다 함께 읽어야 한다. 라벨된 관측치가 눈에 띈다고 해서 곧바로 제거 대상이라고 판단하면 안 되며, 패턴의 일관성과 영향도까지 같이 봐야 한다.",
+          "page_role": "그래프 해석 페이지",
+          "page_summary": "이 페이지는 직전 페이지에서 적합한 회귀모형을 대상으로 기본 진단 그래프 4개를 한 번에 보여준다. Residuals vs Fitted, Scale-Location, Normal Q-Q, Residuals vs Leverage를 통해 비선형성, 등분산성, 정규성, 영향점 가능성을 함께 점검하는 구성이다. 일부 관측치(예: 28, 35, 15, 61)는 눈에 띄는 점으로 표시되어 해석의 초점이 된다."
+        },
+        {
+          "document_id": "doc_b6fb79a4bd514f0ea5d6284b26d9d545",
+          "source_pdf_relpath": "26_통계학과.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_b6fb79a4bd514f0ea5d6284b26d9d545.pdf",
+          "page_number": 9,
+          "page_image_relpath": "data/rendered_pages/doc_b6fb79a4bd514f0ea5d6284b26d9d545/9.png",
+          "expected_type": "graph_heavy",
+          "pass2_generation_mode": "compat",
+          "pass1_path": "multimodal",
+          "route_label": "text-rich",
+          "hard_page_score": 10,
+          "recommended_execution": "text_first",
+          "planner_reason": "text_length=172; block_count=14; non_empty_text_block_count=14; no_strong_visual_signal",
+          "candidate_anchor_count": 11,
+          "final_anchor_count": 3,
+          "anchor_labels": [
+            "Scatter plots title",
+            "scatterplot matrix",
+            "plot(edu) command"
+          ],
+          "anchor_types": [
+            "text",
+            "chart",
+            "text"
+          ],
+          "short_explanations": [
+            "페이지 제목으로, 이 슬라이드가 산점도를 통해 변수 관계를 읽는 데 초점을 둔다는 점을 알려준다. 아래의 그림들이 개별 값이 아니라 변수 간 관계 해석용이라는 방향을 잡아준다.",
+            "여러 변수의 모든 쌍별 산점도를 한 번에 배열한 scatterplot matrix다. 어떤 변수쌍이 강하게 함께 움직이는지 빠르게 비교해 공선성 패턴을 찾는 데 중요하다.",
+            "R의 `plot(edu)` 호출로 데이터프레임의 변수들에 대한 산점도 행렬이 생성된 것으로 보인다. 시각화가 어떻게 만들어졌는지와 분석 재현 방법을 함께 보여주는 요소다."
+          ],
+          "long_explanations": [
+            "페이지 제목으로, 이 슬라이드가 산점도를 통해 변수 관계를 읽는 데 초점을 둔다는 점을 알려준다. 아래의 그림들이 개별 값이 아니라 변수 간 관계 해석용이라는 방향을 잡아준다. 이 페이지는 R의 scatterplot matrix를 이용해 ACHV, FAM, PEER, SCHOOL 사이의 쌍별 관계를 한 번에 보여준다. 특히 FAM, PEER, SCHOOL 사이에는 매우 강한 선형 관계가 보여 다중공선성 가능성을 시각적으로 시사한다. 반면 ACHV와의 관계는 상대적으로 더 퍼져 있어 강도가 덜해 보인다.",
+            "여러 변수의 모든 쌍별 산점도를 한 번에 배열한 scatterplot matrix다. 어떤 변수쌍이 강하게 함께 움직이는지 빠르게 비교해 공선성 패턴을 찾는 데 중요하다. 이 페이지는 R의 scatterplot matrix를 이용해 ACHV, FAM, PEER, SCHOOL 사이의 쌍별 관계를 한 번에 보여준다. 특히 FAM, PEER, SCHOOL 사이에는 매우 강한 선형 관계가 보여 다중공선성 가능성을 시각적으로 시사한다. 반면 ACHV와의 관계는 상대적으로 더 퍼져 있어 강도가 덜해 보인다.",
+            "R의 `plot(edu)` 호출로 데이터프레임의 변수들에 대한 산점도 행렬이 생성된 것으로 보인다. 시각화가 어떻게 만들어졌는지와 분석 재현 방법을 함께 보여주는 요소다. 이 페이지는 R의 scatterplot matrix를 이용해 ACHV, FAM, PEER, SCHOOL 사이의 쌍별 관계를 한 번에 보여준다. 특히 FAM, PEER, SCHOOL 사이에는 매우 강한 선형 관계가 보여 다중공선성 가능성을 시각적으로 시사한다. 반면 ACHV와의 관계는 상대적으로 더 퍼져 있어 강도가 덜해 보인다."
+          ],
+          "related_pages": [
+            6,
+            7
+          ],
+          "page_risk_note": "핵심 포인트는 비교적 명확하지만 관련 페이지를 함께 보면 이해가 더 좋아진다.",
+          "page_role": "그래프 해석 페이지",
+          "page_summary": "이 페이지는 R의 scatterplot matrix를 이용해 ACHV, FAM, PEER, SCHOOL 사이의 쌍별 관계를 한 번에 보여준다. 특히 FAM, PEER, SCHOOL 사이에는 매우 강한 선형 관계가 보여 다중공선성 가능성을 시각적으로 시사한다. 반면 ACHV와의 관계는 상대적으로 더 퍼져 있어 강도가 덜해 보인다."
+        }
+      ]
+    },
+    {
+      "document_id": "doc_4840bd97746f4f13bfe8fce69923e1ea",
+      "source_pdf_relpath": "W1.Lecture01-Financial Management and Firm Value.pdf",
+      "expected_type": "mixed",
+      "has_compat_pages": false,
+      "has_llm_pages": true,
+      "samples": [
+        {
+          "document_id": "doc_4840bd97746f4f13bfe8fce69923e1ea",
+          "source_pdf_relpath": "W1.Lecture01-Financial Management and Firm Value.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_4840bd97746f4f13bfe8fce69923e1ea.pdf",
+          "page_number": 1,
+          "page_image_relpath": "data/rendered_pages/doc_4840bd97746f4f13bfe8fce69923e1ea/1.png",
+          "expected_type": "mixed",
+          "pass2_generation_mode": "llm",
+          "pass1_path": "multimodal",
+          "route_label": "visual-rich",
+          "hard_page_score": 85,
+          "recommended_execution": "selective_visual_enrichment",
+          "planner_reason": "has_figure; text_length=101; non_empty_text_block_count=3",
+          "candidate_anchor_count": 10,
+          "final_anchor_count": 4,
+          "anchor_labels": [
+            "main title",
+            "financial management issues overview",
+            "capital budgeting icon",
+            "working capital management label"
+          ],
+          "anchor_types": [
+            "text",
+            "flow",
+            "diagram",
+            "text"
+          ],
+          "short_explanations": [
+            "이 제목은 재무관리의 여러 의사결정이 결국 기업가치 극대화와 연결된다는 강의의 큰 방향을 제시한다. 아래의 세 영역은 이 목표를 실무적으로 나눈 항목들이다.",
+            "이 영역은 재무관리를 세 개의 대표 의사결정 범주로 나눈 전체 지도다. 세 항목은 서로 독립된 잡다한 주제가 아니라, 같은 목표를 다른 관점에서 다루는 축들이다.",
+            "공장 아이콘은 설비나 프로젝트 같은 실물투자 대상을 상징한다. 자본예산은 기업이 어떤 장기 투자안을 선택할지를 결정하는 영역이다.",
+            "운전자본관리는 현금, 매출채권, 재고, 단기부채처럼 일상 운영에 필요한 단기 자금 요소를 관리하는 것이다. 큰 투자만이 아니라 회사가 매일 돌아가게 하는 자금 운영도 재무관리의 핵심이라는 뜻이다."
+          ],
+          "long_explanations": [
+            "이 제목은 이 강의가 단순히 돈을 관리하는 기술이 아니라, 기업의 가치를 높이는 의사결정 체계를 다룬다는 점을 먼저 선언한다. 여기서 핵심은 재무관리의 각 판단이 최종적으로 firm value maximization, 즉 기업가치 극대화와 연결된다는 것이다. 이 페이지에서는 아직 세부 이론을 설명하지 않지만, 아래의 자본예산·자금조달·운전자본관리를 하나의 공통 목표 아래 묶는 상위 프레임 역할을 한다. 뒤 페이지에서 목표, 가치, 재무관리자의 역할을 설명할 때 이 제목이 계속 기준점이 된다.",
+            "이 개요는 재무관리가 무엇을 다루는지를 가장 압축적으로 보여주는 분류 체계다. 자본예산은 어디에 투자할지, 자금조달은 그 투자를 위한 돈을 어떻게 마련할지, 운전자본관리는 일상 운영에 필요한 단기 자금을 어떻게 관리할지를 뜻한다. 즉 투자, 조달, 운영자금 관리가 재무관리의 세 축으로 병렬 배치되어 있다. 이 페이지에서는 추상적인 제목을 구체적인 학습 단위로 바꿔 주는 역할을 하며, 다음 페이지들의 내용을 예고하는 로드맵이 된다.",
+            "자본예산은 기업이 공장, 설비, 신규 사업, 프로젝트 같은 장기 투자 대상에 자금을 투입할지 판단하는 의사결정이다. 그래서 이 아이콘은 돈 자체보다 투자 대상인 실물자산을 강조하는 상징으로 쓰인다. 이 결정은 미래 현금흐름과 기업가치에 큰 영향을 주기 때문에 재무관리의 가장 핵심적인 영역 중 하나다. 이 페이지에서는 세 축 중 첫 번째 축을 직관적으로 보여 주며, 뒤에서 가치 극대화 논의와 연결될 기반을 만든다.",
+            "운전자본관리는 기업의 유동자산과 유동부채를 조정해 일상 운영이 끊기지 않도록 만드는 활동을 말한다. 쉽게 말해 벌어들이는 돈의 타이밍과 써야 하는 돈의 타이밍을 맞추는 문제에 가깝다. 초심자는 재무관리를 대규모 투자나 차입 문제로만 생각하기 쉬운데, 이 용어는 단기 자금 운영도 동등하게 중요하다는 점을 보여 준다. 이 페이지에서는 자본예산, 자금조달과 함께 재무관리의 세 번째 축을 채우는 역할을 한다."
+          ],
+          "related_pages": [
+            3,
+            4,
+            2,
+            5
+          ],
+          "page_risk_note": "이 페이지는 용어를 나열하는 소개 슬라이드처럼 보이지만, 실제로는 재무관리의 전체 구조를 잡아 주는 프레임 페이지다. 특히 아래 세 항목을 서로 분리된 주제로 보기보다, 모두 기업가치 극대화라는 공통 목표에 연결된 의사결정으로 이해해야 한다.",
+          "page_role": "제목 및 주제 개요",
+          "page_summary": "이 페이지는 금융관리의 전체 주제를 소개하고, 기업가치 극대화와의 연결을 전면에 내세운다. 아래 패널에서는 금융관리가 다루는 핵심 영역을 자본예산, 자금조달, 운전자본관리의 세 범주로 정리해 보여준다."
+        },
+        {
+          "document_id": "doc_4840bd97746f4f13bfe8fce69923e1ea",
+          "source_pdf_relpath": "W1.Lecture01-Financial Management and Firm Value.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_4840bd97746f4f13bfe8fce69923e1ea.pdf",
+          "page_number": 2,
+          "page_image_relpath": "data/rendered_pages/doc_4840bd97746f4f13bfe8fce69923e1ea/2.png",
+          "expected_type": "mixed",
+          "pass2_generation_mode": "llm",
+          "pass1_path": "text-first",
+          "route_label": "text-rich",
+          "hard_page_score": 35,
+          "recommended_execution": "selective_visual_enrichment",
+          "planner_reason": "text_length=794; block_count=20; non_empty_text_block_count=15; no_strong_visual_signal",
+          "candidate_anchor_count": 12,
+          "final_anchor_count": 4,
+          "anchor_labels": [
+            "financial management definition",
+            "capital budgeting details",
+            "financing decision details",
+            "working capital management details"
+          ],
+          "anchor_types": [
+            "text",
+            "text",
+            "text",
+            "text"
+          ],
+          "short_explanations": [
+            "이 문장은 재무관리를 세 가지 핵심 의사결정에 답하는 학문으로 정의한다. 아래에 나오는 자본예산, 자금조달, 운전자본관리를 하나의 틀로 묶는 출발점이다.",
+            "자본예산은 투자기회가 그 비용보다 더 큰 가치를 만드는지 평가하는 결정이다. 미래 현금흐름의 크기, 시점, 위험을 함께 봐야 한다는 점이 핵심이다.",
+            "자금조달 결정은 필요한 자금을 얼마나 빌릴지와 어떤 자금원이 가장 저렴한지 판단하는 문제다. 즉 투자 자체와 별도로 자본구조와 조달비용을 따져야 한다.",
+            "운전자본관리는 기업이 일상 운영을 멈추지 않도록 충분한 단기 자원을 유지하는 결정이다. 장기투자나 자금조달과 달리, 운영의 연속성과 유동성 확보가 핵심이다."
+          ],
+          "long_explanations": [
+            "이 정의는 재무관리를 단순히 돈을 관리하는 실무가 아니라, 기업의 중요한 재무 의사결정을 체계적으로 다루는 분야로 제시한다. 여기서 핵심은 '무엇에 투자할지', '그 돈을 어떻게 조달할지', '일상 운영 자금을 어떻게 관리할지'라는 세 질문이다. 즉 이 페이지의 나머지 내용은 모두 이 정의를 풀어서 설명한 것이다. 뒤 페이지에서 기업가치 극대화나 재무관리자의 역할을 이해할 때도, 먼저 이 세 축이 재무관리의 기본 구조라는 점을 잡고 있어야 한다.",
+            "자본예산은 기업이 장기 투자 프로젝트를 할지 말지를 정하는 의사결정 영역이다. 이 페이지는 좋은 투자가 단순히 흥미로운 사업이 아니라, 투입 비용보다 더 큰 가치를 창출해야 한다고 강조한다. 그래서 판단 기준은 미래 현금흐름의 규모뿐 아니라 언제 들어오는지, 그리고 그 흐름이 얼마나 불확실한지도 포함한다. 이후 페이지에서 기업가치와 현금흐름 중심 사고를 배울 때, 이 항목이 그 출발점 역할을 한다.",
+            "Financing은 이미 필요하다고 판단한 투자에 필요한 돈을 어떤 방식으로 마련할지 결정하는 영역이다. 이 페이지는 특히 차입 규모와 자금원의 비용을 핵심 판단 요소로 제시한다. 따라서 '좋은 투자'를 찾는 문제와 '그 투자를 어떻게 자금화할지'는 서로 다른 결정이라는 점이 중요하다. 이후 재무관리자의 역할이나 기업가치 논의로 넘어갈 때도, 조달 방식이 가치와 위험에 영향을 준다는 연결고리가 여기서 시작된다.",
+            "운전자본관리는 기업의 일상적인 영업 활동이 끊기지 않도록 단기 자원과 현금흐름을 관리하는 영역이다. 이 페이지는 이를 '비용이 큰 운영 차질 없이 계속 활동하게 만드는 결정'으로 설명한다. 즉 기업 재무는 장기 프로젝트와 대규모 자금조달만이 아니라, 매일의 운영을 버티게 하는 유동성 관리도 포함한다. 초심자는 이를 단순한 현금보유 문제로 오해하기 쉬운데, 실제로는 운영 안정성과 직결되는 핵심 재무 의사결정이다."
+          ],
+          "related_pages": [
+            1,
+            3,
+            4,
+            5
+          ],
+          "page_risk_note": "이 페이지의 세 영역은 같은 말을 반복하는 항목이 아니라 서로 다른 재무 의사결정 축이다. 특히 자본예산은 '무엇에 투자할지', 자금조달은 '그 돈을 어떻게 마련할지', 운전자본관리는 '일상 운영을 어떻게 끊기지 않게 할지'라는 점을 구분해서 읽어야 한다.",
+          "page_role": "핵심 개념 정의 및 의사결정 분류",
+          "page_summary": "이 페이지는 재무관리의 기본 정의를 제시하고, 재무관리가 답해야 할 세 가지 핵심 질문을 소개한다. 이어서 그 질문들을 자본예산, 자금조달, 운전자본관리라는 세 의사결정 영역으로 연결해 각각의 의미를 간단히 설명한다."
+        },
+        {
+          "document_id": "doc_4840bd97746f4f13bfe8fce69923e1ea",
+          "source_pdf_relpath": "W1.Lecture01-Financial Management and Firm Value.pdf",
+          "stored_pdf_relpath": "data/raw_pdfs/doc_4840bd97746f4f13bfe8fce69923e1ea.pdf",
+          "page_number": 3,
+          "page_image_relpath": "data/rendered_pages/doc_4840bd97746f4f13bfe8fce69923e1ea/3.png",
+          "expected_type": "mixed",
+          "pass2_generation_mode": "llm",
+          "pass1_path": "text-first",
+          "route_label": "text-rich",
+          "hard_page_score": 35,
+          "recommended_execution": "selective_visual_enrichment",
+          "planner_reason": "text_length=449; block_count=17; non_empty_text_block_count=12; no_strong_visual_signal",
+          "candidate_anchor_count": 12,
+          "final_anchor_count": 5,
+          "anchor_labels": [
+            "capital budgeting vs capital structure",
+            "Working Capital Mgmt.",
+            "corporations and shareholder questions",
+            "Wealth Maximization",
+            "share value and firm value link"
+          ],
+          "anchor_types": [
+            "diagram",
+            "text",
+            "text",
+            "text",
+            "flow"
+          ],
+          "short_explanations": [
+            "The slide contrasts two core finance decisions: what assets the firm should invest in and how those assets should be financed. This distinction is foundational because the rest of corporate finance is often organized around these two choices.",
+            "Working capital management deals with short-term operating assets and liabilities, not major long-term investment projects. It is included here to show that financial management is not only about big investments and financing choices.",
+            "These questions build the logic for defining the firm's objective from the owners' perspective. They move the slide from listing finance functions to asking what managers should ultimately maximize.",
+            "Wealth maximization states the normative objective for corporate financial management: managers should act to increase owners' wealth. It is the core answer to the slide's question about what management should aim for.",
+            "The slide pairs these ideas to show that shareholder-level value and total firm value are being treated as tightly connected expressions of the same objective. The visual grouping helps the learner see the goal as a value-maximization framework, not as separate unrelated slogans."
+          ],
+          "long_explanations": [
+            "This diagram separates the firm's decisions into an asset side and a financing side. Capital budgeting concerns which long-term projects and assets the firm should take on, while capital structure concerns how the firm raises money through debt and equity. That distinction is important because good investments can still create poor outcomes if financing is chosen badly, and vice versa. On this page, the diagram gives the structural map that the later goal discussion will apply to: all of these decisions should ultimately support value maximization.",
+            "Working capital management focuses on short-term financial decisions tied to day-to-day operations, such as current assets and current liabilities. Unlike capital budgeting, which is about long-term investments, this area is about keeping the firm liquid and operational in the near term. It matters because even a profitable firm can run into trouble if it mismanages cash, receivables, inventory, or short-term obligations. On this slide, it completes the three-part picture of corporate finance decisions alongside investment and financing.",
+            "This text block is not just a list of questions; it is the argument setup for the objective of financial management. The slide first assumes the firm is a corporation, then asks why investors supply capital and what shareholders would want management to do. That sequence pushes the learner toward judging managerial decisions by how well they serve owners' interests. On this page, these questions act as the bridge between the balance-sheet model above and the value-maximization objective shown below.",
+            "Wealth maximization means the firm's financial decisions should be evaluated by whether they increase the economic value delivered to shareholders. It is important because it gives a single criterion for judging investment, financing, and operating decisions. On this page, it is the first explicit statement of the objective that the earlier questions were leading toward. The terms that follow, such as share value maximization and firm value maximization, are presented as closely related ways to express this same value-oriented goal.",
+            "This flow groups share value maximization and firm value maximization as linked outcomes of the same managerial objective. Share value focuses on the value of the owners' claims, while firm value refers to the value of the business as a whole. In introductory corporate finance, these are often taught together because managerial decisions that improve the firm's value generally support shareholder value as well. On this page, the visual linkage clarifies that the slide is converging on one core objective stated in slightly different but connected ways."
+          ],
+          "related_pages": [
+            2,
+            4,
+            5
+          ],
+          "page_risk_note": "A common mistake is to treat capital budgeting, capital structure, and working capital management as isolated topics rather than as different decision areas that should all serve the same value-maximization objective. Another is to read wealth, share value, and firm value maximization as three separate goals when the slide is using them as closely connected expressions of one core aim.",
+          "page_role": "Conceptual model and goal framing",
+          "page_summary": "The page first names major corporate finance decision areas within a balance-sheet-style view of the firm: capital budgeting, capital structure, and working capital management. It then shifts to the question of what financial management should aim at in corporations, leading toward shareholder wealth, share value, and firm value maximization as the core objective."
+        }
+      ]
+    }
+  ]
+}

@@ -176,6 +176,34 @@ processing benchmark를 보려면:
 cat ../data/analysis/doc_xxx/processing_benchmark.json
 ```
 
+corpus benchmark를 모으려면:
+
+```bash
+./.venv/bin/python scripts/run_benchmark_corpus.py \
+  --pdf-dir ../data/raw_pdfs \
+  --limit 5
+```
+
+특정 PDF 리스트만 돌리려면:
+
+```bash
+./.venv/bin/python scripts/run_benchmark_corpus.py \
+  /tmp/a.pdf \
+  /tmp/b.pdf \
+  --output /tmp/corpus_run.json
+```
+
+오래 걸리는 문서를 timeout으로 넘기려면:
+
+```bash
+./.venv/bin/python scripts/run_benchmark_corpus.py \
+  --pdf-dir ../data/raw_pdfs \
+  --limit 5 \
+  --per-doc-timeout-seconds 900
+```
+
+기본 corpus output 위치는 `../docs/perf_runs/<timestamp>.json`이야.
+
 짧게 핵심 수치만 보려면:
 
 ```bash
@@ -198,6 +226,29 @@ print("openai_calls =", {
     "synthesis": payload["openai_synthesis_call_count"],
     "pass2": payload["openai_pass2_call_count"],
 })
+PY
+```
+
+corpus run 결과를 짧게 보려면:
+
+```bash
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+path = sorted(Path("../docs/perf_runs").glob("*.json"))[-1]
+payload = json.loads(path.read_text())
+print("run =", path.name)
+print("run_id =", payload["run_id"])
+print("git_head =", payload["git_head"])
+print("summary =", payload["corpus_summary"])
+for document in payload["documents"][:5]:
+    print(
+        document["filename"],
+        document["collection_status"],
+        document["final_status"],
+        document["openai_call_count_total"],
+    )
 PY
 ```
 

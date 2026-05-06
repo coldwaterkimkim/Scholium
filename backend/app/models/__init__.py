@@ -26,6 +26,11 @@ from app.models.parser import (
     ParseBlockType,
     ParsedPage,
 )
+from app.models.pipeline_v2 import (
+    DocumentSpineArtifact,
+    PageRoutingArtifact,
+    RecommendedExecution,
+)
 
 __all__ = [
     "DocumentRecord",
@@ -34,11 +39,13 @@ __all__ = [
     "DocumentRenderResult",
     "DocumentParseArtifact",
     "DocumentPageManifest",
+    "DocumentSpineArtifact",
     "DocumentSummaryPublicResponse",
     "DocumentStatus",
     "DocumentUploadResponse",
     "PageParseArtifact",
     "PageManifestEntry",
+    "PageRoutingArtifact",
     "PageRenderFailure",
     "PagePublicResponse",
     "PageRecord",
@@ -47,6 +54,7 @@ __all__ = [
     "ParsedPage",
     "PageRouteLabel",
     "ProcessingStage",
+    "RecommendedExecution",
     "RenderStatus",
     "RenderedPageArtifact",
     "StageStatus",
