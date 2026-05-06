@@ -111,7 +111,28 @@ type PanelPlacement = {
   };
   canvasWidth: number;
   canvasHeight: number;
+  side: PanelCandidateSide;
 } | null;
+
+type PanelCandidateSide = "right" | "left" | "below" | "above";
+
+type PanelRectEstimate = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+
+type PanelCandidate = {
+  side: PanelCandidateSide;
+  priority: number;
+  rawRect: PanelRectEstimate;
+  rect: PanelRectEstimate;
+  overlapArea: number;
+  overflowAmount: number;
+  availableArea: number;
+  distance: number;
+};
 
 type ChipContextMenu = {
   jobId: string;
@@ -119,7 +140,7 @@ type ChipContextMenu = {
   top: number;
 } | null;
 
-type SelectionChipSide = "left" | "right";
+type SelectionChipSide = "left" | "right" | "top" | "bottom";
 
 type SelectionChipPlacement = {
   left: number;
@@ -127,9 +148,25 @@ type SelectionChipPlacement = {
   side: SelectionChipSide;
 };
 
+type SelectionChipLayoutSource = {
+  job: SelectionJob;
+  selectionRect: PixelRect;
+  order: number;
+  preferredSide: SelectionChipSide;
+};
+
+type SelectionChipDraft = SelectionChipLayoutSource & {
+  side: SelectionChipSide;
+  chipRect: PanelRectEstimate;
+};
+
+type SelectionChipLayoutResult = SelectionChipLayoutSource & SelectionChipPlacement;
+
 const ANNOTATION_CHIP_MAX_WIDTH = 228;
 const ANNOTATION_CHIP_HEIGHT = 26;
 const ANNOTATION_CHIP_GAP = 8;
+const ANNOTATION_CHIP_LANE_MARGIN = 8;
+const ANNOTATION_CHIP_STACK_GAP = 6;
 
 const RELATED_FOCUS_ALIASES: Array<[RegExp, string]> = [
   [/전도대/, "conduction band"],
@@ -161,6 +198,265 @@ function normalizePixelRect(rect: DragSelection): PixelRect {
 
 function rectArea(rect: PixelRect): number {
   return Math.max(0, rect.width) * Math.max(0, rect.height);
+}
+
+function getRectRight(rect: PixelRect | PanelRectEstimate): number {
+  return rect.left + rect.width;
+}
+
+function getRectBottom(rect: PixelRect | PanelRectEstimate): number {
+  return rect.top + rect.height;
+}
+
+function getRectCenter(rect: PixelRect | PanelRectEstimate): { x: number; y: number } {
+  return {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2,
+  };
+}
+
+function getRectOverlapArea(first: PixelRect | PanelRectEstimate, second: PixelRect | PanelRectEstimate): number {
+  const left = Math.max(first.left, second.left);
+  const top = Math.max(first.top, second.top);
+  const right = Math.min(getRectRight(first), getRectRight(second));
+  const bottom = Math.min(getRectBottom(first), getRectBottom(second));
+  return Math.max(0, right - left) * Math.max(0, bottom - top);
+}
+
+function getRectDistance(first: PixelRect | PanelRectEstimate, second: PixelRect | PanelRectEstimate): number {
+  const horizontalDistance = Math.max(second.left - getRectRight(first), first.left - getRectRight(second), 0);
+  const verticalDistance = Math.max(second.top - getRectBottom(first), first.top - getRectBottom(second), 0);
+  return Math.hypot(horizontalDistance, verticalDistance);
+}
+
+function getRectOverflowAmount(rect: PanelRectEstimate, canvasWidth: number, canvasHeight: number): number {
+  const margin = 12;
+  return (
+    Math.max(0, margin - rect.left) +
+    Math.max(0, rect.left + rect.width - (canvasWidth - margin)) +
+    Math.max(0, margin - rect.top) +
+    Math.max(0, rect.top + rect.height - (canvasHeight - margin))
+  );
+}
+
+function clampPanelEstimate(
+  rect: PanelRectEstimate,
+  canvasWidth: number,
+  canvasHeight: number,
+): PanelRectEstimate {
+  const margin = 12;
+  const maxLeft = Math.max(margin, canvasWidth - rect.width - margin);
+  const maxTop = Math.max(margin, canvasHeight - rect.height - margin);
+  return {
+    ...rect,
+    left: clamp(rect.left, margin, maxLeft),
+    top: clamp(rect.top, margin, maxTop),
+  };
+}
+
+function getAvailableAreaForCandidateSide(
+  side: PanelCandidateSide,
+  selectedRect: PixelRect,
+  canvasWidth: number,
+  canvasHeight: number,
+  gap: number,
+): number {
+  const margin = 12;
+  const selectionRight = getRectRight(selectedRect);
+  const selectionBottom = getRectBottom(selectedRect);
+
+  if (side === "right") {
+    return Math.max(0, canvasWidth - margin - selectionRight - gap) * Math.max(0, canvasHeight - margin * 2);
+  }
+  if (side === "left") {
+    return Math.max(0, selectedRect.left - gap - margin) * Math.max(0, canvasHeight - margin * 2);
+  }
+  if (side === "below") {
+    return Math.max(0, canvasWidth - margin * 2) * Math.max(0, canvasHeight - margin - selectionBottom - gap);
+  }
+
+  return Math.max(0, canvasWidth - margin * 2) * Math.max(0, selectedRect.top - gap - margin);
+}
+
+function getConnectorPointOnRectEdge(
+  rect: PixelRect | PanelRectEstimate,
+  target: { x: number; y: number },
+): { x: number; y: number } {
+  const right = getRectRight(rect);
+  const bottom = getRectBottom(rect);
+  const center = getRectCenter(rect);
+
+  if (target.x > right) {
+    return { x: right, y: clamp(target.y, rect.top, bottom) };
+  }
+  if (target.x < rect.left) {
+    return { x: rect.left, y: clamp(target.y, rect.top, bottom) };
+  }
+  if (target.y > bottom) {
+    return { x: clamp(target.x, rect.left, right), y: bottom };
+  }
+  if (target.y < rect.top) {
+    return { x: clamp(target.x, rect.left, right), y: rect.top };
+  }
+
+  if (Math.abs(target.x - center.x) >= Math.abs(target.y - center.y)) {
+    return {
+      x: target.x >= center.x ? right : rect.left,
+      y: clamp(target.y, rect.top, bottom),
+    };
+  }
+
+  return {
+    x: clamp(target.x, rect.left, right),
+    y: target.y >= center.y ? bottom : rect.top,
+  };
+}
+
+function buildConnectorLineBetweenRects(
+  selectedRect: PixelRect,
+  panelRect: PanelRectEstimate,
+): NonNullable<PanelPlacement>["connectorLine"] {
+  const selectedCenter = getRectCenter(selectedRect);
+  const panelCenter = getRectCenter(panelRect);
+  const selectedPoint = getConnectorPointOnRectEdge(selectedRect, panelCenter);
+  const panelPoint = getConnectorPointOnRectEdge(panelRect, selectedCenter);
+
+  return {
+    x1: selectedPoint.x,
+    y1: selectedPoint.y,
+    x2: panelPoint.x,
+    y2: panelPoint.y,
+  };
+}
+
+function buildDefaultPanelRect(
+  selectedRect: PixelRect,
+  canvasWidth: number,
+  canvasHeight: number,
+  panelWidth: number,
+): PanelRectEstimate {
+  const panelHeightEstimate = 620;
+  const gap = 28;
+  const rightCandidate = selectedRect.left + selectedRect.width + gap;
+  const hasRoomRight = rightCandidate + panelWidth + 12 <= canvasWidth;
+  const leftCandidate = selectedRect.left - panelWidth - gap;
+  const rawLeft = hasRoomRight ? rightCandidate : leftCandidate;
+  const maxLeft = Math.max(12, canvasWidth - panelWidth - 12);
+  const effectiveHeight = Math.min(panelHeightEstimate, Math.max(1, canvasHeight - 24));
+  const maxTop = Math.max(12, canvasHeight - effectiveHeight - 12);
+
+  return {
+    left: clamp(rawLeft, 12, maxLeft),
+    top: clamp(selectedRect.top - 96, 12, maxTop),
+    width: panelWidth,
+    height: effectiveHeight,
+  };
+}
+
+function getDefaultPanelSide(
+  selectedRect: PixelRect,
+  canvasWidth: number,
+  panelWidth: number,
+): PanelCandidateSide {
+  const gap = 28;
+  const rightCandidate = selectedRect.left + selectedRect.width + gap;
+  const hasRoomRight = rightCandidate + panelWidth + 12 <= canvasWidth;
+  return hasRoomRight ? "right" : "left";
+}
+
+function createPanelCandidates(
+  selectedRect: PixelRect,
+  canvasWidth: number,
+  canvasHeight: number,
+  panelWidth: number,
+  panelHeightEstimate: number,
+): PanelCandidate[] {
+  const gap = 24;
+  const selectionCenter = getRectCenter(selectedRect);
+  const selectionRight = getRectRight(selectedRect);
+  const selectionBottom = getRectBottom(selectedRect);
+  const rawCandidates: Array<{ side: PanelCandidateSide; rect: PanelRectEstimate }> = [
+    {
+      side: "right",
+      rect: {
+        left: selectionRight + gap,
+        top: selectionCenter.y - panelHeightEstimate / 2,
+        width: panelWidth,
+        height: panelHeightEstimate,
+      },
+    },
+    {
+      side: "left",
+      rect: {
+        left: selectedRect.left - panelWidth - gap,
+        top: selectionCenter.y - panelHeightEstimate / 2,
+        width: panelWidth,
+        height: panelHeightEstimate,
+      },
+    },
+    {
+      side: "below",
+      rect: {
+        left: selectionCenter.x - panelWidth / 2,
+        top: selectionBottom + gap,
+        width: panelWidth,
+        height: panelHeightEstimate,
+      },
+    },
+    {
+      side: "above",
+      rect: {
+        left: selectionCenter.x - panelWidth / 2,
+        top: selectedRect.top - panelHeightEstimate - gap,
+        width: panelWidth,
+        height: panelHeightEstimate,
+      },
+    },
+  ];
+
+  return rawCandidates.map((candidate, priority) => {
+    const rect = clampPanelEstimate(candidate.rect, canvasWidth, canvasHeight);
+    return {
+      side: candidate.side,
+      priority,
+      rawRect: candidate.rect,
+      rect,
+      overlapArea: getRectOverlapArea(rect, selectedRect),
+      overflowAmount: getRectOverflowAmount(candidate.rect, canvasWidth, canvasHeight),
+      availableArea: getAvailableAreaForCandidateSide(candidate.side, selectedRect, canvasWidth, canvasHeight, gap),
+      distance: getRectDistance(rect, selectedRect),
+    };
+  });
+}
+
+function chooseBestPanelCandidate(
+  candidates: PanelCandidate[],
+  panelWidth: number,
+  panelHeightEstimate: number,
+): PanelCandidate {
+  const badOverflowThreshold = Math.max(panelWidth, panelHeightEstimate) * 0.65;
+  const viableCandidates = candidates.filter((candidate) => candidate.overflowAmount <= badOverflowThreshold);
+  const candidatePool = viableCandidates.length > 0 ? viableCandidates : candidates;
+  const zeroOverlapCandidates = candidatePool.filter((candidate) => candidate.overlapArea === 0);
+
+  if (zeroOverlapCandidates.length > 0) {
+    return [...zeroOverlapCandidates].sort(
+      (first, second) =>
+        first.distance - second.distance ||
+        second.availableArea - first.availableArea ||
+        first.overflowAmount - second.overflowAmount ||
+        first.priority - second.priority,
+    )[0];
+  }
+
+  return [...candidatePool].sort(
+    (first, second) =>
+      first.overlapArea - second.overlapArea ||
+      second.availableArea - first.availableArea ||
+      first.distance - second.distance ||
+      first.overflowAmount - second.overflowAmount ||
+      first.priority - second.priority,
+  )[0];
 }
 
 function isPointInsideImage(point: { x: number; y: number }, imageDisplayMetrics: ImageDisplayMetrics): boolean {
@@ -212,75 +508,280 @@ function buildPanelPlacement(
   const canvasWidth = Math.max(1, imageDisplayMetrics.offsetLeft + imageDisplayMetrics.width);
   const canvasHeight = Math.max(1, imageDisplayMetrics.offsetTop + imageDisplayMetrics.height);
   const panelWidth = Math.round(clamp(canvasWidth * 0.42, 340, 460));
-  const panelHeightEstimate = 620;
-  const gap = 28;
-  const rightCandidate = selectedAnchorRect.left + selectedAnchorRect.width + gap;
-  const hasRoomRight = rightCandidate + panelWidth + 12 <= canvasWidth;
-  const leftCandidate = selectedAnchorRect.left - panelWidth - gap;
-  const rawLeft = hasRoomRight ? rightCandidate : leftCandidate;
-  const maxLeft = Math.max(12, canvasWidth - panelWidth - 12);
-  const panelLeft = clamp(rawLeft, 12, maxLeft);
-  const maxTop = Math.max(12, canvasHeight - Math.min(panelHeightEstimate, canvasHeight - 24) - 12);
-  const panelTop = clamp(selectedAnchorRect.top - 96, 12, maxTop);
-  const anchorIsLeftOfPanel = selectedAnchorRect.left + selectedAnchorRect.width / 2 < panelLeft + panelWidth / 2;
-  const x1 = anchorIsLeftOfPanel
-    ? selectedAnchorRect.left + selectedAnchorRect.width
-    : selectedAnchorRect.left;
-  const y1 = selectedAnchorRect.top + selectedAnchorRect.height / 2;
-  const x2 = anchorIsLeftOfPanel ? panelLeft : panelLeft + panelWidth;
-  const y2 = clamp(y1, panelTop + 82, panelTop + panelHeightEstimate - 82);
+  const defaultPanelRect = buildDefaultPanelRect(selectedAnchorRect, canvasWidth, canvasHeight, panelWidth);
+  const defaultPanelSide = getDefaultPanelSide(selectedAnchorRect, canvasWidth, panelWidth);
+  const panelHeightEstimate = defaultPanelRect.height;
+  let panelRect = defaultPanelRect;
+  let panelSide = defaultPanelSide;
+
+  if (getRectOverlapArea(defaultPanelRect, selectedAnchorRect) > 0) {
+    const bestCandidate = chooseBestPanelCandidate(
+      createPanelCandidates(selectedAnchorRect, canvasWidth, canvasHeight, panelWidth, panelHeightEstimate),
+      panelWidth,
+      panelHeightEstimate,
+    );
+    panelRect = bestCandidate.rect;
+    panelSide = bestCandidate.side;
+  }
+
+  const connectorLine = buildConnectorLineBetweenRects(selectedAnchorRect, panelRect);
 
   return {
     panelStyle: {
-      left: panelLeft,
-      top: panelTop,
+      left: panelRect.left,
+      top: panelRect.top,
       width: panelWidth,
     },
-    connectorLine: { x1, y1, x2, y2 },
+    connectorLine,
     canvasWidth,
     canvasHeight,
+    side: panelSide,
   };
 }
 
-function buildSelectionChipPlacement(
-  selectionRect: PixelRect,
+function panelSideToChipSide(side: PanelCandidateSide): SelectionChipSide {
+  if (side === "below") {
+    return "bottom";
+  }
+  if (side === "above") {
+    return "top";
+  }
+
+  return side;
+}
+
+function estimateSelectionChipWidth(job: SelectionJob): number {
+  const statusTextWidth = Math.min(78, buildSelectionChipLabel(job).length * 7.4);
+  const importantWidth = job.isImportant ? 15 : 0;
+  return Math.round(clamp(18 + 6 + 6 + statusTextWidth + importantWidth, 64, ANNOTATION_CHIP_MAX_WIDTH));
+}
+
+function clampChipRectToImage(
+  rect: PanelRectEstimate,
   imageDisplayMetrics: ImageDisplayMetrics,
-): SelectionChipPlacement {
-  const panelPlacement = buildPanelPlacement(selectionRect, imageDisplayMetrics);
-  const selectionCenterX = selectionRect.left + selectionRect.width / 2;
-  const panelCenterX = panelPlacement
-    ? panelPlacement.panelStyle.left + panelPlacement.panelStyle.width / 2
-    : selectionCenterX + 1;
-  const side: SelectionChipSide = panelCenterX < selectionCenterX ? "left" : "right";
+): PanelRectEstimate {
   const imageLeft = imageDisplayMetrics.offsetLeft;
   const imageTop = imageDisplayMetrics.offsetTop;
   const imageRight = imageLeft + imageDisplayMetrics.width;
   const imageBottom = imageTop + imageDisplayMetrics.height;
-  const minTop = imageTop + 8;
-  const maxTop = Math.max(minTop, imageBottom - ANNOTATION_CHIP_HEIGHT - 8);
-  const top = clamp(
-    selectionRect.top + selectionRect.height / 2 - ANNOTATION_CHIP_HEIGHT / 2,
-    minTop,
-    maxTop,
-  );
+  const minLeft = imageLeft + ANNOTATION_CHIP_LANE_MARGIN;
+  const minTop = imageTop + ANNOTATION_CHIP_LANE_MARGIN;
+  const maxLeft = Math.max(minLeft, imageRight - rect.width - ANNOTATION_CHIP_LANE_MARGIN);
+  const maxTop = Math.max(minTop, imageBottom - rect.height - ANNOTATION_CHIP_LANE_MARGIN);
 
-  if (side === "left") {
-    const maxAnchorLeft = imageRight - 8;
-    const minAnchorLeft = Math.min(imageLeft + ANNOTATION_CHIP_MAX_WIDTH + 8, maxAnchorLeft);
+  return {
+    ...rect,
+    left: clamp(rect.left, minLeft, maxLeft),
+    top: clamp(rect.top, minTop, maxTop),
+  };
+}
+
+function createSelectionChipCandidates(
+  source: SelectionChipLayoutSource,
+  imageDisplayMetrics: ImageDisplayMetrics,
+): SelectionChipDraft[] {
+  const chipWidth = estimateSelectionChipWidth(source.job);
+  const chipHeight = ANNOTATION_CHIP_HEIGHT;
+  const selectionCenter = getRectCenter(source.selectionRect);
+  const selectionRight = getRectRight(source.selectionRect);
+  const selectionBottom = getRectBottom(source.selectionRect);
+  const rawCandidates: Array<{ side: SelectionChipSide; rect: PanelRectEstimate }> = [
+    {
+      side: "right",
+      rect: {
+        left: selectionRight + ANNOTATION_CHIP_GAP,
+        top: selectionCenter.y - chipHeight / 2,
+        width: chipWidth,
+        height: chipHeight,
+      },
+    },
+    {
+      side: "left",
+      rect: {
+        left: source.selectionRect.left - chipWidth - ANNOTATION_CHIP_GAP,
+        top: selectionCenter.y - chipHeight / 2,
+        width: chipWidth,
+        height: chipHeight,
+      },
+    },
+    {
+      side: "bottom",
+      rect: {
+        left: selectionCenter.x - chipWidth / 2,
+        top: selectionBottom + ANNOTATION_CHIP_GAP,
+        width: chipWidth,
+        height: chipHeight,
+      },
+    },
+    {
+      side: "top",
+      rect: {
+        left: selectionCenter.x - chipWidth / 2,
+        top: source.selectionRect.top - chipHeight - ANNOTATION_CHIP_GAP,
+        width: chipWidth,
+        height: chipHeight,
+      },
+    },
+  ];
+
+  return rawCandidates.map((candidate) => ({
+    ...source,
+    side: candidate.side,
+    chipRect: clampChipRectToImage(candidate.rect, imageDisplayMetrics),
+  }));
+}
+
+function getResolvedChipAxisRect(
+  draft: SelectionChipDraft,
+  axisStart: number,
+  axis: "x" | "y",
+): PanelRectEstimate {
+  if (axis === "x") {
+    return { ...draft.chipRect, left: axisStart };
+  }
+
+  return { ...draft.chipRect, top: axisStart };
+}
+
+function repelSelectionChipLane(
+  laneDrafts: SelectionChipDraft[],
+  side: SelectionChipSide,
+  imageDisplayMetrics: ImageDisplayMetrics,
+): SelectionChipDraft[] {
+  if (laneDrafts.length <= 1) {
+    return laneDrafts;
+  }
+
+  const axis: "x" | "y" = side === "left" || side === "right" ? "y" : "x";
+  const axisMin =
+    axis === "x"
+      ? imageDisplayMetrics.offsetLeft + ANNOTATION_CHIP_LANE_MARGIN
+      : imageDisplayMetrics.offsetTop + ANNOTATION_CHIP_LANE_MARGIN;
+  const axisMax =
+    axis === "x"
+      ? imageDisplayMetrics.offsetLeft + imageDisplayMetrics.width - ANNOTATION_CHIP_LANE_MARGIN
+      : imageDisplayMetrics.offsetTop + imageDisplayMetrics.height - ANNOTATION_CHIP_LANE_MARGIN;
+  const sortedDrafts = [...laneDrafts].sort((first, second) => {
+    const firstStart = axis === "x" ? first.chipRect.left : first.chipRect.top;
+    const secondStart = axis === "x" ? second.chipRect.left : second.chipRect.top;
+    return firstStart - secondStart || first.order - second.order;
+  });
+  const totalSize = sortedDrafts.reduce(
+    (sum, draft) => sum + (axis === "x" ? draft.chipRect.width : draft.chipRect.height),
+    0,
+  );
+  const availableSize = Math.max(1, axisMax - axisMin);
+  const gap =
+    sortedDrafts.length > 1
+      ? clamp((availableSize - totalSize) / (sortedDrafts.length - 1), 0, ANNOTATION_CHIP_STACK_GAP)
+      : 0;
+  const placed = sortedDrafts.map((draft) => {
+    const size = axis === "x" ? draft.chipRect.width : draft.chipRect.height;
+    const desiredStart = axis === "x" ? draft.chipRect.left : draft.chipRect.top;
     return {
-      left: clamp(selectionRect.left - ANNOTATION_CHIP_GAP, minAnchorLeft, maxAnchorLeft),
-      top,
+      draft,
+      size,
+      start: clamp(desiredStart, axisMin, Math.max(axisMin, axisMax - size)),
+    };
+  });
+
+  for (let index = 0; index < placed.length; index += 1) {
+    const previous = placed[index - 1];
+    if (previous) {
+      placed[index].start = Math.max(placed[index].start, previous.start + previous.size + gap);
+    }
+  }
+
+  const last = placed[placed.length - 1];
+  const overflow = Math.max(0, last.start + last.size - axisMax);
+  if (overflow > 0) {
+    placed.forEach((item) => {
+      item.start -= overflow;
+    });
+  }
+
+  for (let index = placed.length - 1; index >= 0; index -= 1) {
+    const next = placed[index + 1];
+    const maxStart = next ? next.start - gap - placed[index].size : axisMax - placed[index].size;
+    placed[index].start = Math.min(placed[index].start, maxStart);
+  }
+
+  for (let index = 0; index < placed.length; index += 1) {
+    const previous = placed[index - 1];
+    const minStart = previous ? previous.start + previous.size + gap : axisMin;
+    placed[index].start = Math.max(placed[index].start, minStart);
+  }
+
+  return placed.map(({ draft, start }) => ({
+    ...draft,
+    chipRect: getResolvedChipAxisRect(draft, start, axis),
+  }));
+}
+
+function resolveSelectionChipLanes(
+  drafts: SelectionChipDraft[],
+  imageDisplayMetrics: ImageDisplayMetrics,
+): SelectionChipDraft[] {
+  const sides: SelectionChipSide[] = ["right", "left", "bottom", "top"];
+  return sides.flatMap((side) =>
+    repelSelectionChipLane(
+      drafts.filter((draft) => draft.side === side),
       side,
+      imageDisplayMetrics,
+    ),
+  );
+}
+
+function getSelectionChipStyleFromRect(draft: SelectionChipDraft): SelectionChipPlacement {
+  if (draft.side === "left") {
+    return {
+      left: draft.chipRect.left + draft.chipRect.width,
+      top: draft.chipRect.top,
+      side: draft.side,
     };
   }
 
-  const minLeft = imageLeft + 8;
-  const maxLeft = Math.max(minLeft, imageRight - ANNOTATION_CHIP_MAX_WIDTH - 8);
+  if (draft.side === "top") {
+    return {
+      left: draft.chipRect.left + draft.chipRect.width / 2,
+      top: draft.chipRect.top + draft.chipRect.height,
+      side: draft.side,
+    };
+  }
+
+  if (draft.side === "bottom") {
+    return {
+      left: draft.chipRect.left + draft.chipRect.width / 2,
+      top: draft.chipRect.top,
+      side: draft.side,
+    };
+  }
+
   return {
-    left: clamp(selectionRect.left + selectionRect.width + ANNOTATION_CHIP_GAP, minLeft, maxLeft),
-    top,
-    side,
+    left: draft.chipRect.left,
+    top: draft.chipRect.top,
+    side: draft.side,
   };
+}
+
+function buildSelectionChipPlacements(
+  sources: SelectionChipLayoutSource[],
+  imageDisplayMetrics: ImageDisplayMetrics,
+): SelectionChipLayoutResult[] {
+  const chosenDrafts = sources.map((source) => {
+    const candidates = createSelectionChipCandidates(source, imageDisplayMetrics);
+    return candidates.find((candidate) => candidate.side === source.preferredSide) ?? candidates[0];
+  });
+
+  return resolveSelectionChipLanes(chosenDrafts, imageDisplayMetrics)
+    .sort((first, second) => first.order - second.order)
+    .map((draft) => ({
+      job: draft.job,
+      selectionRect: draft.selectionRect,
+      order: draft.order,
+      preferredSide: draft.preferredSide,
+      ...getSelectionChipStyleFromRect(draft),
+    }));
 }
 
 function getErrorMessage(error: unknown, fallbackMessage: string): string {
@@ -516,7 +1017,7 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
       return [];
     }
 
-    return selectionJobs
+    const chipSources = selectionJobs
       .filter(
         (job) =>
           job.pageNumber === currentPageData.page_number &&
@@ -524,17 +1025,19 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
       )
       .map((job) => ({
         job,
-        rect: normalizedBboxToPixelRect(job.bbox, imageDisplayMetrics),
+        selectionRect: normalizedBboxToPixelRect(job.bbox, imageDisplayMetrics),
       }))
-      .filter((item): item is { job: SelectionJob; rect: PixelRect } => item.rect !== null)
-      .map(({ job, rect }) => {
-        const chipPlacement = buildSelectionChipPlacement(rect, imageDisplayMetrics);
+      .filter((item): item is { job: SelectionJob; selectionRect: PixelRect } => item.selectionRect !== null)
+      .map((item, order) => {
+        const matchingPanelPlacement = buildPanelPlacement(item.selectionRect, imageDisplayMetrics);
         return {
-          job,
-          rect,
-          ...chipPlacement,
+          ...item,
+          order,
+          preferredSide: panelSideToChipSide(matchingPanelPlacement?.side ?? "right"),
         };
       });
+
+    return buildSelectionChipPlacements(chipSources, imageDisplayMetrics);
   }, [activeSelectionJobId, currentPageData, imageDisplayMetrics, selectionJobs]);
   const chipContextMenuJob = useMemo(() => {
     if (!chipContextMenu) {
@@ -1526,49 +2029,58 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
                       }}
                     />
                   ) : null}
-                  {currentPageSelectionChips.map(({ job, left, top, side }) => (
-                    <button
-                      key={job.id}
-                      type="button"
-                      className={`${styles.annotationChip} ${
-                        job.status === "pending"
-                          ? styles.annotationChipPending
-                          : job.status === "error"
-                            ? styles.annotationChipError
-                            : styles.annotationChipReady
-                      } ${side === "left" ? styles.annotationChipSideLeft : styles.annotationChipSideRight} ${
-                        job.isImportant ? styles.annotationChipImportant : ""
-                      }`}
-                      style={{
-                        left: `${left}px`,
-                        top: `${top}px`,
-                      }}
-                      aria-label={buildSelectionChipTitle(job)}
-                      title={buildSelectionChipTitle(job)}
-                      onPointerDown={(event) => event.stopPropagation()}
-                      onPointerEnter={() => setHoveredSelectionJobId(job.id)}
-                      onPointerLeave={() => {
-                        setHoveredSelectionJobId((currentId) => (currentId === job.id ? null : currentId));
-                      }}
-                      onFocus={() => setHoveredSelectionJobId(job.id)}
-                      onBlur={() => {
-                        setHoveredSelectionJobId((currentId) => (currentId === job.id ? null : currentId));
-                      }}
-                      onContextMenu={(event) => handleSelectionChipContextMenu(job, event)}
-                      onClick={() => handleSelectionChipOpen(job)}
-                    >
-                      {job.isImportant ? (
-                        <span className={styles.annotationChipStar} aria-hidden="true">
-                          *
+                  {currentPageSelectionChips.map(({ job, left, top, side }) => {
+                    const sideClass =
+                      side === "left"
+                        ? styles.annotationChipSideLeft
+                        : side === "top"
+                          ? styles.annotationChipSideTop
+                          : side === "bottom"
+                            ? styles.annotationChipSideBottom
+                            : styles.annotationChipSideRight;
+
+                    return (
+                      <button
+                        key={job.id}
+                        type="button"
+                        className={`${styles.annotationChip} ${
+                          job.status === "pending"
+                            ? styles.annotationChipPending
+                            : job.status === "error"
+                              ? styles.annotationChipError
+                              : styles.annotationChipReady
+                        } ${sideClass} ${job.isImportant ? styles.annotationChipImportant : ""}`}
+                        style={{
+                          left: `${left}px`,
+                          top: `${top}px`,
+                        }}
+                        aria-label={buildSelectionChipTitle(job)}
+                        title={buildSelectionChipTitle(job)}
+                        onPointerDown={(event) => event.stopPropagation()}
+                        onPointerEnter={() => setHoveredSelectionJobId(job.id)}
+                        onPointerLeave={() => {
+                          setHoveredSelectionJobId((currentId) => (currentId === job.id ? null : currentId));
+                        }}
+                        onFocus={() => setHoveredSelectionJobId(job.id)}
+                        onBlur={() => {
+                          setHoveredSelectionJobId((currentId) => (currentId === job.id ? null : currentId));
+                        }}
+                        onContextMenu={(event) => handleSelectionChipContextMenu(job, event)}
+                        onClick={() => handleSelectionChipOpen(job)}
+                      >
+                        {job.isImportant ? (
+                          <span className={styles.annotationChipStar} aria-hidden="true">
+                            *
+                          </span>
+                        ) : null}
+                        <span className={styles.annotationChipDot} aria-hidden="true" />
+                        <span className={styles.annotationChipText} aria-hidden="true">
+                          <span className={styles.annotationChipStatusLabel}>{buildSelectionChipLabel(job)}</span>
+                          <span className={styles.annotationChipHoverLabel}>{buildSelectionChipHoverLabel(job)}</span>
                         </span>
-                      ) : null}
-                      <span className={styles.annotationChipDot} aria-hidden="true" />
-                      <span className={styles.annotationChipText} aria-hidden="true">
-                        <span className={styles.annotationChipStatusLabel}>{buildSelectionChipLabel(job)}</span>
-                        <span className={styles.annotationChipHoverLabel}>{buildSelectionChipHoverLabel(job)}</span>
-                      </span>
-                    </button>
-                  ))}
+                      </button>
+                    );
+                  })}
                   {chipContextMenu && chipContextMenuJob ? (
                     <div
                       className={styles.chipContextMenu}

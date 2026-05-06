@@ -52,6 +52,13 @@ type PanelRect = {
   height: number | null;
 };
 
+type ConnectorRect = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+
 type PanelAction =
   | {
       mode: "drag";
@@ -123,6 +130,69 @@ function clampPanelRect(rect: PanelRect, canvasWidth: number, canvasHeight: numb
   const left = Math.round(Math.min(Math.max(rect.left, 12), Math.max(12, canvasWidth - width - 12)));
   const top = Math.round(Math.min(Math.max(rect.top, 12), Math.max(12, canvasHeight - effectiveHeight - 12)));
   return { left, top, width, height };
+}
+
+function getRectRight(rect: ConnectorRect): number {
+  return rect.left + rect.width;
+}
+
+function getRectBottom(rect: ConnectorRect): number {
+  return rect.top + rect.height;
+}
+
+function getRectCenter(rect: ConnectorRect): { x: number; y: number } {
+  return {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2,
+  };
+}
+
+function getConnectorPointOnRectEdge(
+  rect: ConnectorRect,
+  target: { x: number; y: number },
+): { x: number; y: number } {
+  const right = getRectRight(rect);
+  const bottom = getRectBottom(rect);
+  const center = getRectCenter(rect);
+
+  if (target.x > right) {
+    return { x: right, y: clampNumber(target.y, rect.top, bottom) };
+  }
+  if (target.x < rect.left) {
+    return { x: rect.left, y: clampNumber(target.y, rect.top, bottom) };
+  }
+  if (target.y > bottom) {
+    return { x: clampNumber(target.x, rect.left, right), y: bottom };
+  }
+  if (target.y < rect.top) {
+    return { x: clampNumber(target.x, rect.left, right), y: rect.top };
+  }
+
+  if (Math.abs(target.x - center.x) >= Math.abs(target.y - center.y)) {
+    return {
+      x: target.x >= center.x ? right : rect.left,
+      y: clampNumber(target.y, rect.top, bottom),
+    };
+  }
+
+  return {
+    x: clampNumber(target.x, rect.left, right),
+    y: target.y >= center.y ? bottom : rect.top,
+  };
+}
+
+function buildConnectorLine(selectedRect: ConnectorRect, panelRect: ConnectorRect): ConnectorLine {
+  const selectedCenter = getRectCenter(selectedRect);
+  const panelCenter = getRectCenter(panelRect);
+  const selectedPoint = getConnectorPointOnRectEdge(selectedRect, panelCenter);
+  const panelPoint = getConnectorPointOnRectEdge(panelRect, selectedCenter);
+
+  return {
+    x1: selectedPoint.x,
+    y1: selectedPoint.y,
+    x2: panelPoint.x,
+    y2: panelPoint.y,
+  };
 }
 
 function renderInlineMarkdown(text: string): ReactNode[] {
@@ -282,16 +352,25 @@ export function SelectedExplanationPanel({
     height: panelRect.height === null ? panelStyle.height : `${panelRect.height}px`,
   };
   const panelConnectorHeight = panelRect.height ?? panelRef.current?.offsetHeight ?? 620;
-  const anchorCenterX = selectedRect.left + selectedRect.width / 2;
-  const anchorCenterY = selectedRect.top + selectedRect.height / 2;
-  const panelCenterX = panelRect.left + panelRect.width / 2;
-  const anchorIsLeftOfPanel = anchorCenterX < panelCenterX;
-  const dynamicConnectorLine = {
-    x1: anchorIsLeftOfPanel ? selectedRect.left + selectedRect.width : selectedRect.left,
-    y1: anchorCenterY,
-    x2: anchorIsLeftOfPanel ? panelRect.left : panelRect.left + panelRect.width,
-    y2: clampNumber(anchorCenterY, panelRect.top + 56, panelRect.top + Math.max(90, panelConnectorHeight - 56)),
-  };
+  const dynamicConnectorLine = buildConnectorLine(
+    {
+      left: selectedRect.left,
+      top: selectedRect.top,
+      width: selectedRect.width,
+      height: selectedRect.height,
+    },
+    {
+      left: panelRect.left,
+      top: panelRect.top,
+      width: panelRect.width,
+      height: panelConnectorHeight,
+    },
+  );
+  const connectorMidX = (dynamicConnectorLine.x1 + dynamicConnectorLine.x2) / 2;
+  const connectorMidY = (dynamicConnectorLine.y1 + dynamicConnectorLine.y2) / 2;
+  const connectorIsMostlyHorizontal =
+    Math.abs(dynamicConnectorLine.x2 - dynamicConnectorLine.x1) >=
+    Math.abs(dynamicConnectorLine.y2 - dynamicConnectorLine.y1);
   const followUpPanelWidth = Math.round(clampNumber(canvasWidth * 0.26, 300, 360));
   const followUpGap = 10;
   const canPlaceFollowUpRight = panelRect.left + panelRect.width + followUpGap + followUpPanelWidth <= canvasWidth - 12;
@@ -482,11 +561,11 @@ export function SelectedExplanationPanel({
       >
         <path
           className={styles.connectorPath}
-          d={`M ${dynamicConnectorLine.x1} ${dynamicConnectorLine.y1} C ${
-            (dynamicConnectorLine.x1 + dynamicConnectorLine.x2) / 2
-          } ${dynamicConnectorLine.y1}, ${(dynamicConnectorLine.x1 + dynamicConnectorLine.x2) / 2} ${
-            dynamicConnectorLine.y2
-          }, ${dynamicConnectorLine.x2} ${dynamicConnectorLine.y2}`}
+          d={
+            connectorIsMostlyHorizontal
+              ? `M ${dynamicConnectorLine.x1} ${dynamicConnectorLine.y1} C ${connectorMidX} ${dynamicConnectorLine.y1}, ${connectorMidX} ${dynamicConnectorLine.y2}, ${dynamicConnectorLine.x2} ${dynamicConnectorLine.y2}`
+              : `M ${dynamicConnectorLine.x1} ${dynamicConnectorLine.y1} C ${dynamicConnectorLine.x1} ${connectorMidY}, ${dynamicConnectorLine.x2} ${connectorMidY}, ${dynamicConnectorLine.x2} ${dynamicConnectorLine.y2}`
+          }
         />
         <circle className={styles.connectorDot} cx={dynamicConnectorLine.x1} cy={dynamicConnectorLine.y1} r="4" />
         <circle className={styles.connectorDot} cx={dynamicConnectorLine.x2} cy={dynamicConnectorLine.y2} r="4" />
