@@ -10,8 +10,21 @@ from app.models.read_api import (
     DocumentPublicResponse,
     DocumentSummaryPublicResponse,
     PagePublicResponse,
+    SelectionFollowUpPublicResponse,
+    SelectionFollowUpRequest,
+    SelectionExplanationHistoryResponse,
+    SelectionExplanationPublicResponse,
+    SelectionExplanationRequest,
+    SelectionExplanationStatePatchRequest,
+    SelectionExplanationStateResponse,
 )
+from app.services.analysis_client import AnalysisClientError
 from app.services.orchestrator import DocumentOrchestrator, get_document_orchestrator
+from app.services.selection_explainer import (
+    SelectionExplanationError,
+    SelectionExplanationService,
+    get_selection_explanation_service,
+)
 from app.services.storage import StorageService, get_storage_service
 
 
@@ -180,20 +193,6 @@ def get_page_result(
             detail="Page not found.",
         )
 
-    try:
-        pass2_artifact = storage.load_pass2_result(document_id, page_number)
-    except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Stored artifact is invalid.",
-        ) from exc
-
-    if pass2_artifact is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Page result not found.",
-        )
-
     image_path = storage.resolve_relative_path(page.image_path)
     if not image_path.exists():
         raise HTTPException(
@@ -210,8 +209,228 @@ def get_page_result(
         ) from exc
 
     image_url = str(request.url_for("rendered-pages", path=image_subpath))
-    result = pass2_artifact["result"]
+
+    try:
+        pass2_artifact = storage.load_pass2_result(document_id, page_number)
+        pass1_artifact = storage.load_pass1_result(document_id, page_number)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Stored artifact is invalid.",
+        ) from exc
+
+    if pass2_artifact is not None:
+        result = {
+            **pass2_artifact["result"],
+            "page_elements": pass1_artifact["result"]["candidate_anchors"] if pass1_artifact is not None else [],
+            "viewer_mode": "legacy_pass2",
+        }
+    elif pass1_artifact is not None:
+        pass1_result = pass1_artifact["result"]
+        result = {
+            "document_id": pass1_result["document_id"],
+            "page_number": pass1_result["page_number"],
+            "page_role": pass1_result["page_role"],
+            "page_summary": pass1_result["page_summary"],
+            "final_anchors": [],
+            "page_elements": pass1_result["candidate_anchors"],
+            "page_risk_note": "On-demand mode: this page is ready for drag-based selection explanations.",
+            "viewer_mode": "on_demand",
+        }
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Page preprocessing result not found.",
+        )
+
     return PagePublicResponse(
         image_url=image_url,
         **result,
     )
+
+
+@router.post(
+    "/{document_id}/pages/{page_number}/selection-explanation",
+    response_model=SelectionExplanationPublicResponse,
+)
+def create_selection_explanation(
+    document_id: str,
+    page_number: int,
+    payload: SelectionExplanationRequest,
+    storage: StorageService = Depends(get_storage_service),
+    selection_explainer: SelectionExplanationService = Depends(get_selection_explanation_service),
+) -> SelectionExplanationPublicResponse:
+    document = _get_document_or_404(storage, document_id)
+    if document.total_pages is not None and (page_number < 1 or page_number > document.total_pages):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Page not found.",
+        )
+
+    try:
+        result = selection_explainer.explain_selection(
+            document_id=document_id,
+            page_number=page_number,
+            selected_bbox=list(payload.selected_bbox),
+        )
+    except SelectionExplanationError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except AnalysisClientError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Selection explanation provider failed: {exc}",
+        ) from exc
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Stored artifact is invalid.",
+        ) from exc
+
+    return SelectionExplanationPublicResponse(**result)
+
+
+@router.get(
+    "/{document_id}/pages/{page_number}/selection-explanations",
+    response_model=SelectionExplanationHistoryResponse,
+)
+def list_selection_explanations(
+    document_id: str,
+    page_number: int,
+    storage: StorageService = Depends(get_storage_service),
+    selection_explainer: SelectionExplanationService = Depends(get_selection_explanation_service),
+) -> SelectionExplanationHistoryResponse:
+    document = _get_document_or_404(storage, document_id)
+    if document.total_pages is not None and (page_number < 1 or page_number > document.total_pages):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Page not found.",
+        )
+
+    try:
+        items = selection_explainer.list_selection_history(
+            document_id=document_id,
+            page_number=page_number,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Stored artifact is invalid.",
+        ) from exc
+
+    return SelectionExplanationHistoryResponse(items=items)
+
+
+@router.patch(
+    "/{document_id}/pages/{page_number}/selection-explanations/{selection_id}",
+    response_model=SelectionExplanationStateResponse,
+)
+def update_selection_explanation_state(
+    document_id: str,
+    page_number: int,
+    selection_id: str,
+    payload: SelectionExplanationStatePatchRequest,
+    storage: StorageService = Depends(get_storage_service),
+    selection_explainer: SelectionExplanationService = Depends(get_selection_explanation_service),
+) -> SelectionExplanationStateResponse:
+    document = _get_document_or_404(storage, document_id)
+    if document.total_pages is not None and (page_number < 1 or page_number > document.total_pages):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Page not found.",
+        )
+
+    try:
+        result = selection_explainer.update_selection_state(
+            document_id=document_id,
+            page_number=page_number,
+            selection_id=selection_id,
+            is_important=payload.is_important,
+        )
+    except SelectionExplanationError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Stored artifact is invalid.",
+        ) from exc
+
+    return SelectionExplanationStateResponse(**result)
+
+
+@router.delete(
+    "/{document_id}/pages/{page_number}/selection-explanations/{selection_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_selection_explanation(
+    document_id: str,
+    page_number: int,
+    selection_id: str,
+    storage: StorageService = Depends(get_storage_service),
+    selection_explainer: SelectionExplanationService = Depends(get_selection_explanation_service),
+) -> None:
+    document = _get_document_or_404(storage, document_id)
+    if document.total_pages is not None and (page_number < 1 or page_number > document.total_pages):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Page not found.",
+        )
+
+    try:
+        deleted = selection_explainer.delete_selection(
+            document_id=document_id,
+            page_number=page_number,
+            selection_id=selection_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Stored artifact is invalid.",
+        ) from exc
+
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Selection explanation is not available.",
+        )
+
+
+@router.post(
+    "/{document_id}/pages/{page_number}/selection-explanations/{selection_id}/follow-up",
+    response_model=SelectionFollowUpPublicResponse,
+)
+def create_selection_follow_up(
+    document_id: str,
+    page_number: int,
+    selection_id: str,
+    payload: SelectionFollowUpRequest,
+    storage: StorageService = Depends(get_storage_service),
+    selection_explainer: SelectionExplanationService = Depends(get_selection_explanation_service),
+) -> SelectionFollowUpPublicResponse:
+    document = _get_document_or_404(storage, document_id)
+    if document.total_pages is not None and (page_number < 1 or page_number > document.total_pages):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Page not found.",
+        )
+
+    try:
+        result = selection_explainer.answer_follow_up(
+            document_id=document_id,
+            page_number=page_number,
+            selection_id=selection_id,
+            question=payload.question,
+        )
+    except SelectionExplanationError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except AnalysisClientError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Selection follow-up provider failed: {exc}",
+        ) from exc
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Stored artifact is invalid.",
+        ) from exc
+
+    return SelectionFollowUpPublicResponse(**result)

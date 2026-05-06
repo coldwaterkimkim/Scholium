@@ -6,17 +6,18 @@
 ## Runtime Defaults
 - baseline model: `gpt-5.4`
 - reasoning.effort: `high`
-- prompt_version: `pass2_v0_1`
-- schema_version: `0.1`
+- prompt_version: `pass2_v0_2`
+- schema_version: `0.2`
 - output contract: JSON only + local schema validation
 - backend wrapper adds `meta` outside the validated result body
 
 이 단계의 목적은 다음 5가지다.
 1. candidate anchors를 rerank한다
 2. final anchors 3~5개만 선택한다
-3. 각 앵커에 long explanation을 붙인다
-4. 관련 페이지 1~2개를 붙인다
-5. prerequisite 및 page_risk_note를 정리한다
+3. 각 앵커에 student-facing explanation fields를 붙인다
+4. 관련 개념/페이지와 연결 이유를 붙인다
+5. source cue와 study importance를 붙인다
+6. prerequisite 및 page_risk_note를 정리한다
 
 이 단계는 **dense extraction을 sparse surfacing으로 바꾸는 단계**다.
 
@@ -41,8 +42,16 @@
   5. 후속 영향도
 - final anchors가 전부 같은 타입(text만, formula만)으로 몰리지 않게 해라.
 - 설명은 최소한 **뜻 + 이 페이지에서의 역할**을 포함해야 한다.
-- related_pages는 1~2개만. 정말 연결 가치가 큰 경우만 제시하라.
+- 설명은 일반 교과서 요약이 아니라 **이 페이지에서 이 선택 영역을 이해하는 데 필요한 설명**이어야 한다.
+- `meaning_in_context`는 현재 페이지에서 이 선택 개념이 무슨 뜻인지 짧게 설명한다.
+- `why_it_matters_here`는 이 페이지/문서 맥락에서 왜 중요한지 짧게 설명한다.
+- `study_importance`는 시험/복습 관점의 중요도를 낮음/중간/높음과 1~5 점수로 표시한다.
+- `related_concepts_and_pages`는 관련 개념명, 관련 페이지가 있으면 page_number, 그리고 연결 이유를 함께 제시한다.
+- `source_cues`는 이 설명이 무엇에 근거하는지 보수적으로 표시한다.
+- related_pages는 0~2개만. 정말 연결 가치가 큰 경우만 제시하라.
 - related_pages는 valid pass1 artifact가 있는 페이지 안에서만 고르고, 가능하면 `sections`, `prerequisite_links`, `difficult_pages`와 정합적인 페이지를 우선하라.
+- page number를 상상하지 마라. 입력 document_summary 또는 pass1 artifact에 근거가 있는 페이지 번호만 사용하라.
+- source cue가 불확실하면 `source_type: "other"`, `label: "Source not clearly determined"`처럼 불확실성을 구조 안에 표시하고 근거 없는 source claim을 하지 마라.
 - page_risk_note는 “이 페이지를 이해할 때 특히 조심할 점”을 1~2문장으로 적는다.
 - 반드시 JSON만 반환하라.
 
@@ -88,6 +97,28 @@
       "long_explanation": "string",
       "prerequisite": "string",
       "related_pages": [1, 2],
+      "study_importance": {
+        "level": "low|medium|high",
+        "score": 1,
+        "reason": "string"
+      },
+      "meaning_in_context": "string",
+      "why_it_matters_here": "string",
+      "related_concepts_and_pages": [
+        {
+          "concept": "string",
+          "page_number": 1,
+          "relation_reason": "string"
+        }
+      ],
+      "source_cues": [
+        {
+          "source_type": "this_slide|caption|related_page|transcript|document_context|other",
+          "label": "string",
+          "page_number": 1,
+          "snippet": "string"
+        }
+      ],
       "confidence": 0.0
     }
   ],
@@ -121,11 +152,27 @@ pass1 결과를 기본으로 유지하되, 문서 전체 흐름을 반영한 최
 1~2문장. 가장 빠르게 막힘을 해소하는 설명.
 
 ### `long_explanation`
-3~5문장. 단순 정의를 넘어서 다음을 포함한다.
+legacy compatibility field다. 2~4문장. 단순 정의를 넘어서 다음을 포함한다.
 - 이게 무엇인지
 - 왜 중요한지
 - 이 페이지에서 어떤 역할인지
 - 필요하면 다른 요소와 어떤 관계인지
+
+### `study_importance`
+학습/복습/시험 준비 관점에서 이 anchor가 얼마나 중요한지 표시한다.
+- `level`: `"low" | "medium" | "high"`
+- `score`: 1~5 정수. 1은 낮음, 5는 매우 높음.
+- `reason`: 왜 그렇게 판단했는지 1문장 이내.
+
+과장하지 마라. 페이지 핵심을 이해하는 데 직접적인 역할이 크면 high, 보조적이면 medium, 주변적이면 low다.
+
+### `meaning_in_context`
+1~3문장. 선택된 개념/영역이 **이 페이지에서** 무슨 뜻인지 설명한다.
+일반 정의를 길게 쓰지 말고, 현재 slide의 텍스트/도식/문맥에 붙여 설명하라.
+
+### `why_it_matters_here`
+1~3문장. 이 선택 영역이 현재 페이지 주장, 도식, 흐름에서 왜 중요한지 설명한다.
+사용자가 “그래서 왜 봐야 하지?”를 바로 이해할 수 있게 써라.
 
 ### `prerequisite`
 이 앵커를 이해하기 위해 필요한 최소 배경지식. 없으면 짧게 “없음” 또는 빈 문자열 가능.
@@ -136,6 +183,23 @@ pass1 결과를 기본으로 유지하되, 문서 전체 흐름을 반영한 최
 - 숫자만 나열하지 말고 실제 연결 가치가 있는 페이지를 선택하라
 - valid pass1 artifact가 있는 페이지 집합 안에서만 선택하라
 - 가능하면 같은 section, 직접 prerequisite 관계, difficult page 맥락과 정합적인 페이지를 우선하라
+
+### `related_concepts_and_pages`
+관련 개념/페이지와 연결 이유를 함께 제공한다.
+- `concept`: 연결되는 개념명. 단순히 “page 3”이라고 쓰지 말고 개념명을 써라.
+- `page_number`: 실제 관련 페이지가 있을 때만 쓴다. 확실하지 않으면 null로 둔다.
+- `relation_reason`: 왜 연결되는지 1문장.
+
+`related_pages`에 넣은 page number는 가능하면 이 배열에도 relation_reason과 함께 반영하라.
+
+### `source_cues`
+설명의 근거를 compact하게 표시한다. hallucination risk를 낮추기 위한 필드다.
+- source_type은 `this_slide`, `caption`, `related_page`, `transcript`, `document_context`, `other` 중 하나다.
+- `label`은 사람이 볼 수 있는 짧은 근거 이름이다.
+- `page_number`는 근거가 특정 페이지에 묶일 때만 쓴다.
+- `snippet`은 실제 입력에서 확인 가능한 짧은 텍스트/라벨이 있을 때만 쓰고, 없으면 null로 둔다.
+
+근거가 불확실하면 그 사실을 구조 안에 보수적으로 표시하라. 근거 없는 교재명, 교수 발화, page number를 만들지 마라.
 
 ### `page_risk_note`
 이 페이지에서 가장 흔한 오해 또는 놓치기 쉬운 핵심을 1~2문장으로 정리한다.

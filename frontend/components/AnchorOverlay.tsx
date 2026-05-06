@@ -3,6 +3,8 @@ import { normalizedBboxToPixelRect, type ImageDisplayMetrics } from "@/utils/bbo
 
 import styles from "./AnchorOverlay.module.css";
 
+// Legacy/debug-only overlay for precomputed final anchors.
+// The primary MVP interaction is now drag-based selected-region explanation in DocumentViewer.
 type AnchorOverlayProps = {
   anchors: FinalAnchor[];
   imageDisplayMetrics: ImageDisplayMetrics | null;
@@ -44,6 +46,7 @@ export function AnchorOverlay({
                 left: `${rect.left + 8}px`,
                 top: `${rect.top + 8}px`,
               }}
+              onPointerDown={(event) => event.stopPropagation()}
               onClick={() => onSelectAnchor(anchor.anchor_id)}
               aria-label={`${index + 1}. ${anchor.label}`}
               aria-pressed={isSelected}

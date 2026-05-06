@@ -10,11 +10,14 @@ from typing import Any
 from openai import OpenAI
 
 from app.core.config import AppSettings, StageConfig, StageName, get_settings
+from app.services.analysis_client import (
+    AnalysisClientError,
+)
 from app.services.storage import StorageService, get_storage_service
 from app.utils.validation import get_json_schema, validate_payload
 
 
-class OpenAIClientError(RuntimeError):
+class OpenAIClientError(AnalysisClientError):
     """Base OpenAI client error."""
 
 
@@ -135,6 +138,56 @@ class OpenAIResponsesClient:
             extra_user_messages=extra_user_messages,
         )
 
+    def run_selection_explanation(
+        self,
+        page_image_path: str | Path,
+        document_id: str,
+        page_number: int,
+        selection_id: str,
+        selected_bbox: list[float],
+        pass1_result: dict[str, Any],
+        document_summary: dict[str, Any],
+        matched_preprocessed_elements: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        payload = {
+            "document_id": document_id,
+            "page_number": page_number,
+            "selection_id": selection_id,
+            "anchor_id": selection_id,
+            "selected_bbox": selected_bbox,
+            "bbox": selected_bbox,
+            "schema_version": self.settings.schema_version,
+            "prompt_version": self.settings.stage_config("selection_explanation").prompt_version,
+            "pass1_result": pass1_result,
+            "document_summary": document_summary,
+            "matched_preprocessed_elements": matched_preprocessed_elements,
+        }
+        return self._run_stage("selection_explanation", payload, page_image_path=page_image_path)
+
+    def run_selection_follow_up(
+        self,
+        page_image_path: str | Path,
+        document_id: str,
+        page_number: int,
+        selection_id: str,
+        question: str,
+        selection_explanation: dict[str, Any],
+        pass1_result: dict[str, Any],
+        document_summary: dict[str, Any],
+    ) -> dict[str, Any]:
+        payload = {
+            "document_id": document_id,
+            "page_number": page_number,
+            "selection_id": selection_id,
+            "question": question,
+            "schema_version": self.settings.schema_version,
+            "prompt_version": self.settings.stage_config("selection_follow_up").prompt_version,
+            "selection_explanation": selection_explanation,
+            "pass1_result": pass1_result,
+            "document_summary": document_summary,
+        }
+        return self._run_stage("selection_follow_up", payload, page_image_path=page_image_path)
+
     def _run_stage(
         self,
         stage: StageName,
@@ -209,10 +262,8 @@ class OpenAIResponsesClient:
         stage_payload: dict[str, Any],
         response: Any,
     ) -> dict[str, Any]:
-        parsed_result = self._apply_system_fields(
-            stage_payload,
-            self._parse_response_payload(response),
-        )
+        raw_result = self._parse_response_payload(response)
+        parsed_result = raw_result if stage == "selection_follow_up" else self._apply_system_fields(stage_payload, raw_result)
 
         try:
             validated_result = validate_payload(stage, parsed_result)
@@ -277,6 +328,21 @@ class OpenAIResponsesClient:
             normalized_result["document_id"] = stage_payload["document_id"]
         if "page_number" in stage_payload:
             normalized_result["page_number"] = stage_payload["page_number"]
+        if "selection_id" in stage_payload:
+            selection_id = str(stage_payload["selection_id"])
+            normalized_result["selection_id"] = selection_id
+            if "selected_bbox" in stage_payload:
+                selected_bbox = list(stage_payload["selected_bbox"])
+                normalized_result["anchor_id"] = selection_id
+                if not normalized_result.get("concept_title") and normalized_result.get("label"):
+                    normalized_result["concept_title"] = normalized_result["label"]
+                if not normalized_result.get("label") and normalized_result.get("concept_title"):
+                    normalized_result["label"] = normalized_result["concept_title"]
+                normalized_result["bbox"] = selected_bbox
+                normalized_result["selected_bbox"] = selected_bbox
+                normalized_result["explanation_mode"] = "selection"
+        if "question" in stage_payload:
+            normalized_result["question"] = stage_payload["question"]
 
         return normalized_result
 

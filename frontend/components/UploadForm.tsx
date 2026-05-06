@@ -64,7 +64,7 @@ export function UploadForm() {
           <div className={styles.header}>
             <h1 className={styles.title}>Scholium 내부 테스트 업로드</h1>
             <p className={styles.description}>
-              PDF 1개를 올리면 자동으로 render, pass1, synthesis, pass2가 순서대로 실행돼.
+              PDF 1개를 올리면 render, page/document preprocessing, synthesis가 실행되고 드래그 선택 설명을 준비해.
             </p>
           </div>
 

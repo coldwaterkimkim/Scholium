@@ -4,7 +4,8 @@ import math
 from typing import Any
 
 from app.models.document import RenderStatus, StageStatus
-from app.services.openai_client import OpenAIResponsesClient
+from app.services.analysis_client import AnalysisClient
+from app.services.llm_provider import get_analysis_client
 from app.services.storage import StorageService, get_storage_service
 from app.utils.validation import validate_payload
 
@@ -13,10 +14,10 @@ class DocumentSynthesizer:
     def __init__(
         self,
         storage: StorageService | None = None,
-        openai_client: OpenAIResponsesClient | None = None,
+        analysis_client: AnalysisClient | None = None,
     ) -> None:
         self.storage = storage or get_storage_service()
-        self.openai_client = openai_client or OpenAIResponsesClient(storage=self.storage)
+        self.analysis_client = analysis_client or get_analysis_client(storage=self.storage)
 
     def synthesize_document(self, document_id: str) -> dict[str, Any]:
         page_records = self.storage.get_pages(document_id)
@@ -69,7 +70,7 @@ class DocumentSynthesizer:
             usable_page_numbers.append(page.page_number)
 
         pass1_completed_pages = len(usable_summaries)
-        coverage_threshold = max(3, math.ceil(total_rendered_pages * 0.7))
+        coverage_threshold = min(total_rendered_pages, max(3, math.ceil(total_rendered_pages * 0.7)))
         coverage_ratio = round(pass1_completed_pages / total_rendered_pages, 4)
         missing_pages = sorted(set(missing_pages))
         partial_input_used = pass1_completed_pages < total_rendered_pages
@@ -91,7 +92,7 @@ class DocumentSynthesizer:
             )
 
         try:
-            envelope = self.openai_client.run_document_synthesis(
+            envelope = self.analysis_client.run_document_synthesis(
                 document_id=document_id,
                 total_pages=total_rendered_pages,
                 page_analysis_summaries=usable_summaries,

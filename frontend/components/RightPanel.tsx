@@ -2,6 +2,8 @@ import type { FinalAnchor } from "@/lib/api";
 
 import styles from "./RightPanel.module.css";
 
+// Legacy/debug-only panel for the old precomputed anchor-click viewer.
+// Selected-region explanations now render through SelectedExplanationPanel.
 type RightPanelProps = {
   documentTitle: string;
   filename: string | null;

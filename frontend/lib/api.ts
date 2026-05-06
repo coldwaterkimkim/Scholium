@@ -69,6 +69,31 @@ export type PrerequisiteLink = {
   reason: string;
 };
 
+export type StudyImportance = {
+  level: "low" | "medium" | "high";
+  score: 1 | 2 | 3 | 4 | 5;
+  reason?: string | null;
+};
+
+export type RelatedConceptPage = {
+  concept: string;
+  page_number?: number | null;
+  relation_reason: string;
+};
+
+export type SourceCue = {
+  source_type:
+    | "this_slide"
+    | "caption"
+    | "related_page"
+    | "transcript"
+    | "document_context"
+    | "other";
+  label: string;
+  page_number?: number | null;
+  snippet?: string | null;
+};
+
 export type DocumentSummary = {
   document_id: string;
   overall_topic: string;
@@ -90,9 +115,69 @@ export type FinalAnchor = {
   prerequisite: string;
   related_pages: number[];
   confidence: number;
+  study_importance?: StudyImportance | null;
+  meaning_in_context?: string | null;
+  why_it_matters_here?: string | null;
+  related_concepts_and_pages?: RelatedConceptPage[] | null;
+  source_cues?: SourceCue[] | null;
 };
 
-export type InteractionEventType = "page_view" | "anchor_click" | "related_page_jump";
+export type PageElement = {
+  anchor_id: string;
+  label: string;
+  anchor_type: AnchorType;
+  bbox: [number, number, number, number];
+  question: string;
+  short_explanation: string;
+  confidence: number;
+};
+
+export type SelectionExplanation = FinalAnchor & {
+  document_id: string;
+  page_number: number;
+  selection_id: string;
+  concept_title: string;
+  selected_bbox: [number, number, number, number];
+  explanation_mode: "selection";
+  study_importance: StudyImportance;
+  meaning_in_context: string;
+  why_it_matters_here: string;
+  related_concepts_and_pages: RelatedConceptPage[];
+  source_cues: SourceCue[];
+};
+
+export type SelectionExplanationHistoryItem = {
+  explanation: SelectionExplanation;
+  is_important: boolean;
+};
+
+export type SelectionExplanationHistory = {
+  items: SelectionExplanationHistoryItem[];
+};
+
+export type SelectionExplanationState = {
+  selection_id: string;
+  is_important: boolean;
+};
+
+export type SelectionFollowUp = {
+  document_id: string;
+  page_number: number;
+  selection_id: string;
+  question: string;
+  answer: string;
+  source_cues: SourceCue[];
+  confidence: number | null;
+};
+
+export type InteractionEventType =
+  | "page_view"
+  | "anchor_click"
+  | "related_page_jump"
+  | "selection_start"
+  | "selection_explanation_request"
+  | "selection_explanation_success"
+  | "selection_explanation_failure";
 
 export type InteractionLogPayload = {
   document_id: string;
@@ -108,7 +193,9 @@ export type PageData = {
   page_role: string;
   page_summary: string;
   final_anchors: FinalAnchor[];
+  page_elements: PageElement[];
   page_risk_note: string;
+  viewer_mode: "on_demand" | "legacy_pass2";
 };
 
 export class ApiRequestError extends Error {
@@ -152,10 +239,19 @@ async function readErrorMessage(response: Response, fallbackMessage: string): Pr
   return normalizeErrorMessage(response.status, fallbackMessage);
 }
 
-async function fetchJson<T>(path: string, fallbackMessage: string, signal?: AbortSignal): Promise<T> {
+async function fetchJson<T>(
+  path: string,
+  fallbackMessage: string,
+  signal?: AbortSignal,
+  init?: RequestInit,
+): Promise<T> {
   const response = await fetch(buildApiUrl(path), {
+    ...init,
     cache: "no-store",
-    signal,
+    headers: {
+      ...(init?.headers ?? {}),
+    },
+    signal: init?.signal ?? signal,
   });
 
   if (!response.ok) {
@@ -167,6 +263,27 @@ async function fetchJson<T>(path: string, fallbackMessage: string, signal?: Abor
   } catch {
     throw new ApiRequestError("서버 오류가 발생했어.", response.status);
   }
+}
+
+function wait(milliseconds: number, signal?: AbortSignal): Promise<void> {
+  if (signal?.aborted) {
+    return Promise.reject(new DOMException("The operation was aborted.", "AbortError"));
+  }
+
+  return new Promise((resolve, reject) => {
+    const timeoutId = window.setTimeout(resolve, milliseconds);
+
+    function handleAbort() {
+      window.clearTimeout(timeoutId);
+      reject(new DOMException("The operation was aborted.", "AbortError"));
+    }
+
+    signal?.addEventListener("abort", handleAbort, { once: true });
+  });
+}
+
+function isTransientApiError(error: unknown): boolean {
+  return error instanceof ApiRequestError && error.status >= 500;
 }
 
 export function getDocument(documentId: string, signal?: AbortSignal): Promise<DocumentMeta> {
@@ -205,6 +322,132 @@ export function getPageResult(
     `/api/documents/${encodeURIComponent(documentId)}/pages/${pageNumber}`,
     "페이지 결과를 불러올 수 없어.",
     signal,
+  );
+}
+
+export function getSelectionExplanationHistory(
+  documentId: string,
+  pageNumber: number,
+  signal?: AbortSignal,
+): Promise<SelectionExplanationHistory> {
+  return fetchJson<SelectionExplanationHistory>(
+    `/api/documents/${encodeURIComponent(documentId)}/pages/${pageNumber}/selection-explanations`,
+    "선택 설명 기록을 불러올 수 없어.",
+    signal,
+  );
+}
+
+export async function updateSelectionExplanationState(
+  documentId: string,
+  pageNumber: number,
+  selectionId: string,
+  patch: { is_important?: boolean },
+  signal?: AbortSignal,
+): Promise<SelectionExplanationState> {
+  return fetchJson<SelectionExplanationState>(
+    `/api/documents/${encodeURIComponent(documentId)}/pages/${pageNumber}/selection-explanations/${encodeURIComponent(
+      selectionId,
+    )}`,
+    "선택 설명 상태를 저장할 수 없어.",
+    undefined,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(patch),
+      signal,
+    },
+  );
+}
+
+export async function deleteSelectionExplanation(
+  documentId: string,
+  pageNumber: number,
+  selectionId: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  const response = await fetch(
+    buildApiUrl(
+      `/api/documents/${encodeURIComponent(documentId)}/pages/${pageNumber}/selection-explanations/${encodeURIComponent(
+        selectionId,
+      )}`,
+    ),
+    {
+      method: "DELETE",
+      cache: "no-store",
+      signal,
+    },
+  );
+
+  if (!response.ok) {
+    throw new ApiRequestError(await readErrorMessage(response, "선택 설명을 삭제할 수 없어."), response.status);
+  }
+}
+
+export async function createSelectionExplanation(
+  documentId: string,
+  pageNumber: number,
+  selectedBbox: [number, number, number, number],
+  signal?: AbortSignal,
+): Promise<SelectionExplanation> {
+  const path = `/api/documents/${encodeURIComponent(documentId)}/pages/${pageNumber}/selection-explanation`;
+  const fallbackMessage = "선택 영역 설명을 생성할 수 없어.";
+  const requestInit = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ selected_bbox: selectedBbox }),
+    signal,
+  };
+
+  try {
+    return await fetchJson<SelectionExplanation>(
+      path,
+      fallbackMessage,
+      undefined,
+      requestInit,
+    );
+  } catch (error) {
+    if (!isTransientApiError(error) || signal?.aborted) {
+      throw error;
+    }
+
+    await wait(1400, signal);
+    return fetchJson<SelectionExplanation>(
+      path,
+      fallbackMessage,
+      undefined,
+      {
+        ...requestInit,
+        body: JSON.stringify({ selected_bbox: selectedBbox }),
+      },
+    );
+  }
+}
+
+export async function createSelectionFollowUp(
+  documentId: string,
+  pageNumber: number,
+  selectionId: string,
+  question: string,
+  signal?: AbortSignal,
+): Promise<SelectionFollowUp> {
+  return fetchJson<SelectionFollowUp>(
+    `/api/documents/${encodeURIComponent(documentId)}/pages/${pageNumber}/selection-explanations/${encodeURIComponent(
+      selectionId,
+    )}/follow-up`,
+    "추가 질문에 답할 수 없어.",
+    undefined,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ question }),
+      signal,
+    },
   );
 }
 

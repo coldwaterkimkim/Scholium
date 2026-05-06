@@ -1,21 +1,21 @@
 # Scholium MVP v0 — Pass 1 Prompt
 
 ## Purpose
-페이지 단위 1차 분석. 문서 전체 맥락을 과하게 끌어오지 않고, **현재 페이지 자체를 잘 읽고** 의미 있는 후보 앵커를 최대한 많이 추출한다.
+페이지 단위 1차 분석. 문서 전체 맥락을 과하게 끌어오지 않고, **현재 페이지 자체를 잘 읽고** 나중에 사용자가 드래그한 영역을 설명하는 데 필요한 페이지 요소 후보를 최대한 많이 추출한다.
 
 ## Runtime Defaults
 - baseline model: `gpt-5.4`
 - reasoning.effort: `high`
 - prompt_version: `pass1_v0_1`
-- schema_version: `0.1`
+- schema_version: `0.2`
 - output contract: JSON only + local schema validation
 - backend wrapper adds `meta` outside the validated result body
 
 이 단계의 목적은 다음 4가지다.
 1. 페이지 역할 초안 생성
 2. 페이지 요약 초안 생성
-3. 후보 앵커 8~15개 생성
-4. 각 앵커의 bbox, 질문, 짧은 설명, confidence 생성
+3. 페이지 요소 후보 8~15개 생성
+4. 각 요소의 bbox, 예상 질문, 짧은 의미/역할 설명, confidence 생성
 
 ---
 
@@ -33,7 +33,7 @@
 - 지금은 **문서 전체 맥락을 깊게 추론하는 단계가 아니다.** 현재 페이지 자체의 시각적/텍스트적 구조를 우선 읽어라.
 - decorative element는 제외한다. 예: 학교 로고, 단순 배경 장식, 반복 워터마크, 의미 없는 페이지 번호.
 - 단, 축 라벨, 범례, 캡션, 표 헤더, 다이어그램 내부 텍스트는 의미 있는 요소이므로 포함 가능하다.
-- 모든 후보를 사용자에게 직접 보여줄 필요는 없으므로, 내부 후보 앵커는 넉넉하게 뽑아라.
+- 이 후보들은 사용자에게 선제적으로 표시하는 explanation anchor가 아니다. selection explanation을 빠르고 정확하게 만들기 위한 내부 page-element map이다.
 - bbox는 페이지 전체를 기준으로 한 **normalized coordinates [x, y, w, h]** 로 반환하라.
   - 원점은 좌상단이다.
   - x, y, w, h는 모두 0~1 범위다.
@@ -97,6 +97,8 @@
 2~4문장 이내. 이 페이지가 무엇을 전달하려는지 요약한다.
 
 ### `candidate_anchors`
+현재 schema 이름은 legacy naming 때문에 `candidate_anchors`지만, 제품 의미는 "preprocessed page elements"다. viewer에 선제 노출할 final anchor 후보가 아니라 selected-region explanation을 위한 내부 요소 후보로 작성한다.
+
 - 목표 개수: **8~15개**
 - 단, 의미 있는 후보가 부족하면 억지로 8개를 채우지 마라.
 - 의미 없는 요소는 넣지 마라.

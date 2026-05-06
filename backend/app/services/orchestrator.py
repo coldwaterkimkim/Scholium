@@ -136,6 +136,33 @@ class DocumentOrchestrator:
                 error_message=None,
             )
 
+            if not self.storage.settings.precompute_anchored_explanations:
+                snapshot = self.storage.get_document_processing_snapshot(
+                    document_id,
+                    current_stage=ProcessingStage.SYNTHESIS,
+                )
+                if snapshot is None:
+                    raise ValueError(f"Document not found during on-demand finalization: {document_id}")
+                if not snapshot["synthesis_ready"]:
+                    self._mark_failed(
+                        document_id,
+                        "Document summary is unavailable.",
+                    )
+                    return
+                if int(snapshot["pass1_completed_pages"]) <= 0:
+                    self._mark_failed(
+                        document_id,
+                        "Pass1 preprocessing produced no viewer-ready pages.",
+                    )
+                    return
+
+                self.storage.update_document(
+                    document_id,
+                    status=DocumentStatus.COMPLETED,
+                    error_message=self._build_completion_summary(snapshot),
+                )
+                return
+
             self._set_stage(document_id, ProcessingStage.PASS2)
             pass2_started_at = perf_counter()
             pass2_summary = self._run_pass2_stage(document_id)

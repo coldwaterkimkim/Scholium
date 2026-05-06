@@ -29,7 +29,12 @@ class LogStore:
                     event_type TEXT NOT NULL CHECK (event_type IN ({event_type_values})),
                     timestamp TEXT NOT NULL
                 );
+                """
+            )
+            self._migrate_interaction_log_event_types(connection, event_type_values)
 
+            connection.executescript(
+                """
                 CREATE INDEX IF NOT EXISTS idx_interaction_logs_document_page_time
                 ON interaction_logs(document_id, page_number, timestamp DESC);
                 """
@@ -76,6 +81,57 @@ class LogStore:
         connection = sqlite3.connect(self.db_path)
         connection.execute("PRAGMA foreign_keys = ON")
         return connection
+
+    def _migrate_interaction_log_event_types(
+        self,
+        connection: sqlite3.Connection,
+        event_type_values: str,
+    ) -> None:
+        row = connection.execute(
+            """
+            SELECT sql
+            FROM sqlite_master
+            WHERE type = 'table' AND name = 'interaction_logs'
+            """
+        ).fetchone()
+        table_sql = str(row[0]) if row and row[0] else ""
+        if all(member.value in table_sql for member in InteractionEventType):
+            return
+
+        connection.executescript(
+            f"""
+            DROP INDEX IF EXISTS idx_interaction_logs_document_page_time;
+
+            CREATE TABLE interaction_logs_new (
+                event_id TEXT PRIMARY KEY,
+                document_id TEXT NOT NULL,
+                page_number INTEGER NOT NULL,
+                anchor_id TEXT NULL,
+                event_type TEXT NOT NULL CHECK (event_type IN ({event_type_values})),
+                timestamp TEXT NOT NULL
+            );
+
+            INSERT INTO interaction_logs_new (
+                event_id,
+                document_id,
+                page_number,
+                anchor_id,
+                event_type,
+                timestamp
+            )
+            SELECT
+                event_id,
+                document_id,
+                page_number,
+                anchor_id,
+                event_type,
+                timestamp
+            FROM interaction_logs;
+
+            DROP TABLE interaction_logs;
+            ALTER TABLE interaction_logs_new RENAME TO interaction_logs;
+            """
+        )
 
 
 def get_log_store() -> LogStore:

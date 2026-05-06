@@ -110,6 +110,11 @@ class Pass2ArtifactBuilder:
                     ),
                     "prerequisite": compat_context["prerequisite"],
                     "related_pages": compat_context["related_pages"],
+                    "study_importance": None,
+                    "meaning_in_context": None,
+                    "why_it_matters_here": None,
+                    "related_concepts_and_pages": None,
+                    "source_cues": None,
                 }
             )
 

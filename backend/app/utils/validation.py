@@ -6,12 +6,16 @@ from app.core.config import StageName
 from app.schemas.document_summary_schema import DocumentSummaryResult
 from app.schemas.pass1_schema import Pass1Result
 from app.schemas.pass2_schema import Pass2Result
+from app.schemas.selection_explanation_schema import SelectionExplanationResult
+from app.schemas.selection_follow_up_schema import SelectionFollowUpResult
 
 
 STAGE_MODEL_REGISTRY = {
     "pass1": Pass1Result,
     "document_synthesis": DocumentSummaryResult,
     "pass2": Pass2Result,
+    "selection_explanation": SelectionExplanationResult,
+    "selection_follow_up": SelectionFollowUpResult,
 }
 
 

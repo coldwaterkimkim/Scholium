@@ -10,6 +10,10 @@ class InteractionEventType(StrEnum):
     PAGE_VIEW = "page_view"
     ANCHOR_CLICK = "anchor_click"
     RELATED_PAGE_JUMP = "related_page_jump"
+    SELECTION_START = "selection_start"
+    SELECTION_EXPLANATION_REQUEST = "selection_explanation_request"
+    SELECTION_EXPLANATION_SUCCESS = "selection_explanation_success"
+    SELECTION_EXPLANATION_FAILURE = "selection_explanation_failure"
 
 
 class InteractionLogRequest(BaseModel):

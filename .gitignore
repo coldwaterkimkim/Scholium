@@ -13,6 +13,8 @@ data/rendered_pages/*
 !data/rendered_pages/.gitkeep
 data/analysis/*
 !data/analysis/.gitkeep
+data/parsed/*
+!data/parsed/.gitkeep
 data/logs/*
 !data/logs/.gitkeep
 data/*.sqlite3

@@ -7,13 +7,14 @@ from pathlib import Path
 from typing import Literal
 
 
-StageName = Literal["pass1", "document_synthesis", "pass2"]
+StageName = Literal["pass1", "document_synthesis", "pass2", "selection_explanation", "selection_follow_up"]
 ReasoningEffort = Literal["minimal", "low", "medium", "high", "xhigh"]
 DocumentParserBackend = Literal["stub", "pymupdf4llm"]
 Pass1RoutingMode = Literal["legacy", "hybrid"]
 PipelineMode = Literal["legacy", "hybrid", "v2_spine"]
 V2SpineMode = Literal["off", "shadow", "active"]
 Pass2ExecutionMode = Literal["all_pages", "hard_pages_only"]
+LLMProvider = Literal["codex_cli", "openai_api", "mock"]
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 ENV_FILE_PATH = PROJECT_ROOT / ".env"
@@ -33,9 +34,15 @@ class StageConfig:
 @dataclass(frozen=True)
 class AppSettings:
     app_name: str
+    llm_provider: LLMProvider
     openai_api_key: str
     openai_timeout_seconds: int
     openai_max_retries: int
+    codex_cli_bin: str
+    codex_cli_timeout_seconds: int
+    codex_cli_model: str | None
+    codex_cli_reasoning_effort: ReasoningEffort
+    precompute_anchored_explanations: bool
     schema_version: str
     parser_schema_version: str
     document_parser_backend: DocumentParserBackend
@@ -87,9 +94,29 @@ STAGE_DEFAULTS = {
         "reasoning_effort": "medium",
         "timeout_seconds": 120,
         "prompt_env": "PROMPT_VERSION_PASS2",
-        "default_prompt_version": "pass2_v0_1",
+        "default_prompt_version": "pass2_v0_2",
         "schema_name": "pass2_result",
         "prompt_file": "pass2_prompt.md",
+    },
+    "selection_explanation": {
+        "model_env": "OPENAI_MODEL_SELECTION",
+        "default_model": "gpt-5.5",
+        "reasoning_effort": "medium",
+        "timeout_seconds": 180,
+        "prompt_env": "PROMPT_VERSION_SELECTION",
+        "default_prompt_version": "selection_explanation_v0_1",
+        "schema_name": "selection_explanation_result",
+        "prompt_file": "selection_explanation_prompt.md",
+    },
+    "selection_follow_up": {
+        "model_env": "OPENAI_MODEL_SELECTION_FOLLOW_UP",
+        "default_model": "gpt-5.5",
+        "reasoning_effort": "medium",
+        "timeout_seconds": 180,
+        "prompt_env": "PROMPT_VERSION_SELECTION_FOLLOW_UP",
+        "default_prompt_version": "selection_follow_up_v0_1",
+        "schema_name": "selection_follow_up_result",
+        "prompt_file": "selection_follow_up_prompt.md",
     },
 }
 
@@ -135,6 +162,33 @@ def _load_pass2_execution_mode() -> Pass2ExecutionMode:
     return "all_pages"
 
 
+def _load_llm_provider() -> LLMProvider:
+    provider = os.getenv("SCHOLIUM_LLM_PROVIDER", "codex_cli").strip().lower()
+    if provider in {"codex_cli", "openai_api", "mock"}:
+        return provider  # type: ignore[return-value]
+    return "codex_cli"
+
+
+def _load_bool_env(name: str, default: bool) -> bool:
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+
+    normalized_value = raw_value.strip().lower()
+    if normalized_value in {"1", "true", "yes", "on"}:
+        return True
+    if normalized_value in {"0", "false", "no", "off"}:
+        return False
+    return default
+
+
+def _load_reasoning_effort_env(name: str, default: ReasoningEffort) -> ReasoningEffort:
+    raw_value = os.getenv(name, default).strip().lower()
+    if raw_value in {"minimal", "low", "medium", "high", "xhigh"}:
+        return raw_value  # type: ignore[return-value]
+    return default
+
+
 def _load_env_file(env_path: Path) -> None:
     if not env_path.exists():
         return
@@ -174,10 +228,19 @@ def _build_settings() -> AppSettings:
 
     return AppSettings(
         app_name="Scholium Backend",
+        llm_provider=_load_llm_provider(),
         openai_api_key=os.getenv("OPENAI_API_KEY", ""),
         openai_timeout_seconds=int(os.getenv("OPENAI_TIMEOUT_SECONDS", "60")),
         openai_max_retries=int(os.getenv("OPENAI_MAX_RETRIES", "2")),
-        schema_version=os.getenv("SCHEMA_VERSION", "0.1"),
+        codex_cli_bin=os.getenv("CODEX_CLI_BIN", "codex"),
+        codex_cli_timeout_seconds=int(os.getenv("CODEX_CLI_TIMEOUT_SECONDS", "300")),
+        codex_cli_model=(os.getenv("CODEX_CLI_MODEL", "gpt-5.5") or "gpt-5.5").strip() or "gpt-5.5",
+        codex_cli_reasoning_effort=_load_reasoning_effort_env(
+            "CODEX_CLI_REASONING",
+            _load_reasoning_effort_env("CODEX_CLI_REASONING_EFFORT", "medium"),
+        ),
+        precompute_anchored_explanations=_load_bool_env("SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS", False),
+        schema_version=os.getenv("SCHEMA_VERSION", "0.2"),
         parser_schema_version=os.getenv("PARSER_SCHEMA_VERSION", "parser_v0_2"),
         document_parser_backend=_load_document_parser_backend(),
         pass1_routing_mode=_load_pass1_routing_mode(),

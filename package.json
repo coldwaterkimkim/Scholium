@@ -1,0 +1,10 @@
+{
+  "name": "scholium",
+  "private": true,
+  "scripts": {
+    "dev": "scripts/with_stable_node.sh npm --prefix frontend run dev",
+    "dev:frontend": "scripts/with_stable_node.sh npm --prefix frontend run dev",
+    "build": "scripts/with_stable_node.sh npm --prefix frontend run build",
+    "typecheck": "scripts/with_stable_node.sh npm --prefix frontend run typecheck"
+  }
+}

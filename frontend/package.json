@@ -3,8 +3,8 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "dev": "next dev",
-    "build": "rm -rf .next && next build",
+    "dev": "../scripts/with_stable_node.sh next dev --webpack",
+    "build": "rm -rf .next && ../scripts/with_stable_node.sh next build --webpack",
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit"
   },

@@ -7,7 +7,7 @@
 - baseline model: `gpt-5.4`
 - reasoning.effort: `medium`
 - prompt_version: `synthesis_v0_1`
-- schema_version: `0.1`
+- schema_version: `0.2`
 - output contract: JSON only + local schema validation
 - backend wrapper adds `meta` outside the validated result body
 
@@ -77,7 +77,7 @@
       ]
     }
   ],
-  "schema_version": "0.1",
+  "schema_version": "0.2",
   "prompt_version": "synthesis_v0_1"
 }
 ```

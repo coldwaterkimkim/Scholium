@@ -2,12 +2,16 @@
 
 ## 목적
 
-이 문서는 Scholium MVP v0 Step 2에서 OpenAI 연동과 모델 운용 방식을 고정하기 위한 결정 기록이다.
+이 문서는 Scholium MVP v0 Step 2에서 로컬 분석 provider와 모델 운용 방식을 고정하기 위한 결정 기록이다.
 
 ## 고정 결정
 
-- API: OpenAI Responses API 사용
-- 기준 모델: `gpt-5.4`
+- 로컬 기본 provider: Codex CLI subprocess (`SCHOLIUM_LLM_PROVIDER=codex_cli`)
+- OpenAI Responses API: 명시적 fallback (`SCHOLIUM_LLM_PROVIDER=openai_api`)
+- mock provider: 테스트/스모크용 (`SCHOLIUM_LLM_PROVIDER=mock`)
+- Codex CLI 기준 모델: `gpt-5.5`
+- Codex CLI reasoning: `medium`
+- OpenAI fallback 기준 모델: `gpt-5.4`
 - 입력 전략: direct PDF input 미사용, page image 기반 입력
 - 출력 전략: JSON only + local schema validation 필수
 - 저장 메타: `model_name`, `schema_version`, `prompt_version`, `generated_at`
@@ -20,11 +24,24 @@
 | --- | --- | --- | --- |
 | pass1 | `gpt-5.4` | `medium` | `pass1_v0_1` |
 | document_synthesis | `gpt-5.4` | `medium` | `synthesis_v0_1` |
-| pass2 | `gpt-5.4` | `medium` | `pass2_v0_1` |
+| pass2 legacy | `gpt-5.4` | `medium` | `pass2_v0_2` |
+| selection_explanation | `gpt-5.5` | `medium` | `selection_explanation_v0_1` |
+
+## 2026-05 selected-region pivot
+
+- 기본 MVP product model은 precomputed final anchors가 아니다.
+- 기본 처리 흐름은 `render -> pass1 preprocessing -> document synthesis -> viewer-ready`다.
+- `pass1.candidate_anchors`는 legacy field name을 유지하지만, 제품 의미는 visible anchor가 아니라 selected-region explanation을 위한 internal page-element map이다.
+- `pass2`는 legacy/debug path로 내려간다. `SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=true`일 때만 선제 final anchor artifact를 만든다.
+- 사용자가 viewer에서 drag-select한 bbox는 `POST /api/documents/{document_id}/pages/{page_number}/selection-explanation`로 전달된다.
+- selection explanation은 page image, pass1 page context, document synthesis context, bbox-overlap matched elements를 입력으로 Codex CLI가 생성한다.
+- selection explanation artifact는 `data/analysis/{document_id}/pages/{page_number}/selection_explanations/{selection_id}.json`에 저장한다.
+- invalid JSON 또는 schema validation 실패 결과는 저장하지 않는다.
 
 ## timeout / retry
 
-- request timeout: 기본 60초
+- Codex CLI timeout: 기본 300초
+- OpenAI request timeout: 기본 60초
 - pass2 request timeout: 120초
 - API/network retry: 최대 2회
 - local validation 실패 시: repair instruction을 붙여 1회 재시도
@@ -133,13 +150,14 @@
 
 - Python 쪽 검증은 `pydantic` 기반으로 처리한다.
 - stage별 placeholder schema는 `backend/app/schemas/` 아래에 둔다.
-- OpenAI Structured Outputs의 JSON schema와 로컬 pydantic validation을 함께 사용한다.
+- Codex CLI provider는 `codex exec --output-schema`와 로컬 pydantic validation을 함께 사용한다.
+- OpenAI fallback provider는 Structured Outputs JSON schema와 로컬 pydantic validation을 함께 사용한다.
 - 결과 envelope는 아래처럼 저장한다.
 
 ```json
 {
   "meta": {
-    "schema_version": "0.1",
+    "schema_version": "0.2",
     "prompt_version": "pass1_v0_1",
     "model_name": "gpt-5.4",
     "generated_at": "ISO8601"

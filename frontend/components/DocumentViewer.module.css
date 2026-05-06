@@ -5,9 +5,13 @@
 
 .shell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(360px, 28vw, 420px);
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
   align-items: start;
+}
+
+.shellWithFloatingPanel {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .mainColumn {
@@ -98,8 +102,15 @@
 
 .viewerCanvas {
   position: relative;
-  width: min(100%, 1040px);
+  width: min(100%, 1160px);
   line-height: 0;
+  touch-action: none;
+  user-select: none;
+  cursor: crosshair;
+}
+
+.shellWithFloatingPanel .viewerCanvas {
+  width: min(100%, 1480px);
 }
 
 .pageImage {
@@ -110,6 +121,389 @@
   border-radius: 6px;
   box-shadow: 0 6px 22px rgba(15, 23, 42, 0.12);
   background: #fff;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.dragSelectionRect {
+  position: absolute;
+  z-index: 7;
+  border: 1.5px dashed #4f6f2a;
+  border-radius: 5px;
+  background: rgba(246, 218, 137, 0.24);
+  pointer-events: none;
+}
+
+.selectedRegionRect {
+  position: absolute;
+  z-index: 6;
+  border: 1.5px dashed #4f6f2a;
+  border-radius: 5px;
+  background: rgba(246, 218, 137, 0.3);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+  pointer-events: none;
+}
+
+.relatedFocusRect {
+  position: absolute;
+  z-index: 8;
+  border: 2px solid #6f8f34;
+  border-radius: 5px;
+  background: rgba(246, 218, 137, 0.34);
+  box-shadow:
+    0 0 0 4px rgba(246, 218, 137, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.72) inset;
+  pointer-events: none;
+  animation: relatedFocusPulse 2.55s ease-out forwards;
+}
+
+.relatedFocusLabel {
+  position: absolute;
+  left: 0;
+  top: -30px;
+  max-width: min(260px, 70vw);
+  padding: 5px 8px;
+  border: 1px solid rgba(101, 121, 64, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 252, 0.96);
+  color: #4f6f2a;
+  font-size: 0.76rem;
+  font-weight: 750;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.annotationChip {
+  position: absolute;
+  z-index: 8;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 9px;
+  border: 1px solid rgba(101, 121, 64, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 255, 245, 0.97);
+  box-shadow: 0 6px 18px rgba(39, 44, 28, 0.16);
+  color: #526b34;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 750;
+  line-height: 1;
+  pointer-events: auto;
+  transition:
+    background 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.annotationChipDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #6f8f34;
+  box-shadow: 0 0 0 3px rgba(111, 143, 52, 0.12);
+}
+
+.annotationChipStar {
+  min-width: 9px;
+  color: #7a6428;
+  font-size: 0.9rem;
+  line-height: 1;
+  transform: translateY(1px);
+}
+
+.annotationChipText {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.annotationChipStatusLabel,
+.annotationChipHoverLabel {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition:
+    max-width 180ms ease,
+    opacity 140ms ease,
+    transform 180ms ease;
+}
+
+.annotationChipStatusLabel {
+  max-width: 78px;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.annotationChipHoverLabel {
+  max-width: 0;
+  opacity: 0;
+  transform: translateX(-4px);
+}
+
+.annotationChip:hover .annotationChipStatusLabel,
+.annotationChip:focus-visible .annotationChipStatusLabel {
+  max-width: 0;
+  opacity: 0;
+  transform: translateX(-4px);
+}
+
+.annotationChip:hover .annotationChipHoverLabel,
+.annotationChip:focus-visible .annotationChipHoverLabel {
+  max-width: 178px;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.annotationChipPending {
+  border-color: rgba(144, 124, 49, 0.36);
+  background: rgba(255, 250, 226, 0.98);
+  color: #7a6428;
+}
+
+.annotationChipPending .annotationChipDot {
+  background: #b89531;
+  box-shadow: 0 0 0 3px rgba(184, 149, 49, 0.14);
+  animation: annotationChipPulse 1s ease-in-out infinite;
+}
+
+.annotationChipReady {
+  border-color: rgba(101, 121, 64, 0.34);
+  background: rgba(255, 255, 245, 0.97);
+  color: #526b34;
+}
+
+.annotationChipReady .annotationChipDot {
+  background: #6f8f34;
+  box-shadow: 0 0 0 3px rgba(111, 143, 52, 0.12);
+}
+
+.annotationChipImportant {
+  border-color: rgba(144, 124, 49, 0.5);
+  background: rgba(255, 249, 220, 0.98);
+  color: #5f6d2d;
+}
+
+.annotationChipImportant .annotationChipDot {
+  background: #8c913a;
+  box-shadow: 0 0 0 3px rgba(140, 145, 58, 0.14);
+}
+
+.annotationChipError {
+  border-color: rgba(155, 74, 65, 0.32);
+  background: rgba(255, 247, 244, 0.98);
+  color: #9b4a41;
+}
+
+.annotationChipError .annotationChipDot {
+  background: #b4574d;
+  box-shadow: 0 0 0 3px rgba(180, 87, 77, 0.12);
+}
+
+.annotationChip:hover {
+  background: #f0f3e4;
+  box-shadow: 0 8px 22px rgba(39, 44, 28, 0.2);
+  transform: translateY(-1px);
+}
+
+.chipContextMenu {
+  position: absolute;
+  z-index: 16;
+  width: 164px;
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid rgba(101, 121, 64, 0.24);
+  border-radius: 10px;
+  background: rgba(255, 255, 252, 0.98);
+  box-shadow:
+    0 14px 30px rgba(39, 44, 28, 0.18),
+    0 2px 7px rgba(63, 71, 43, 0.1);
+  line-height: 1.2;
+  pointer-events: auto;
+  cursor: default;
+}
+
+.chipContextMenuButton {
+  width: 100%;
+  padding: 8px 9px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #2c3326;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+.chipContextMenuButton:hover:not(:disabled) {
+  background: #f0f3e4;
+}
+
+.chipContextMenuButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.chipContextMenuDanger {
+  color: #9b4a41;
+}
+
+.chipContextMenuDanger:hover:not(:disabled) {
+  background: #fff1ed;
+}
+
+@keyframes relatedFocusPulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  12%,
+  62% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.012);
+  }
+}
+
+@keyframes annotationChipPulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.88);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.selectionNotice {
+  position: absolute;
+  z-index: 7;
+  max-width: 260px;
+  padding: 9px 11px;
+  border: 1px solid rgba(101, 121, 64, 0.36);
+  border-radius: 8px;
+  background: rgba(255, 255, 252, 0.98);
+  box-shadow: 0 8px 24px rgba(39, 44, 28, 0.16);
+  color: #59623f;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  pointer-events: none;
+}
+
+.loadingAnnotationPanel {
+  position: absolute;
+  z-index: 9;
+  min-height: 184px;
+  padding: 18px 20px;
+  border: 1px solid rgba(101, 121, 64, 0.42);
+  border-radius: 12px;
+  background: rgba(255, 255, 252, 0.98);
+  box-shadow:
+    0 18px 42px rgba(39, 44, 28, 0.18),
+    0 2px 8px rgba(63, 71, 43, 0.12);
+  color: #151913;
+  cursor: default;
+  line-height: 1.4;
+}
+
+.loadingAnnotationPanelError {
+  border-color: rgba(138, 77, 69, 0.42);
+  background: rgba(255, 251, 248, 0.98);
+}
+
+.loadingPanelEyebrow {
+  display: block;
+  color: #7b8074;
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.loadingPanelTitle {
+  margin-top: 3px;
+  color: #4f7b2c;
+  font-size: 1.08rem;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.loadingAnnotationPanelError .loadingPanelTitle {
+  color: #9b4a41;
+}
+
+.loadingPanelText {
+  margin: 12px 0 0;
+  color: #3e4537;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.loadingPanelBars {
+  display: grid;
+  gap: 7px;
+  margin-top: 18px;
+}
+
+.loadingPanelBars span {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #edf1e2 0%, #dbe6c6 45%, #edf1e2 90%);
+  background-size: 220% 100%;
+  animation: loadingPanelSweep 1.2s ease-in-out infinite;
+}
+
+.loadingPanelBars span:nth-child(2) {
+  width: 82%;
+  animation-delay: 0.08s;
+}
+
+.loadingPanelBars span:nth-child(3) {
+  width: 58%;
+  animation-delay: 0.16s;
+}
+
+.retrySelectionButton {
+  margin-top: 14px;
+  padding: 8px 11px;
+  border: 1px solid rgba(101, 121, 64, 0.3);
+  border-radius: 999px;
+  background: #f6f7ef;
+  color: #4f6f2a;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.retrySelectionButton:hover {
+  background: #eef3e2;
+}
+
+@keyframes loadingPanelSweep {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -120% 0;
+  }
+}
+
+.selectionNoticeError {
+  border-color: rgba(168, 75, 55, 0.34);
+  background: rgba(255, 250, 247, 0.98);
+  color: #8a3f2c;
 }
 
 .stateBlock {

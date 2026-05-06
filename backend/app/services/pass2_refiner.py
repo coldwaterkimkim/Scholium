@@ -4,8 +4,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
 from app.models.document import RenderStatus, StageStatus
+from app.services.analysis_client import AnalysisClient, AnalysisClientError
+from app.services.llm_provider import get_analysis_client
 from app.services.pass2_artifact_builder import Pass2ArtifactBuilder
-from app.services.openai_client import OpenAIClientError, OpenAIResponsesClient
 from app.services.storage import StorageService, get_storage_service
 
 
@@ -13,12 +14,12 @@ class Pass2Refiner:
     def __init__(
         self,
         storage: StorageService | None = None,
-        openai_client: OpenAIResponsesClient | None = None,
+        analysis_client: AnalysisClient | None = None,
         artifact_builder: Pass2ArtifactBuilder | None = None,
         max_workers: int = 2,
     ) -> None:
         self.storage = storage or get_storage_service()
-        self.openai_client = openai_client or OpenAIResponsesClient(storage=self.storage)
+        self.analysis_client = analysis_client or get_analysis_client(storage=self.storage)
         self.artifact_builder = artifact_builder or Pass2ArtifactBuilder(storage=self.storage)
         self.max_workers = max(1, max_workers)
 
@@ -356,7 +357,7 @@ class Pass2Refiner:
         extra_guidance: str | None = None,
     ) -> dict[str, Any]:
         try:
-            return self.openai_client.run_pass2(
+            return self.analysis_client.run_pass2(
                 page_image_path=image_path,
                 document_id=document_id,
                 page_number=page_number,
@@ -364,11 +365,11 @@ class Pass2Refiner:
                 document_summary=document_summary_result,
                 extra_guidance=extra_guidance,
             )
-        except OpenAIClientError as exc:
+        except AnalysisClientError as exc:
             if "timed out" not in str(exc).lower():
                 raise
             retry_guidance = self._build_timeout_retry_guidance(extra_guidance)
-            return self.openai_client.run_pass2(
+            return self.analysis_client.run_pass2(
                 page_image_path=image_path,
                 document_id=document_id,
                 page_number=page_number,

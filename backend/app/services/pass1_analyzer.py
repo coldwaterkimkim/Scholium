@@ -4,7 +4,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
 from app.models.document import RenderStatus, StageStatus
-from app.services.openai_client import OpenAIResponsesClient
+from app.services.analysis_client import AnalysisClient
+from app.services.llm_provider import get_analysis_client
 from app.services.storage import StorageService, get_storage_service
 
 
@@ -26,11 +27,11 @@ class Pass1Analyzer:
     def __init__(
         self,
         storage: StorageService | None = None,
-        openai_client: OpenAIResponsesClient | None = None,
+        analysis_client: AnalysisClient | None = None,
         max_workers: int = 3,
     ) -> None:
         self.storage = storage or get_storage_service()
-        self.openai_client = openai_client or OpenAIResponsesClient(storage=self.storage)
+        self.analysis_client = analysis_client or get_analysis_client(storage=self.storage)
         self.max_workers = max(1, max_workers)
 
     def analyze_page(
@@ -396,7 +397,7 @@ class Pass1Analyzer:
         if len(allowed_anchor_regions) < _MIN_PARSED_BLOCKS_FOR_CHEAP_PATH:
             raise ValueError("Text-first pass1 requires enough grounded anchor regions.")
 
-        envelope = self.openai_client.run_pass1_text_first(
+        envelope = self.analysis_client.run_pass1_text_first(
             document_id=document_id,
             page_number=page_number,
             route_label=str(page_manifest_entry["route_label"]),
@@ -431,7 +432,7 @@ class Pass1Analyzer:
         if not image_path.exists():
             raise ValueError(f"Rendered page image is missing: {page_record_image_path}")
 
-        envelope = self.openai_client.run_pass1(
+        envelope = self.analysis_client.run_pass1(
             page_image_path=image_path,
             document_id=document_id,
             page_number=page_number,

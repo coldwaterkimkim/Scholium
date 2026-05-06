@@ -502,6 +502,146 @@ class StorageService:
         payload = json.loads(target_path.read_text(encoding="utf-8"))
         return self._normalize_pass2_artifact(document_id, page_number, payload)
 
+    def get_selection_explanation_path(
+        self,
+        document_id: str,
+        page_number: int,
+        selection_id: str,
+    ) -> Path:
+        if "/" in selection_id or "\\" in selection_id or ".." in selection_id:
+            raise ValueError("selection_id contains invalid path characters.")
+        return (
+            self.analysis_dir
+            / document_id
+            / "pages"
+            / str(page_number)
+            / "selection_explanations"
+            / f"{selection_id}.json"
+        )
+
+    def save_selection_explanation(
+        self,
+        document_id: str,
+        page_number: int,
+        selection_id: str,
+        payload: dict[str, object],
+    ) -> str:
+        target_path = self.get_selection_explanation_path(document_id, page_number, selection_id)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+
+        normalized_payload = self._normalize_selection_explanation_artifact(
+            document_id,
+            page_number,
+            selection_id,
+            payload,
+        )
+        temp_path = target_path.parent / f".{target_path.name}.{uuid4().hex}.tmp"
+
+        try:
+            temp_path.write_text(
+                json.dumps(normalized_payload, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            loaded_payload = json.loads(temp_path.read_text(encoding="utf-8"))
+            self._normalize_selection_explanation_artifact(
+                document_id,
+                page_number,
+                selection_id,
+                loaded_payload,
+            )
+            os.replace(temp_path, target_path)
+        except Exception:
+            if temp_path.exists():
+                temp_path.unlink()
+            raise
+
+        return target_path.relative_to(PROJECT_ROOT).as_posix()
+
+    def load_selection_explanation(
+        self,
+        document_id: str,
+        page_number: int,
+        selection_id: str,
+    ) -> dict[str, object] | None:
+        target_path = self.get_selection_explanation_path(document_id, page_number, selection_id)
+        if not target_path.exists():
+            return None
+
+        payload = json.loads(target_path.read_text(encoding="utf-8"))
+        return self._normalize_selection_explanation_artifact(
+            document_id,
+            page_number,
+            selection_id,
+            payload,
+        )
+
+    def update_selection_explanation_state(
+        self,
+        document_id: str,
+        page_number: int,
+        selection_id: str,
+        *,
+        is_important: bool | None = None,
+    ) -> dict[str, object]:
+        artifact = self.load_selection_explanation(document_id, page_number, selection_id)
+        if artifact is None:
+            raise FileNotFoundError(f"Selection explanation not found: {selection_id}")
+
+        meta = dict(artifact.get("meta") or {})
+        viewer_state = self._selection_explanation_viewer_state(artifact)
+        if is_important is not None:
+            viewer_state["is_important"] = bool(is_important)
+
+        meta["viewer_state"] = viewer_state
+        self.save_selection_explanation(
+            document_id,
+            page_number,
+            selection_id,
+            {
+                "meta": meta,
+                "result": artifact["result"],
+            },
+        )
+        return {
+            "selection_id": selection_id,
+            **viewer_state,
+        }
+
+    def delete_selection_explanation(
+        self,
+        document_id: str,
+        page_number: int,
+        selection_id: str,
+    ) -> bool:
+        target_path = self.get_selection_explanation_path(document_id, page_number, selection_id)
+        if not target_path.exists():
+            return False
+
+        target_path.unlink()
+        return True
+
+    def list_selection_explanations(
+        self,
+        document_id: str,
+        page_number: int,
+    ) -> list[dict[str, object]]:
+        target_dir = self.analysis_dir / document_id / "pages" / str(page_number) / "selection_explanations"
+        if not target_dir.exists():
+            return []
+
+        artifacts: list[dict[str, object]] = []
+        artifact_paths = sorted(target_dir.glob("*.json"), key=lambda path: path.stat().st_mtime)
+        for artifact_path in artifact_paths:
+            artifact = self.load_selection_explanation(document_id, page_number, artifact_path.stem)
+            if artifact is not None:
+                artifacts.append(
+                    {
+                        "explanation": dict(artifact["result"]),
+                        **self._selection_explanation_viewer_state(artifact),
+                    }
+                )
+        return artifacts
+
     def get_document_summary_path(self, document_id: str) -> Path:
         return self.analysis_dir / document_id / "document_summary.json"
 
@@ -892,7 +1032,11 @@ class StorageService:
             render_failed_page_numbers | pass1_failed_page_numbers | pass2_failed_page_numbers
         )
         failed_page_count = len(failed_page_numbers)
-        completed_page_count = pass2_completed_pages
+        completed_page_count = (
+            pass2_completed_pages
+            if self.settings.precompute_anchored_explanations
+            else pass1_completed_pages
+        )
         completion_ratio = (
             round(completed_page_count / total_pages, 4)
             if total_pages and total_pages > 0
@@ -1406,6 +1550,11 @@ class StorageService:
         normalized_result = dict(result)
         normalized_result["document_id"] = document_id
         normalized_result["page_number"] = page_number
+        if isinstance(normalized_result.get("final_anchors"), list):
+            normalized_result["final_anchors"] = [
+                self._with_legacy_final_anchor_defaults(anchor)
+                for anchor in normalized_result["final_anchors"]
+            ]
         validated_result = validate_payload("pass2", normalized_result)
 
         normalized_final_anchors = []
@@ -1426,6 +1575,35 @@ class StorageService:
                     + ", ".join(map(str, invalid_pages))
                 )
 
+            related_concepts = anchor.get("related_concepts_and_pages") or []
+            for concept_index, related_concept in enumerate(related_concepts):
+                if not isinstance(related_concept, dict):
+                    continue
+                related_page_number = related_concept.get("page_number")
+                if related_page_number is None:
+                    continue
+                related_page_number = int(related_page_number)
+                if related_page_number not in valid_pass1_page_numbers:
+                    raise ValueError(
+                        "Pass2 artifact related_concepts_and_pages contains a page without "
+                        f"valid pass1 artifacts: anchor_id={anchor_id}, index={concept_index}, "
+                        f"page_number={related_page_number}"
+                    )
+
+            source_cues = anchor.get("source_cues") or []
+            for cue_index, source_cue in enumerate(source_cues):
+                if not isinstance(source_cue, dict):
+                    continue
+                source_page_number = source_cue.get("page_number")
+                if source_page_number is None:
+                    continue
+                source_page_number = int(source_page_number)
+                if source_page_number not in valid_pass1_page_numbers:
+                    raise ValueError(
+                        "Pass2 artifact source_cues contains a page without valid pass1 artifacts: "
+                        f"anchor_id={anchor_id}, index={cue_index}, page_number={source_page_number}"
+                    )
+
             normalized_final_anchors.append(
                 {
                     **anchor,
@@ -1443,6 +1621,96 @@ class StorageService:
             "meta": self._normalize_pass2_meta(meta),
             "result": validated_result,
         }
+
+    def _normalize_selection_explanation_artifact(
+        self,
+        document_id: str,
+        page_number: int,
+        selection_id: str,
+        payload: dict[str, object],
+    ) -> dict[str, object]:
+        if not isinstance(payload, dict):
+            raise ValueError("Selection explanation artifact must be a JSON object.")
+
+        meta = payload.get("meta", {})
+        result = payload.get("result")
+        if not isinstance(meta, dict):
+            raise ValueError("Selection explanation meta must be a JSON object.")
+        if not isinstance(result, dict):
+            raise ValueError("Selection explanation result must be a JSON object.")
+
+        normalized_result = dict(result)
+        normalized_result["document_id"] = document_id
+        normalized_result["page_number"] = page_number
+        normalized_result["selection_id"] = selection_id
+        normalized_result["anchor_id"] = selection_id
+        normalized_result["explanation_mode"] = "selection"
+        if not normalized_result.get("concept_title") and normalized_result.get("label"):
+            normalized_result["concept_title"] = normalized_result["label"]
+        if not normalized_result.get("label") and normalized_result.get("concept_title"):
+            normalized_result["label"] = normalized_result["concept_title"]
+        if "selected_bbox" in normalized_result:
+            normalized_result["bbox"] = normalized_result["selected_bbox"]
+        elif "bbox" in normalized_result:
+            normalized_result["selected_bbox"] = normalized_result["bbox"]
+
+        validated_result = validate_payload("selection_explanation", normalized_result)
+        valid_page_numbers = {page.page_number for page in self.get_pages(document_id)}
+
+        related_pages = sorted({int(page) for page in validated_result["related_pages"]})
+        for related_page in related_pages:
+            if related_page not in valid_page_numbers:
+                raise ValueError(
+                    "Selection explanation contains related_pages value without a rendered page: "
+                    f"selection_id={selection_id}, page_number={related_page}"
+                )
+
+        for concept_index, concept in enumerate(validated_result.get("related_concepts_and_pages") or []):
+            concept_page_number = concept.get("page_number")
+            if concept_page_number is not None and int(concept_page_number) not in valid_page_numbers:
+                raise ValueError(
+                    "Selection explanation contains related_concepts_and_pages page_number without a rendered page: "
+                    f"selection_id={selection_id}, index={concept_index}, page_number={concept_page_number}"
+                )
+
+        for cue_index, cue in enumerate(validated_result.get("source_cues") or []):
+            source_page_number = cue.get("page_number")
+            if source_page_number is not None and int(source_page_number) not in valid_page_numbers:
+                raise ValueError(
+                    "Selection explanation contains source_cues page_number without a rendered page: "
+                    f"selection_id={selection_id}, index={cue_index}, page_number={source_page_number}"
+                )
+
+        validated_result["related_pages"] = related_pages
+        return {
+            "meta": dict(meta),
+            "result": validated_result,
+        }
+
+    def _selection_explanation_viewer_state(self, artifact: dict[str, object]) -> dict[str, bool]:
+        meta = artifact.get("meta")
+        viewer_state = meta.get("viewer_state") if isinstance(meta, dict) else None
+        if not isinstance(viewer_state, dict):
+            viewer_state = {}
+
+        return {
+            "is_important": bool(viewer_state.get("is_important", False)),
+        }
+
+    def _with_legacy_final_anchor_defaults(self, anchor: object) -> object:
+        if not isinstance(anchor, dict):
+            return anchor
+
+        normalized_anchor = dict(anchor)
+        for field_name in (
+            "study_importance",
+            "meaning_in_context",
+            "why_it_matters_here",
+            "related_concepts_and_pages",
+            "source_cues",
+        ):
+            normalized_anchor.setdefault(field_name, None)
+        return normalized_anchor
 
     def _normalize_pass2_meta(self, meta: dict[str, object]) -> dict[str, object]:
         normalized_meta: dict[str, object] = {
@@ -1503,6 +1771,8 @@ class StorageService:
                 return ProcessingStage.PASS1
             if not synthesis_ready:
                 return ProcessingStage.SYNTHESIS
+            if not self.settings.precompute_anchored_explanations:
+                return ProcessingStage.SYNTHESIS
             return ProcessingStage.PASS2
 
         if status in {DocumentStatus.COMPLETED, DocumentStatus.FAILED}:
@@ -1510,6 +1780,8 @@ class StorageService:
                 return ProcessingStage.SYNTHESIS
             if "pass2" in normalized_error:
                 return ProcessingStage.PASS2
+            if not self.settings.precompute_anchored_explanations and synthesis_ready:
+                return ProcessingStage.SYNTHESIS
             if pass2_completed_pages > 0 or pass2_failed_page_numbers or synthesis_ready:
                 return ProcessingStage.PASS2
             if rendered_pages > 0 and analyzed_pass1_pages < rendered_pages:
