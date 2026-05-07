@@ -27,6 +27,7 @@ scholium/
   data/
     raw_pdfs/
     rendered_pages/
+    parsed/
     analysis/
     logs/
   docs/
@@ -107,13 +108,20 @@ OpenAI API 키는 기본 실행에 필요하지 않다. 로컬 MVP 분석 provid
 
 ## 기준 문서
 
-- `docs/scholium_product_prd_v0_revised.md`
-- `docs/scholium_development_prd_v0_revised.md`
+- `docs/DEVELOPMENT_SOURCE_OF_TRUTH.md`
+- `docs/CURRENT_ARCHITECTURE.md`
+- `docs/LEGACY_NAMING_DEBT.md`
+- `docs/api_model_decisions.md`
+- `docs/perf/PARSER_DECISION_20260507.md`
+- `docs/perf/PERFORMANCE_BASELINE_PLAN.md`
+
+`docs/archive/` 아래 문서는 historical reference다. 현재 selected-region architecture를 덮어쓰는 기준 문서로 쓰지 않는다.
 
 ## 참고
 
 - `data/raw_pdfs`: 원본 PDF 입력
 - `data/rendered_pages`: 페이지 렌더링 결과
+- `data/parsed`: parser/page manifest runtime 산출물
 - `data/analysis`: 전처리/문서요약/selection explanation 산출물
 - `data/logs`: 실행 로그
 
@@ -162,7 +170,7 @@ cd backend
 ```bash
 cd backend
 ./.venv/bin/python scripts/benchmark_selected_region_perf.py \
-  --selection-file ../docs/perf/selected_region_cases.json \
+  --selection-file ../docs/perf/selected_region_cases.example.json \
   --no-dry-run
 ```
 

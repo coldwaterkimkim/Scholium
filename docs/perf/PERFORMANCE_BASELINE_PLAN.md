@@ -86,7 +86,7 @@ cd backend
 ```bash
 cd backend
 ./.venv/bin/python scripts/benchmark_selected_region_perf.py \
-  --selection-file ../docs/perf/selected_region_cases.json \
+  --selection-file ../docs/perf/selected_region_cases.example.json \
   --dry-run
 ```
 
@@ -95,7 +95,7 @@ cd backend
 ```bash
 cd backend
 ./.venv/bin/python scripts/benchmark_selected_region_perf.py \
-  --selection-file ../docs/perf/selected_region_cases.json \
+  --selection-file ../docs/perf/selected_region_cases.example.json \
   --no-dry-run \
   --mode-name selected_region_real_v1
 ```

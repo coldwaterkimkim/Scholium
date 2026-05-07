@@ -10,9 +10,9 @@ localhost-root-check.png
 parallel-drag-after.png
 parallel-drag-before.png
 
-# Generated benchmark outputs. Keep concise summaries under docs/perf/ instead.
-docs/perf_runs/parser_benchmark_*/
-docs/perf_runs/goldset_bbox_review_*/
+# Generated benchmark outputs. Keep concise source-of-truth docs under docs/perf/ instead.
+docs/perf_runs/*
+!docs/perf_runs/README.md
 
 data/raw_pdfs/*
 !data/raw_pdfs/.gitkeep

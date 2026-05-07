@@ -4,6 +4,8 @@
 
 이 문서는 Scholium MVP v0 Step 2에서 로컬 분석 provider와 모델 운용 방식을 고정하기 위한 결정 기록이다.
 
+현재 제품 기준은 selected-region viewer다. 이 문서 안에서 과거 pass2/precomputed anchor-click 흐름과 충돌하는 부분은 `2026-05 selected-region pivot`, `2026-05 readiness split`, 그리고 `docs/CURRENT_ARCHITECTURE.md`를 우선한다.
+
 ## 고정 결정
 
 - 로컬 기본 provider: Codex CLI subprocess (`SCHOLIUM_LLM_PROVIDER=codex_cli`)
@@ -113,7 +115,7 @@
 - page manifest route label은 `text-rich`, `scan-like`, `visual-rich` 세 가지로 제한한다.
 - `scan-like` 분류는 false positive를 줄이기 위해 보수적으로 둔다.
 - 즉 low text/block 조건만으로는 부족하고, `ocr_used`, `non_empty_text_block_count == 0`, `image_count > 0` 중 하나 이상이 같이 맞아야 한다.
-- parse 또는 routing 실패는 best-effort warning으로만 처리하고, 기존 `pass1 -> synthesis -> pass2` 흐름을 실패시키지 않는다.
+- parse 또는 routing 실패는 best-effort warning으로만 처리하고, 기본 `pass1 -> synthesis -> selected-region on-demand` 흐름을 실패시키지 않는다. Legacy `pass2`는 명시적으로 켠 debug path다.
 - 이유: 이번 단계의 목적은 pass1 소비 전 준비 작업이지, 문서 처리의 새 hard dependency를 만드는 것이 아니기 때문이다.
 
 ## pass1 manifest routing

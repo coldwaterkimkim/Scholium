@@ -1,6 +1,6 @@
 # Backend
 
-Scholium MVP v0 Step 2 백엔드 최소 실행 뼈대다.
+Scholium selected-region MVP 백엔드 runbook이다.
 
 ## 설치
 
@@ -41,7 +41,8 @@ curl -F "file=@../data/raw_pdfs/W1.Lecture01-Financial Management and Firm Value
 - parse / page_manifest precondition
 - pass1
 - document synthesis
-- pass2
+
+기본 MVP에서는 여기서 viewer가 selected-region `on_demand` 모드로 준비된다. `pass2`는 precomputed anchor-click legacy/debug artifact가 필요할 때만 `SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=true`로 켠다.
 
 ## Processing 상태 확인
 
@@ -50,7 +51,7 @@ curl http://127.0.0.1:8000/api/documents/doc_xxx/processing
 watch -n 2 "curl -s http://127.0.0.1:8000/api/documents/doc_xxx/processing"
 ```
 
-processing 응답에는 coarse status, `stage/current_stage(render/pass1/synthesis/pass2)`, page-level 진행 카운트, `pass1_failed_pages`, `pass1_processed_pages`, `current_page_number`, `recent_failures`가 같이 들어간다.
+processing 응답에는 coarse status, `stage/current_stage(render/pass1/synthesis/pass2)`, page-level 진행 카운트, `pass1_failed_pages`, `pass1_processed_pages`, `current_page_number`, `recent_failures`가 같이 들어간다. 현재 기본 viewer readiness는 `render_ready_for_viewer`, `page_context_ready_pages`, `document_context_ready`를 함께 봐야 한다.
 
 ## 자동 생성 artifact 확인
 
@@ -59,6 +60,7 @@ processing 응답에는 coarse status, `stage/current_stage(render/pass1/synthes
 ```bash
 find ../data/rendered_pages/doc_xxx -maxdepth 1 -type f | sort | head
 find ../data/analysis/doc_xxx -maxdepth 3 -type f | sort
+find ../data/parsed/doc_xxx -maxdepth 2 -type f | sort
 ```
 
 ## Canonical Parse Artifact 확인
@@ -202,7 +204,7 @@ corpus benchmark를 모으려면:
   --per-doc-timeout-seconds 900
 ```
 
-기본 corpus output 위치는 `../docs/perf_runs/<timestamp>.json`이야.
+기본 corpus output 위치는 `../docs/perf_runs/<timestamp>.json`이다. 이 디렉터리는 generated artifact 용도라 기본적으로 git에 커밋하지 않는다. 공유할 결론은 `docs/perf/`의 concise decision/plan 문서로 옮긴다.
 
 짧게 핵심 수치만 보려면:
 
@@ -271,6 +273,18 @@ curl http://127.0.0.1:8000/api/documents/doc_xxx/pages/1
 curl -o /tmp/page1.png "$(curl -s http://127.0.0.1:8000/api/documents/doc_xxx/pages/1 | jq -r .image_url)"
 ```
 
+## Selected-Region 설명 API 확인
+
+page context가 준비된 페이지에서 normalized bbox를 보내면, backend가 compact `SelectionContext`를 만들고 on-demand selected-region explanation을 생성한다.
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/documents/doc_xxx/pages/1/selection-explanation \
+  -H "Content-Type: application/json" \
+  -d '{"selected_bbox":[0.12,0.18,0.32,0.08]}'
+```
+
+성공하면 `selection_id`, `selected_bbox`, `concept_title`, `short_explanation`, `long_explanation`, `source_cues`가 포함된 JSON이 돌아온다. 프런트엔드는 이 결과를 floating academic annotation panel로 보여준다.
+
 ## Interaction Log 확인
 
 ```bash
@@ -280,8 +294,10 @@ curl -X POST http://127.0.0.1:8000/api/logs \
 
 curl -X POST http://127.0.0.1:8000/api/logs \
   -H "Content-Type: application/json" \
-  -d '{"document_id":"doc_xxx","page_number":1,"anchor_id":"p1_a3","event_type":"anchor_click"}'
+  -d '{"document_id":"doc_xxx","page_number":1,"anchor_id":"selection_abc","event_type":"selection_explanation_success"}'
 
 sqlite3 ../data/scholium_dev.sqlite3 \
   "select event_id, document_id, page_number, anchor_id, event_type, timestamp from interaction_logs order by timestamp desc limit 20;"
 ```
+
+`anchor_click`와 `related_page_jump` 이벤트는 legacy/debug precomputed anchor-click viewer용으로 남아 있다.

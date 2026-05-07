@@ -97,7 +97,7 @@ export function RightPanel({
 
       {showAnchorDetailSection ? (
         <section className={styles.section}>
-          <span className={styles.label}>Anchor Details</span>
+          <span className={styles.label}>Legacy Region Details</span>
           {selectedAnchor ? (
             <div className={styles.anchorDetails}>
               <div className={styles.detailBlock}>
