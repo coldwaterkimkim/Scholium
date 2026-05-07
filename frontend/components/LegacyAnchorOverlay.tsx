@@ -1,32 +1,32 @@
-import type { FinalAnchor } from "@/lib/api";
+import type { LegacyPrecomputedAnchor } from "@/lib/api";
 import { normalizedBboxToPixelRect, type ImageDisplayMetrics } from "@/utils/bbox";
 
-import styles from "./AnchorOverlay.module.css";
+import styles from "./LegacyAnchorOverlay.module.css";
 
 // Legacy/debug-only overlay for precomputed final anchors.
 // The primary MVP interaction is now drag-based selected-region explanation in DocumentViewer.
-type AnchorOverlayProps = {
-  anchors: FinalAnchor[];
+type LegacyAnchorOverlayProps = {
+  legacyPrecomputedAnchors: LegacyPrecomputedAnchor[];
   imageDisplayMetrics: ImageDisplayMetrics | null;
-  selectedAnchorId: string | null;
-  onSelectAnchor: (anchorId: string) => void;
+  legacySelectedAnchorId: string | null;
+  onSelectLegacyAnchor: (anchorId: string) => void;
 };
 
-export function AnchorOverlay({
-  anchors,
+export function LegacyAnchorOverlay({
+  legacyPrecomputedAnchors,
   imageDisplayMetrics,
-  selectedAnchorId,
-  onSelectAnchor,
-}: AnchorOverlayProps) {
-  if (!imageDisplayMetrics || anchors.length === 0) {
+  legacySelectedAnchorId,
+  onSelectLegacyAnchor,
+}: LegacyAnchorOverlayProps) {
+  if (!imageDisplayMetrics || legacyPrecomputedAnchors.length === 0) {
     return null;
   }
 
   return (
     <div className={styles.overlay}>
-      {anchors.map((anchor, index) => {
+      {legacyPrecomputedAnchors.map((anchor, index) => {
         const rect = normalizedBboxToPixelRect(anchor.bbox, imageDisplayMetrics);
-        const isSelected = anchor.anchor_id === selectedAnchorId;
+        const isSelected = anchor.anchor_id === legacySelectedAnchorId;
 
         return (
           <div key={anchor.anchor_id} className={styles.anchorLayer}>
@@ -47,7 +47,7 @@ export function AnchorOverlay({
                 top: `${rect.top + 8}px`,
               }}
               onPointerDown={(event) => event.stopPropagation()}
-              onClick={() => onSelectAnchor(anchor.anchor_id)}
+              onClick={() => onSelectLegacyAnchor(anchor.anchor_id)}
               aria-label={`${index + 1}. ${anchor.label}`}
               aria-pressed={isSelected}
             >

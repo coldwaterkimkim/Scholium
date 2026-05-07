@@ -10,7 +10,7 @@ import {
 
 import {
   createSelectionFollowUp,
-  type FinalAnchor,
+  type LegacyPrecomputedAnchor,
   type RelatedConceptPage,
   type SelectionExplanation,
   type SelectionFollowUp,
@@ -26,7 +26,7 @@ type ConnectorLine = {
   y2: number;
 };
 
-type AnchorRect = {
+type SelectedRegionRect = {
   left: number;
   top: number;
   width: number;
@@ -34,11 +34,11 @@ type AnchorRect = {
 };
 
 type SelectedExplanationPanelProps = {
-  explanation: FinalAnchor | SelectionExplanation;
+  explanation: LegacyPrecomputedAnchor | SelectionExplanation;
   currentPage: number;
   panelStyle: CSSProperties;
   connectorLine: ConnectorLine;
-  selectedRect: AnchorRect;
+  selectedRect: SelectedRegionRect;
   canvasWidth: number;
   canvasHeight: number;
   onNavigateToRelatedPage: (item: RelatedConceptPage, sourceId: string) => void;
@@ -79,12 +79,15 @@ function scoreDots(score: number) {
   return Array.from({ length: 5 }, (_, index) => index < score);
 }
 
-function normalizeRelatedConcepts(anchor: FinalAnchor, currentPage: number): RelatedConceptPage[] {
-  if (anchor.related_concepts_and_pages?.length) {
-    return anchor.related_concepts_and_pages;
+function normalizeRelatedConcepts(
+  explanation: LegacyPrecomputedAnchor,
+  currentPage: number,
+): RelatedConceptPage[] {
+  if (explanation.related_concepts_and_pages?.length) {
+    return explanation.related_concepts_and_pages;
   }
 
-  return anchor.related_pages
+  return explanation.related_pages
     .filter((pageNumber) => pageNumber !== currentPage)
     .map((pageNumber) => ({
       concept: "Related page",

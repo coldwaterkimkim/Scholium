@@ -1,4 +1,4 @@
-export type AnchorType =
+export type ElementType =
   | "text"
   | "formula"
   | "chart"
@@ -7,6 +7,8 @@ export type AnchorType =
   | "image"
   | "flow"
   | "other";
+
+export type AnchorType = ElementType;
 
 export type DocumentMeta = {
   document_id: string;
@@ -117,10 +119,10 @@ export type DocumentSummary = {
   prerequisite_links: PrerequisiteLink[];
 };
 
-export type FinalAnchor = {
+export type LegacyPrecomputedAnchor = {
   anchor_id: string;
   label: string;
-  anchor_type: AnchorType;
+  anchor_type: ElementType;
   bbox: [number, number, number, number];
   question: string;
   short_explanation: string;
@@ -136,16 +138,21 @@ export type FinalAnchor = {
 };
 
 export type PageElement = {
+  element_id: string;
+  element_type: ElementType;
   anchor_id: string;
   label: string;
-  anchor_type: AnchorType;
+  anchor_type: ElementType;
   bbox: [number, number, number, number];
   question: string;
   short_explanation: string;
   confidence: number;
 };
 
-export type SelectionExplanation = FinalAnchor & {
+// Compatibility export for old debug components and external callers.
+export type FinalAnchor = LegacyPrecomputedAnchor;
+
+export type SelectionExplanation = LegacyPrecomputedAnchor & {
   document_id: string;
   page_number: number;
   selection_id: string;
@@ -205,7 +212,7 @@ export type PageData = {
   image_url: string;
   page_role: string;
   page_summary: string;
-  final_anchors: FinalAnchor[];
+  final_anchors: LegacyPrecomputedAnchor[];
   page_elements: PageElement[];
   page_risk_note: string;
   viewer_mode: "render_only" | "page_context_ready" | "on_demand" | "legacy_pass2";

@@ -1,14 +1,52 @@
 # Legacy Naming Debt
 
-This branch intentionally avoids deep schema-breaking renames. The names below remain for compatibility and should be handled in a future migration branch with tests.
+Scholium's current MVP is a selected-region explanation viewer. Old anchor-era names are now compatibility debt, not the product model.
 
-| Legacy name | Current conceptual meaning | Files affected | Risk | Suggested future branch |
-| --- | --- | --- | --- | --- |
-| `candidate_anchors` | Preprocessed page elements / candidate regions used to ground selected-region explanations | `backend/app/schemas/pass1_schema.py`, `backend/app/services/pass1_analyzer.py`, `backend/app/services/selection_context_builder.py`, `backend/app/services/document_synthesizer.py`, `backend/app/api/documents.py`, `frontend/lib/api.ts`, `docs/prompts/pass1_prompt.md`, `docs/prompts/document_synthesis_prompt.md`, benchmark/export scripts | High: persisted pass1 artifacts, prompt schema, API responses, frontend DTOs | `schema/page-elements-compat-migration` |
-| `final_anchors` | Legacy precomputed anchor-click explanation output; empty in current on-demand default pages | `backend/app/schemas/pass2_schema.py`, `backend/app/services/pass2_refiner.py`, `backend/app/services/pass2_artifact_builder.py`, `backend/app/services/storage.py`, `backend/app/models/read_api.py`, `frontend/lib/api.ts`, `frontend/components/AnchorOverlay.tsx`, `frontend/components/RightPanel.tsx` | High: persisted pass2 artifacts and legacy frontend/debug path | `schema/legacy-pass2-output-migration` |
-| `anchor_id` | Compatibility ID field. For selected-region explanations it can mirror `selection_id`; for page elements it behaves like an element ID. | `backend/app/schemas/common.py`, `backend/app/schemas/selection_explanation_schema.py`, `backend/app/models/logs.py`, `backend/app/services/codex_cli_client.py`, `backend/app/services/openai_client.py`, `frontend/lib/api.ts`, `frontend/components/DocumentViewer.tsx`, `frontend/components/SelectedExplanationPanel.tsx` | High: API contract, logs, artifacts, frontend event payloads | `schema/selection-id-and-element-id-split` |
-| `anchor_type` | Compatibility type field. Conceptually region type / page element type / explanation type depending on context. | `backend/app/schemas/common.py`, `backend/app/schemas/selection_explanation_schema.py`, `backend/app/services/selection_context_builder.py`, `frontend/lib/api.ts`, `docs/prompts/selection_explanation_prompt.md` | Medium-high: schema and UI display contract | `schema/region-type-normalization` |
-| `anchor_click` / `related_page_jump` events | Legacy/debug interaction events for precomputed anchor mode. Current default uses `selection_*` events. | `backend/app/models/logs.py`, `backend/app/services/log_store.py`, `frontend/lib/api.ts`, `frontend/components/DocumentViewer.tsx`, `backend/README.md` | Medium-high: SQLite log compatibility and analytics naming | `analytics/selection-event-v2` |
-| `matched_element_anchor_ids`, `matched_element_anchor_types` | Benchmark metric names for matched page elements that still expose legacy field names | `backend/scripts/benchmark_selected_region_perf.py`, `docs/perf/PERFORMANCE_BASELINE_PLAN.md` | Medium: benchmark consumers may expect existing keys | `perf/page-element-metric-names-v2` |
-| `FinalAnchor` frontend type | Shared compatibility type for legacy final anchors and selected-region explanation shape | `frontend/lib/api.ts`, `frontend/components/SelectedExplanationPanel.tsx`, `frontend/components/AnchorOverlay.tsx`, `frontend/components/RightPanel.tsx` | Medium-high: frontend type rename can ripple across selected-region and legacy views | `frontend/selection-explanation-types-v2` |
-| `pass2_prompt.md` | Legacy/debug precomputed anchor-click prompt, not the current selected-region explanation prompt | `docs/prompts/pass2_prompt.md`, `backend/app/core/config.py`, `backend/app/services/pass2_refiner.py` | Low-medium while `SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=false` remains default | `legacy-pass2/docs-and-debug-isolation` |
+This migration keeps old artifacts readable while moving active code and docs toward:
+
+- `page_elements`
+- `candidate_regions`
+- `selected_regions`
+- `SelectionContext`
+- `SelectionExplanation`
+
+## Classification
+
+| Class | Meaning |
+| --- | --- |
+| A. Safe to rename now | Docs, comments, UI labels, helper names, internal frontend variables, and low-risk benchmark labels. |
+| B. Rename with compatibility layer | Backend models, API response fields, parser/pass1 artifacts, storage loaders, and frontend API types. |
+| C. Defer | Persisted artifact field names, prompt output schemas, legacy pass2/debug artifacts, and analytics fields that need a separate migration. |
+
+## Term Audit
+
+| Legacy term | Current conceptual meaning | Class | Current handling |
+| --- | --- | --- | --- |
+| `candidate_anchors` | Persisted pass1 field for page elements / candidate regions | B/C | Storage accepts legacy `candidate_anchors` and new `page_elements` / `candidate_regions`, then normalizes to persisted `candidate_anchors` plus a loaded `page_elements` alias. Prompt output schema still uses `candidate_anchors`. |
+| `candidate_anchor_count` | Page element count | A/B | Backend pass1 result now emits `page_element_count` and keeps `candidate_anchor_count` as compatibility metadata. |
+| `anchor_id` | Element ID, selection ID, or legacy anchor ID depending on artifact | B/C | Public page elements expose `element_id` while keeping `anchor_id`. Selection explanations still mirror `anchor_id = selection_id` for compatibility. |
+| `anchor_type` | Element type / region type / legacy anchor type | B/C | Public page elements expose `element_type` while keeping `anchor_type`. Prompt output schemas still use `anchor_type`. |
+| `final_anchors` | Legacy precomputed anchor-click explanation output | C | Kept only for `legacy_pass2`; selected-region pages return it empty. |
+| `anchor_click` | Legacy precomputed anchor-click analytics event | C | Kept for existing logs/debug viewer compatibility. Current selected-region flow uses `selection_*` events. |
+| `AnchorOverlay` | Legacy overlay for precomputed final anchors | A | Renamed to `LegacyAnchorOverlay`; not part of the primary selected-region UI. |
+| `selectedAnchor` | Legacy selected precomputed anchor state | A | Renamed in retained legacy/debug panel props to selected legacy region wording. |
+| `selectedAnchorId` | Legacy selected precomputed anchor ID | A | Renamed to `legacySelectedAnchorId` in the legacy overlay. |
+| `Anchor Details` | Old UI label for precomputed anchor details | A | Replaced by `Legacy Region Details`. |
+| `pass2` | Legacy/debug precomputed explanation stage | C | Retained for compatibility and internal debug only. Default selected-region flow does not require it. |
+| `legacy_pass2` | Viewer readiness mode for old precomputed artifact path | C | Kept as explicit compatibility mode. |
+
+## Backend Strategy
+
+- Persisted pass1 JSON remains backward compatible with `candidate_anchors`.
+- New pass1-like input can provide `page_elements` or `candidate_regions`.
+- `StorageService.load_pass1_result()` returns normalized `result.page_elements` so current code can use current naming without rewriting old JSON files.
+- `PagePublicResponse.page_elements` now uses the `PageElement` schema with `element_id` / `element_type` plus legacy aliases.
+- `SelectionContextBuilder` consumes `page_elements` first and falls back to legacy `candidate_anchors`.
+- `final_anchors`, pass2 schemas, and log column names are intentionally deferred.
+
+## Deferred Cleanup
+
+- Split `anchor_id` / `anchor_type` out of selection explanation and analytics contracts.
+- Remove the remaining compatibility alias `FinalAnchor` after old callers stop importing it.
+- Migrate benchmark CSV/JSON keys such as `matched_element_anchor_ids` only if downstream consumers are updated.
+- Consider an artifact v0.3 migration only after selected-region MVP behavior is stable.

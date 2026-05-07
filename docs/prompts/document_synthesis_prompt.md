@@ -29,7 +29,7 @@
 너의 임무는 여러 페이지의 1차 분석 결과를 보고, 이 문서가 전체적으로 어떤 흐름을 갖는지 구조화하는 것이다.
 
 중요 원칙:
-- 입력은 원본 PDF 전체가 아니라 **page_role / page_summary / candidate anchor summary(label + anchor_type) 정보**다.
+- 입력은 원본 PDF 전체가 아니라 **page_role / page_summary / page element summary(label + element_type) 정보**다. `candidate_anchor_summaries`가 같이 오면 legacy alias로만 취급한다.
 - 각 페이지의 미세한 의미를 다시 해설하려 하지 말고, **문서 레벨 구조**에 집중하라.
 - 섹션 구조는 가능하면 3~7개 정도의 의미 있는 구간으로 나눈다. 너무 잘게 쪼개지 마라.
 - key_concepts는 단순 단어 목록이 아니라, 문서 전체에서 반복적으로 중요한 역할을 하는 개념만 뽑아라.
@@ -48,7 +48,10 @@
   - page_number
   - page_role
   - page_summary
-  - candidate_anchor_summaries (optional)
+  - page_element_summaries (optional)
+    - label
+    - element_type
+  - candidate_anchor_summaries (optional legacy alias)
     - label
     - anchor_type
 - schema_version
@@ -65,14 +68,14 @@
       "page_number": 1,
       "page_role": "문제 정의",
       "page_summary": "문서가 다루는 핵심 문제와 배경을 소개한다.",
-      "candidate_anchor_summaries": [
+      "page_element_summaries": [
         {
           "label": "문제 정의",
-          "anchor_type": "text"
+          "element_type": "text"
         },
         {
           "label": "핵심 질문",
-          "anchor_type": "diagram"
+          "element_type": "diagram"
         }
       ]
     }

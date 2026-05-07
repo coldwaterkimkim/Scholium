@@ -1,9 +1,13 @@
 # Scholium MVP v0 — Pass 2 Prompt
 
-## Purpose
-페이지 1차 분석 결과와 문서 구조 합성 결과를 바탕으로, 사용자에게 실제로 노출할 **최종 앵커 3~5개**를 선정하고 설명을 보정한다.
+> LEGACY/DEBUG ONLY.
+>
+> This prompt is not part of Scholium's current default selected-region viewer flow. Use it only for legacy precomputed anchor-click compatibility when `SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=true`.
 
-## Runtime Defaults
+## Purpose
+페이지 1차 분석 결과와 문서 구조 합성 결과를 바탕으로, legacy/debug viewer에서만 사용할 **precomputed final anchors 3~5개**를 선정하고 설명을 보정한다.
+
+## Legacy Runtime Defaults
 - baseline model: `gpt-5.4`
 - reasoning.effort: `high`
 - prompt_version: `pass2_v0_2`
@@ -12,14 +16,14 @@
 - backend wrapper adds `meta` outside the validated result body
 
 이 단계의 목적은 다음 5가지다.
-1. candidate anchors를 rerank한다
-2. final anchors 3~5개만 선택한다
-3. 각 앵커에 student-facing explanation fields를 붙인다
+1. legacy candidate anchors를 rerank한다
+2. legacy final anchors 3~5개만 선택한다
+3. 각 legacy anchor에 student-facing explanation fields를 붙인다
 4. 관련 개념/페이지와 연결 이유를 붙인다
 5. source cue와 study importance를 붙인다
 6. prerequisite 및 page_risk_note를 정리한다
 
-이 단계는 **dense extraction을 sparse surfacing으로 바꾸는 단계**다.
+이 단계는 legacy/debug precomputed anchor-click artifact를 만들 때만 **dense extraction을 sparse surfacing으로 바꾸는 단계**다.
 
 ---
 

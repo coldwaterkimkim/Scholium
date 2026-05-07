@@ -1,4 +1,4 @@
-import type { FinalAnchor } from "@/lib/api";
+import type { LegacyPrecomputedAnchor } from "@/lib/api";
 
 import styles from "./RightPanel.module.css";
 
@@ -15,9 +15,9 @@ type RightPanelProps = {
   isPageLoading: boolean;
   pageError: string | null;
   currentPage: number;
-  availableAnchorCount: number;
-  selectedAnchor: FinalAnchor | null;
-  onNavigateToRelatedPage: (pageNumber: number, anchorId: string) => void;
+  availableLegacyRegionCount: number;
+  legacySelectedRegion: LegacyPrecomputedAnchor | null;
+  onNavigateToRelatedPage: (pageNumber: number, legacyAnchorId: string) => void;
 };
 
 export function RightPanel({
@@ -31,16 +31,16 @@ export function RightPanel({
   isPageLoading,
   pageError,
   currentPage,
-  availableAnchorCount,
-  selectedAnchor,
+  availableLegacyRegionCount,
+  legacySelectedRegion,
   onNavigateToRelatedPage,
 }: RightPanelProps) {
   const relatedPages =
-    selectedAnchor?.related_pages.filter((pageNumber) => pageNumber !== currentPage) ?? [];
-  const showAnchorDetailSection = availableAnchorCount > 0;
+    legacySelectedRegion?.related_pages.filter((pageNumber) => pageNumber !== currentPage) ?? [];
+  const showLegacyRegionDetailSection = availableLegacyRegionCount > 0;
   const confidenceText =
-    selectedAnchor && Number.isFinite(selectedAnchor.confidence)
-      ? `${Math.round(selectedAnchor.confidence * 100)}%`
+    legacySelectedRegion && Number.isFinite(legacySelectedRegion.confidence)
+      ? `${Math.round(legacySelectedRegion.confidence * 100)}%`
       : null;
 
   return (
@@ -95,34 +95,34 @@ export function RightPanel({
         )}
       </section>
 
-      {showAnchorDetailSection ? (
+      {showLegacyRegionDetailSection ? (
         <section className={styles.section}>
           <span className={styles.label}>Legacy Region Details</span>
-          {selectedAnchor ? (
+          {legacySelectedRegion ? (
             <div className={styles.anchorDetails}>
               <div className={styles.detailBlock}>
                 <span className={styles.detailTitle}>Label</span>
-                <p className={styles.text}>{selectedAnchor.label}</p>
+                <p className={styles.text}>{legacySelectedRegion.label}</p>
               </div>
 
               <div className={styles.detailBlock}>
                 <span className={styles.detailTitle}>Question</span>
-                <p className={styles.text}>{selectedAnchor.question}</p>
+                <p className={styles.text}>{legacySelectedRegion.question}</p>
               </div>
 
               <div className={styles.detailBlock}>
                 <span className={styles.detailTitle}>Short Explanation</span>
-                <p className={styles.text}>{selectedAnchor.short_explanation}</p>
+                <p className={styles.text}>{legacySelectedRegion.short_explanation}</p>
               </div>
 
               <div className={styles.detailBlock}>
                 <span className={styles.detailTitle}>Long Explanation</span>
-                <p className={styles.text}>{selectedAnchor.long_explanation}</p>
+                <p className={styles.text}>{legacySelectedRegion.long_explanation}</p>
               </div>
 
               <div className={styles.detailBlock}>
                 <span className={styles.detailTitle}>Prerequisite</span>
-                <p className={styles.text}>{selectedAnchor.prerequisite || "없음"}</p>
+                <p className={styles.text}>{legacySelectedRegion.prerequisite || "없음"}</p>
               </div>
 
               {relatedPages.length > 0 ? (
@@ -134,7 +134,7 @@ export function RightPanel({
                         key={pageNumber}
                         type="button"
                         className={styles.relatedPageButton}
-                        onClick={() => onNavigateToRelatedPage(pageNumber, selectedAnchor.anchor_id)}
+                        onClick={() => onNavigateToRelatedPage(pageNumber, legacySelectedRegion.anchor_id)}
                         disabled={isPageLoading}
                       >
                         p. {pageNumber}

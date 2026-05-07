@@ -68,11 +68,23 @@ It is built for one selected bbox and should stay compact. It includes:
 
 The backend should not send full pass1 artifacts, full document summaries, or every page element by default when a compact `SelectionContext` is enough.
 
+## Glossary
+
+| Term | Meaning |
+| --- | --- |
+| `PageElement` | A parsed or model-identified region on a page that can help build `SelectionContext`. |
+| `CandidateRegion` | A bbox-grounded region that may be useful for selected-region explanation. |
+| `SelectedRegion` | The user-dragged bbox region. |
+| `SelectionExplanation` | The generated explanation for a selected region. |
+| `SelectionContext` | The compact context built from page/document artifacts for one selected region. |
+| `LegacyPrecomputedAnchor` | Old precomputed explanation region used only for legacy/debug/pass2 compatibility. |
+
 ## Legacy Naming Compatibility
 
 Some field names still contain `anchor` because earlier MVP work used precomputed clickable anchors.
 
-- `candidate_anchors` is a legacy field name. Conceptually it now means page elements or candidate regions used to ground selected-region explanations.
+- `candidate_anchors` is a legacy persisted field name. Conceptually it now means `page_elements` or `candidate_regions` used to ground selected-region explanations.
+- `page_elements` is the current public/API-facing name for those normalized page regions.
 - `final_anchors` is a legacy field name for precomputed anchor-click output. In current default pages it should usually be empty.
 - `anchor_id` and `anchor_type` remain compatibility schema/API fields. In selected-region results, `anchor_id` may mirror `selection_id`.
 

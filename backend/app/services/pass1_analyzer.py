@@ -16,7 +16,7 @@ _ESCALATED_PATH = "escalated"
 _MIN_TEXT_LENGTH_FOR_CHEAP_PATH = 200
 _MIN_NON_EMPTY_TEXT_BLOCKS_FOR_CHEAP_PATH = 4
 _MIN_PARSED_BLOCKS_FOR_CHEAP_PATH = 3
-_MIN_CANDIDATE_ANCHORS_FOR_CHEAP_PATH = 6
+_MIN_PAGE_ELEMENTS_FOR_CHEAP_PATH = 6
 _MAX_TEXT_FIRST_BLOCKS = 20
 _MAX_TEXT_FIRST_BLOCK_CHARS = 300
 _MAX_TEXT_FIRST_PAGE_TEXT_CHARS = 4000
@@ -99,11 +99,11 @@ class Pass1Analyzer:
                         parsed_page=parsed_page,
                         parser_source=parser_source,
                     )
-                    candidate_anchor_count = len(envelope["result"]["candidate_anchors"])
-                    if candidate_anchor_count < _MIN_CANDIDATE_ANCHORS_FOR_CHEAP_PATH:
+                    page_element_count = len(envelope["result"]["candidate_anchors"])
+                    if page_element_count < _MIN_PAGE_ELEMENTS_FOR_CHEAP_PATH:
                         raise ValueError(
-                            "Text-first pass1 produced too few candidate anchors: "
-                            f"{candidate_anchor_count} < {_MIN_CANDIDATE_ANCHORS_FOR_CHEAP_PATH}."
+                            "Text-first pass1 produced too few page elements: "
+                            f"{page_element_count} < {_MIN_PAGE_ELEMENTS_FOR_CHEAP_PATH}."
                         )
                     pass1_path = _TEXT_FIRST_PATH
                 except Exception as exc:
@@ -157,10 +157,10 @@ class Pass1Analyzer:
                 pass1_path=pass1_path,
             )
 
-        candidate_anchor_count = len(envelope["result"]["candidate_anchors"])
-        if candidate_anchor_count < 8:
+        page_element_count = len(envelope["result"]["candidate_anchors"])
+        if page_element_count < 8:
             qa_warnings.append(
-                f"candidate_anchors count is {candidate_anchor_count}; recommended QA target is 8~15.",
+                f"page_elements count is {page_element_count}; recommended QA target is 8~15.",
             )
 
         return {
@@ -168,7 +168,8 @@ class Pass1Analyzer:
             "page_number": page_number,
             "pass1_status": StageStatus.COMPLETED.value,
             "saved_path": saved_path,
-            "candidate_anchor_count": candidate_anchor_count,
+            "page_element_count": page_element_count,
+            "candidate_anchor_count": page_element_count,
             "qa_warnings": qa_warnings,
             "error_message": None,
             "pass1_path": pass1_path,
@@ -609,6 +610,7 @@ class Pass1Analyzer:
             "page_number": page_number,
             "pass1_status": StageStatus.FAILED.value,
             "saved_path": None,
+            "page_element_count": None,
             "candidate_anchor_count": None,
             "qa_warnings": [],
             "error_message": error_message,

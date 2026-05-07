@@ -137,6 +137,8 @@ OpenAI API 키는 기본 실행에 필요하지 않다. 로컬 MVP 분석 provid
 8. schema validation을 통과한 결과만 `data/analysis/<document_id>/pages/<page>/selection_explanations/`에 저장된다.
 9. floating academic annotation panel이 선택 영역 옆에 뜬다.
 
+Pass1 artifact의 persisted field는 legacy 호환 때문에 아직 `candidate_anchors`지만, 현재 제품 의미와 public page API 이름은 `page_elements`다. 새 코드에서는 `page_elements` / `element_id` / `element_type`을 우선 쓰고, `candidate_anchors` / `anchor_id` / `anchor_type`은 저장 artifact와 legacy/debug 호환용으로만 취급한다.
+
 ## Readiness modes
 
 - `render_only`: PDF page image만 준비됐다. 사용자는 읽을 수 있지만 selection explanation은 막힌다.

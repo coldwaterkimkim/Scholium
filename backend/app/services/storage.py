@@ -478,7 +478,12 @@ class StorageService:
         target_path = self.get_pass1_result_path(document_id, page_number)
         target_path.parent.mkdir(parents=True, exist_ok=True)
 
-        normalized_payload = self._normalize_pass1_artifact(document_id, page_number, payload)
+        normalized_payload = self._normalize_pass1_artifact(
+            document_id,
+            page_number,
+            payload,
+            include_page_elements_alias=False,
+        )
         temp_path = target_path.parent / f".{target_path.name}.{uuid4().hex}.tmp"
 
         try:
@@ -487,7 +492,12 @@ class StorageService:
                 encoding="utf-8",
             )
             loaded_payload = json.loads(temp_path.read_text(encoding="utf-8"))
-            self._normalize_pass1_artifact(document_id, page_number, loaded_payload)
+            self._normalize_pass1_artifact(
+                document_id,
+                page_number,
+                loaded_payload,
+                include_page_elements_alias=False,
+            )
             os.replace(temp_path, target_path)
         except Exception:
             if temp_path.exists():
@@ -1223,6 +1233,8 @@ class StorageService:
         document_id: str,
         page_number: int,
         payload: dict[str, object],
+        *,
+        include_page_elements_alias: bool = True,
     ) -> dict[str, object]:
         if not isinstance(payload, dict):
             raise ValueError("Pass1 artifact must be a JSON object.")
@@ -1242,11 +1254,61 @@ class StorageService:
         normalized_result = dict(result)
         normalized_result["document_id"] = document_id
         normalized_result["page_number"] = page_number
+        normalized_result["candidate_anchors"] = self._legacy_candidate_anchors_from_pass1_result(
+            normalized_result,
+        )
+        normalized_result.pop("page_elements", None)
+        normalized_result.pop("candidate_regions", None)
         validated_result = validate_payload("pass1", normalized_result)
+        if include_page_elements_alias:
+            validated_result["page_elements"] = [
+                self._page_element_from_legacy_candidate(candidate)
+                for candidate in validated_result["candidate_anchors"]
+            ]
 
         return {
             "meta": self._normalize_pass1_meta(meta),
             "result": validated_result,
+        }
+
+    def _legacy_candidate_anchors_from_pass1_result(
+        self,
+        result: dict[str, object],
+    ) -> object:
+        raw_candidates = result.get("candidate_anchors")
+        if not isinstance(raw_candidates, list):
+            raw_candidates = result.get("page_elements")
+        if not isinstance(raw_candidates, list):
+            raw_candidates = result.get("candidate_regions")
+        if not isinstance(raw_candidates, list):
+            return raw_candidates
+
+        return [self._legacy_candidate_from_page_element(candidate) for candidate in raw_candidates]
+
+    def _legacy_candidate_from_page_element(self, candidate: object) -> object:
+        if not isinstance(candidate, dict):
+            return candidate
+
+        normalized = dict(candidate)
+        if not normalized.get("anchor_id") and normalized.get("element_id"):
+            normalized["anchor_id"] = normalized["element_id"]
+        if not normalized.get("anchor_id") and normalized.get("region_id"):
+            normalized["anchor_id"] = normalized["region_id"]
+        if not normalized.get("anchor_type") and normalized.get("element_type"):
+            normalized["anchor_type"] = normalized["element_type"]
+        if not normalized.get("anchor_type") and normalized.get("region_type"):
+            normalized["anchor_type"] = normalized["region_type"]
+        normalized.pop("element_id", None)
+        normalized.pop("element_type", None)
+        normalized.pop("region_id", None)
+        normalized.pop("region_type", None)
+        return normalized
+
+    def _page_element_from_legacy_candidate(self, candidate: dict[str, object]) -> dict[str, object]:
+        return {
+            **candidate,
+            "element_id": candidate["anchor_id"],
+            "element_type": candidate["anchor_type"],
         }
 
     def _normalize_pass1_meta(self, meta: dict[str, object]) -> dict[str, object]:

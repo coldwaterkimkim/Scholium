@@ -55,9 +55,9 @@ selection spec 예시:
 - 준비 상태: `page_record_found`, `rendered_page_ready`, `page_image_exists`, `pass1_available`, `document_summary_available`
 - 캐시 상태: `cache_hit_before`, `cache_matches_current_provider_before`, `cache_hit_after`, `selection_artifact_available_after`
 - compact context: `selection_context_size_chars`, `selection_context_hash`, `nearby_text_block_count`, `source_candidate_count`
-- preprocessed match: `matched_preprocessed_element_count`, `matched_element_anchor_ids`, `matched_element_anchor_types`, `top_match_score`, `top_selection_overlap_ratio`, `top_selection_center_distance`
+- preprocessed match: `matched_preprocessed_element_count`, `matched_element_ids`, `matched_element_types`, legacy metric keys `matched_element_anchor_ids` / `matched_element_anchor_types`, `top_match_score`, `top_selection_overlap_ratio`, `top_selection_center_distance`
 - 실행 시간: `dry_run_check_seconds`, `service_call_seconds`, `total_wall_time_seconds`
-- 결과 품질 proxy: `result_anchor_type`, `result_confidence`, `result_study_importance`, `result_related_pages_count`, `result_source_cues_count`, `result_short_explanation_chars`, `result_long_explanation_chars`
+- 결과 품질 proxy: `result_element_type`, legacy metric key `result_anchor_type`, `result_confidence`, `result_study_importance`, `result_related_pages_count`, `result_source_cues_count`, `result_short_explanation_chars`, `result_long_explanation_chars`
 - 실패 설명: `status`, `error_message`
 
 해석 규칙:

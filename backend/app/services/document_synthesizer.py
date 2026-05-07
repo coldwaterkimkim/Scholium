@@ -58,13 +58,15 @@ class DocumentSynthesizer:
                 continue
 
             result = artifact["result"]
-            candidate_anchors = result.get("candidate_anchors", [])
+            page_elements = result.get("page_elements") or result.get("candidate_anchors", [])
+            page_element_summaries = self._build_page_element_summaries(page_elements)
             usable_summaries.append(
                 {
                     "page_number": result["page_number"],
                     "page_role": result["page_role"],
                     "page_summary": result["page_summary"],
-                    "candidate_anchor_summaries": self._build_candidate_anchor_summaries(candidate_anchors),
+                    "page_element_summaries": page_element_summaries,
+                    "candidate_anchor_summaries": page_element_summaries,
                 }
             )
             usable_page_numbers.append(page.page_number)
@@ -135,22 +137,28 @@ class DocumentSynthesizer:
             "error_message": None,
         }
 
-    def _build_candidate_anchor_summaries(
+    def _build_page_element_summaries(
         self,
-        candidate_anchors: list[dict[str, Any]],
+        page_elements: list[dict[str, Any]],
     ) -> list[dict[str, str]]:
         seen: set[tuple[str, str]] = set()
         summaries: list[dict[str, str]] = []
-        for anchor in candidate_anchors:
-            label = str(anchor.get("label", "")).strip()
-            anchor_type = str(anchor.get("anchor_type", "")).strip()
-            if not label or not anchor_type:
+        for element in page_elements:
+            label = str(element.get("label", "")).strip()
+            element_type = str(element.get("element_type") or element.get("anchor_type") or "").strip()
+            if not label or not element_type:
                 continue
-            key = (label, anchor_type)
+            key = (label, element_type)
             if key in seen:
                 continue
             seen.add(key)
-            summaries.append({"label": label, "anchor_type": anchor_type})
+            summaries.append(
+                {
+                    "label": label,
+                    "element_type": element_type,
+                    "anchor_type": element_type,
+                }
+            )
         return summaries
 
     def _normalize_summary_envelope(

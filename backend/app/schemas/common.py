@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, conlist
+from pydantic import BaseModel, ConfigDict, Field, conlist, model_validator
 
 
 NormalizedFloat = Annotated[float, Field(ge=0.0, le=1.0)]
@@ -40,6 +40,45 @@ class CandidateAnchor(StrictModel):
     confidence: Annotated[float, Field(ge=0.0, le=1.0)]
 
 
+class PageElement(StrictModel):
+    element_id: str = Field(min_length=1)
+    label: str = Field(min_length=1)
+    element_type: AnchorType
+    bbox: NormalizedBBox
+    question: str = Field(min_length=1)
+    short_explanation: str = Field(min_length=1)
+    confidence: Annotated[float, Field(ge=0.0, le=1.0)]
+    anchor_id: str = Field(min_length=1)
+    anchor_type: AnchorType
+
+    @model_validator(mode="before")
+    @classmethod
+    def fill_legacy_aliases(cls, data: object) -> object:
+        if not isinstance(data, dict):
+            return data
+
+        normalized = dict(data)
+        if not normalized.get("element_id") and normalized.get("anchor_id"):
+            normalized["element_id"] = normalized["anchor_id"]
+        if not normalized.get("element_id") and normalized.get("region_id"):
+            normalized["element_id"] = normalized["region_id"]
+        if not normalized.get("anchor_id") and normalized.get("element_id"):
+            normalized["anchor_id"] = normalized["element_id"]
+        if not normalized.get("element_type") and normalized.get("anchor_type"):
+            normalized["element_type"] = normalized["anchor_type"]
+        if not normalized.get("element_type") and normalized.get("region_type"):
+            normalized["element_type"] = normalized["region_type"]
+        if not normalized.get("anchor_type") and normalized.get("element_type"):
+            normalized["anchor_type"] = normalized["element_type"]
+        normalized.pop("region_id", None)
+        normalized.pop("region_type", None)
+        return normalized
+
+
+class CandidateRegion(PageElement):
+    pass
+
+
 class StudyImportance(StrictModel):
     level: StudyImportanceLevel
     score: Annotated[int, Field(ge=1, le=5)]
@@ -68,6 +107,10 @@ class FinalAnchor(CandidateAnchor):
     why_it_matters_here: str | None = Field(..., min_length=1)
     related_concepts_and_pages: list[RelatedConceptPage] | None = Field(..., max_length=4)
     source_cues: list[SourceCue] | None = Field(..., max_length=4)
+
+
+class LegacyPrecomputedAnchor(FinalAnchor):
+    pass
 
 
 class DocumentSection(StrictModel):

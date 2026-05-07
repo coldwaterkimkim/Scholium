@@ -51,7 +51,7 @@ curl http://127.0.0.1:8000/api/documents/doc_xxx/processing
 watch -n 2 "curl -s http://127.0.0.1:8000/api/documents/doc_xxx/processing"
 ```
 
-processing 응답에는 coarse status, `stage/current_stage(render/pass1/synthesis/pass2)`, page-level 진행 카운트, `pass1_failed_pages`, `pass1_processed_pages`, `current_page_number`, `recent_failures`가 같이 들어간다. 현재 기본 viewer readiness는 `render_ready_for_viewer`, `page_context_ready_pages`, `document_context_ready`를 함께 봐야 한다.
+processing 응답에는 coarse status, `stage/current_stage(render/pass1/synthesis/pass2)`, page-level 진행 카운트, `pass1_failed_pages`, `pass1_processed_pages`, `current_page_number`, `recent_failures`가 같이 들어간다. 현재 기본 viewer readiness는 `render_ready_for_viewer`, `page_context_ready_pages`, `document_context_ready`를 함께 봐야 한다. 기본 selected-region 실행에서는 `pass2_*` 값이 0 또는 미실행 상태여도 정상이다.
 
 ## 자동 생성 artifact 확인
 
@@ -145,7 +145,7 @@ for path in sorted(base.glob("*/page_analysis_pass1.json")):
         path.parent.name,
         meta.get("pass1_path"),
         meta.get("route_label"),
-        len(payload["result"]["candidate_anchors"]),
+        len(payload["result"].get("page_elements") or payload["result"]["candidate_anchors"]),
     )
 PY
 ```
@@ -284,6 +284,8 @@ curl -X POST http://127.0.0.1:8000/api/documents/doc_xxx/pages/1/selection-expla
 ```
 
 성공하면 `selection_id`, `selected_bbox`, `concept_title`, `short_explanation`, `long_explanation`, `source_cues`가 포함된 JSON이 돌아온다. 프런트엔드는 이 결과를 floating academic annotation panel로 보여준다.
+
+Public page API는 현재 `page_elements`를 노출한다. 오래된 pass1 artifact는 계속 `candidate_anchors`로 저장되어 있을 수 있지만, backend loader가 `page_elements` alias를 만들어 selected-region 흐름에서 사용한다.
 
 ## Interaction Log 확인
 

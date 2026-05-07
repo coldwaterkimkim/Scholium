@@ -33,7 +33,7 @@
 
 - 기본 MVP product model은 precomputed final anchors가 아니다.
 - 기본 처리 흐름은 `render -> pass1 preprocessing -> document synthesis -> viewer-ready`다.
-- `pass1.candidate_anchors`는 legacy field name을 유지하지만, 제품 의미는 visible anchor가 아니라 selected-region explanation을 위한 internal page-element map이다.
+- `pass1.candidate_anchors`는 legacy persisted field name을 유지하지만, 제품 의미는 visible anchor가 아니라 selected-region explanation을 위한 internal page-element map이다. Loader와 public page API에서는 `page_elements` alias를 우선 사용한다.
 - `pass2`는 legacy/debug path로 내려간다. `SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=true`일 때만 선제 final anchor artifact를 만든다.
 - 사용자가 viewer에서 drag-select한 bbox는 `POST /api/documents/{document_id}/pages/{page_number}/selection-explanation`로 전달된다.
 - selection explanation은 page image와 compact `SelectionContext`를 입력으로 Codex CLI가 생성한다. full pass1 artifact, full document summary, full page text, 모든 page element는 기본 payload에 넣지 않는다.
@@ -55,7 +55,7 @@
 
 - Codex CLI timeout: 기본 300초
 - OpenAI request timeout: 기본 60초
-- pass2 request timeout: 120초
+- legacy pass2 request timeout: 120초
 - API/network retry: 최대 2회
 - local validation 실패 시: repair instruction을 붙여 1회 재시도
 - pass2 diversity 보정용 추가 모델 호출: 사용하지 않음
@@ -64,14 +64,14 @@
 
 - pass1 기본 reasoning effort는 `high`에서 `medium`으로 낮춘다.
 - 이유: pass1은 페이지 수만큼 호출이 fan-out되므로 reasoning effort를 낮추는 편이 누적 비용과 지연을 가장 직접적으로 줄인다.
-- pass2는 diversity 부족을 이유로 모델을 다시 호출하지 않고, 결과의 다양성 부족은 `qa_warnings`에만 남긴다.
+- legacy pass2는 diversity 부족을 이유로 모델을 다시 호출하지 않고, 결과의 다양성 부족은 `qa_warnings`에만 남긴다.
 - 이유: diversity 보정용 추가 호출은 비용 증가 대비 효과가 불안정하므로, 이번 단계에서는 warning으로만 관찰하고 재호출은 생략한다.
-- pass2 기본 reasoning effort는 `high`에서 `medium`으로 낮춘다.
-- 이유: pass2는 이미지 + pass1 결과 + 문서 요약을 함께 넣는 무거운 stage라서 timeout과 connection error를 줄이기 위해 호출당 사고량을 낮춘다.
-- pass2 기본 병렬도는 `3`에서 `2`로 낮춘다.
+- legacy pass2 기본 reasoning effort는 `high`에서 `medium`으로 낮춘다.
+- 이유: legacy pass2는 이미지 + pass1 결과 + 문서 요약을 함께 넣는 무거운 stage라서 timeout과 connection error를 줄이기 위해 호출당 사고량을 낮춘다.
+- legacy pass2 기본 병렬도는 `3`에서 `2`로 낮춘다.
 - 이유: 문서당 동시 호출 burst를 줄여 timeout/connection error 확률을 낮춘다.
-- pass2 기본 timeout은 `60초`가 아니라 `120초`를 사용한다.
-- 이유: pass2는 stage 특성상 payload와 출력이 가장 무거워서, 60초 제한보다 1회 성공을 우선하는 편이 재시도/실패 비용까지 포함하면 더 안정적이다.
+- legacy pass2 기본 timeout은 `60초`가 아니라 `120초`를 사용한다.
+- 이유: legacy pass2는 stage 특성상 payload와 출력이 가장 무거워서, 60초 제한보다 1회 성공을 우선하는 편이 재시도/실패 비용까지 포함하면 더 안정적이다.
 - 모델 입력에 넣는 stage payload JSON은 compact form으로 직렬화한다.
 - 이유: 모델 입력 토큰과 전송량을 줄이기 위해서고, 사람용 artifact 저장 포맷은 그대로 유지한다.
 - artifact 저장 JSON과 `meta` / `result` envelope 구조는 그대로 유지한다.
@@ -130,14 +130,14 @@
   - `text-rich` → text-first cheap path 우선
   - `scan-like`, `visual-rich` → 기존 multimodal path 유지
 - text-first cheap path는 image multimodal을 쓰지 않고 text-only LLM path를 사용한다.
-- 이유: `page_role`, `page_summary`, `candidate_anchors` 품질을 유지하면서도 가장 직접적으로 multimodal 호출 수를 줄일 수 있기 때문이다.
+- 이유: `page_role`, `page_summary`, page-element 후보 품질을 유지하면서도 가장 직접적으로 multimodal 호출 수를 줄일 수 있기 때문이다.
 - text-first bbox는 자유 생성이 아니라 선택/조합으로 제한한다.
   - 허용: parsed block 1개의 bbox
   - 허용: reading_order상 인접한 2개 block union bbox
   - 그 외 bbox는 cheap path 실패로 보고 multimodal로 escalate한다.
 - cheap path가 실패하거나 품질 신호가 약하면 multimodal fallback을 유지한다.
-- 기준 예시: text 부족, non-empty block 부족, bbox grounding 실패, candidate anchor 수 부족.
-- 이번 단계의 candidate anchor 최소 성공 기준은 `< 6`이면 cheap path 성공으로 보지 않고 fallback한다.
+- 기준 예시: text 부족, non-empty block 부족, bbox grounding 실패, page element 수 부족.
+- 이번 단계의 page element 최소 성공 기준은 `< 6`이면 cheap path 성공으로 보지 않고 fallback한다.
 - pass1 artifact `meta`에는 `pass1_path`, `route_label`, `route_reason`, `parser_source`를 optional로 남긴다.
 - 이유: 실제로 multimodal 호출 수가 줄었는지와 어떤 페이지가 escalate됐는지 검증 가능하게 하기 위해서다.
 
@@ -154,7 +154,7 @@
 - 이유: cheap path보다 문서 처리 성공률 유지가 우선이기 때문이다.
 - text-first cheap path는 deterministic heuristic이 아니라 text-only LLM path를 사용한다.
 - 이유: `page_role`, `page_summary`, `question`, `short_explanation` 품질을 유지하면서도 image multimodal만 제거할 수 있기 때문이다.
-- cheap path가 실패하거나 candidate anchor 수가 너무 적으면 해당 페이지만 multimodal로 escalate 한다.
+- cheap path가 실패하거나 page element 수가 너무 적으면 해당 페이지만 multimodal로 escalate 한다.
 - `pass1` artifact `meta`에는 `pass1_path`, `route_label`, `route_reason`, `parser_source`를 남긴다.
 - 목적: 실제로 multimodal pass1 호출 수가 얼마나 줄었는지 사후 검증 가능하게 하기 위함이다.
 - 이번 단계에서는 triage를 text-first friendly하게 보정해서, 텍스트가 충분한 슬라이드가 `has_figure` 하나 때문에 무조건 `visual-rich`로 떨어지지 않게 한다.

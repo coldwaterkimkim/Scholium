@@ -501,25 +501,25 @@ function pixelRectToNormalizedBbox(
 }
 
 function buildPanelPlacement(
-  selectedAnchorRect: PixelRect | null,
+  selectedRegionRect: PixelRect | null,
   imageDisplayMetrics: ImageDisplayMetrics | null,
 ): PanelPlacement {
-  if (!selectedAnchorRect || !imageDisplayMetrics) {
+  if (!selectedRegionRect || !imageDisplayMetrics) {
     return null;
   }
 
   const canvasWidth = Math.max(1, imageDisplayMetrics.offsetLeft + imageDisplayMetrics.width);
   const canvasHeight = Math.max(1, imageDisplayMetrics.offsetTop + imageDisplayMetrics.height);
   const panelWidth = Math.round(clamp(canvasWidth * 0.42, 340, 460));
-  const defaultPanelRect = buildDefaultPanelRect(selectedAnchorRect, canvasWidth, canvasHeight, panelWidth);
-  const defaultPanelSide = getDefaultPanelSide(selectedAnchorRect, canvasWidth, panelWidth);
+  const defaultPanelRect = buildDefaultPanelRect(selectedRegionRect, canvasWidth, canvasHeight, panelWidth);
+  const defaultPanelSide = getDefaultPanelSide(selectedRegionRect, canvasWidth, panelWidth);
   const panelHeightEstimate = defaultPanelRect.height;
   let panelRect = defaultPanelRect;
   let panelSide = defaultPanelSide;
 
-  if (getRectOverlapArea(defaultPanelRect, selectedAnchorRect) > 0) {
+  if (getRectOverlapArea(defaultPanelRect, selectedRegionRect) > 0) {
     const bestCandidate = chooseBestPanelCandidate(
-      createPanelCandidates(selectedAnchorRect, canvasWidth, canvasHeight, panelWidth, panelHeightEstimate),
+      createPanelCandidates(selectedRegionRect, canvasWidth, canvasHeight, panelWidth, panelHeightEstimate),
       panelWidth,
       panelHeightEstimate,
     );
@@ -527,7 +527,7 @@ function buildPanelPlacement(
     panelSide = bestCandidate.side;
   }
 
-  const connectorLine = buildConnectorLineBetweenRects(selectedAnchorRect, panelRect);
+  const connectorLine = buildConnectorLineBetweenRects(selectedRegionRect, panelRect);
 
   return {
     panelStyle: {
@@ -846,6 +846,10 @@ function findRelatedFocusElement(elements: PageElement[], target: RelatedFocusTa
   }
 
   return bestMatch.element;
+}
+
+function getPageElementId(element: PageElement): string {
+  return element.element_id || element.anchor_id;
 }
 
 function buildSelectionJobId(pageNumber: number, bbox: NormalizedBBox, sequence: number): string {
@@ -1862,7 +1866,7 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
       return;
     }
 
-    const focusKey = `${pendingRelatedFocus.requestKey}:${matchedElement.anchor_id}`;
+    const focusKey = `${pendingRelatedFocus.requestKey}:${getPageElementId(matchedElement)}`;
     setRelatedFocus({
       bbox: matchedElement.bbox,
       concept: matchedElement.label || pendingRelatedFocus.concept,

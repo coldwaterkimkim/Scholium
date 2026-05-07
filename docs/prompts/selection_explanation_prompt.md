@@ -30,7 +30,7 @@ The backend will enforce these identifiers, but include them consistently:
 - document_id
 - page_number
 - selection_id
-- anchor_id equal to selection_id
+- anchor_id equal to selection_id (legacy compatibility alias)
 - bbox equal to selected_bbox
 - selected_bbox
 - explanation_mode equal to "selection"
@@ -38,7 +38,7 @@ The backend will enforce these identifiers, but include them consistently:
 The explanation must include:
 - concept_title: compact concept title for the selected region.
 - label: same value as concept_title, kept for viewer compatibility.
-- anchor_type: text, formula, chart, table, diagram, image, flow, or other.
+- anchor_type: text, formula, chart, table, diagram, image, flow, or other. This is a legacy schema key; conceptually it is the selected region's element/region type.
 - question: likely student question about the selected region.
 - short_explanation: one sentence summary.
 - long_explanation: two to four short student-facing sentences.

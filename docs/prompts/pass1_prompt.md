@@ -58,6 +58,8 @@
 
 반드시 아래 JSON 스키마를 따르는 **result 객체만** 반환하라.
 
+주의: `candidate_anchors`, `anchor_id`, `anchor_type`은 legacy persisted schema key다. 현재 제품 의미는 page elements / candidate regions이며, backend가 로드 시 `page_elements`, `element_id`, `element_type` alias로 정규화한다.
+
 ```json
 {
   "document_id": "string",
@@ -97,7 +99,7 @@
 2~4문장 이내. 이 페이지가 무엇을 전달하려는지 요약한다.
 
 ### `candidate_anchors`
-현재 schema 이름은 legacy naming 때문에 `candidate_anchors`지만, 제품 의미는 "preprocessed page elements"다. viewer에 선제 노출할 final anchor 후보가 아니라 selected-region explanation을 위한 내부 요소 후보로 작성한다.
+현재 schema 이름은 legacy naming 때문에 `candidate_anchors`지만, 제품 의미는 "preprocessed page elements / candidate regions"다. viewer에 선제 노출할 final anchor 후보가 아니라 selected-region explanation을 위한 내부 요소 후보로 작성한다.
 
 - 목표 개수: **8~15개**
 - 단, 의미 있는 후보가 부족하면 억지로 8개를 채우지 마라.
@@ -120,6 +122,8 @@
 - comparison table header
 
 ### `anchor_type`
+현재 schema key는 legacy name이지만, 의미는 `element_type`이다.
+
 가능한 한 정확하게 선택.
 - text: 일반 텍스트/문장/용어
 - formula: 수식/기호식
@@ -178,7 +182,7 @@
 ---
 
 ## Quality Rules
-- candidate_anchors는 한 종류로만 몰리지 않게 해라.
+- candidate_anchors/page elements는 한 종류로만 몰리지 않게 해라.
 - 텍스트 요소만 과도하게 뽑지 말고, 구조화 시각 요소도 포함하라.
 - 설명은 똑똑해 보이려고 과장하지 말고, 학습자가 막히는 지점을 푸는 데 집중하라.
 - bbox와 explanation이 서로 어긋나지 않게 하라.

@@ -49,7 +49,7 @@ class SelectionContextBuilder:
 
         rounded_bbox = self.round_bbox(selected_bbox)
         matched_page_elements = self._rank_page_elements(
-            pass1_result.get("candidate_anchors"),
+            self._page_elements_from_pass1_result(pass1_result),
             rounded_bbox,
         )
         nearby_text_blocks = self._rank_nearby_text_blocks(page_parse, rounded_bbox)
@@ -133,17 +133,17 @@ class SelectionContextBuilder:
 
     def _rank_page_elements(
         self,
-        candidates: object,
+        page_elements: object,
         selected_bbox: list[float],
     ) -> list[dict[str, Any]]:
-        if not isinstance(candidates, list):
+        if not isinstance(page_elements, list):
             return []
 
         scored_elements: list[tuple[float, float, float, dict[str, Any]]] = []
-        for candidate in candidates:
-            if not isinstance(candidate, dict):
+        for element in page_elements:
+            if not isinstance(element, dict):
                 continue
-            bbox = self._normalized_bbox(candidate.get("bbox"))
+            bbox = self._normalized_bbox(element.get("bbox"))
             if bbox is None:
                 continue
 
@@ -153,24 +153,46 @@ class SelectionContextBuilder:
             overlap_ratio = overlap / max(0.0001, min(candidate_area, selection_area))
             distance = self._center_distance(selected_bbox, bbox)
             score = overlap_ratio - distance * 0.15
-            scored_elements.append((score, overlap_ratio, distance, candidate))
+            scored_elements.append((score, overlap_ratio, distance, element))
 
         scored_elements.sort(key=lambda item: item[0], reverse=True)
         return [
             {
-                "element_id": str(candidate.get("anchor_id") or ""),
-                "label": self._compact_text(candidate.get("label"), max_chars=120),
-                "element_type": str(candidate.get("anchor_type") or "other"),
-                "bbox": self.round_bbox(list(candidate.get("bbox") or [])),
-                "question": self._compact_text(candidate.get("question"), max_chars=180),
-                "short_explanation": self._compact_text(candidate.get("short_explanation"), max_chars=260),
-                "confidence": candidate.get("confidence"),
+                "element_id": str(element.get("element_id") or element.get("anchor_id") or ""),
+                "label": self._compact_text(element.get("label"), max_chars=120),
+                "element_type": str(element.get("element_type") or element.get("anchor_type") or "other"),
+                "bbox": self.round_bbox(list(element.get("bbox") or [])),
+                "question": self._compact_text(element.get("question"), max_chars=180),
+                "short_explanation": self._compact_text(element.get("short_explanation"), max_chars=260),
+                "confidence": element.get("confidence"),
                 "selection_overlap_ratio": round(max(0.0, overlap_ratio), 4),
                 "selection_center_distance": round(max(0.0, distance), 4),
                 "match_score": round(score, 4),
             }
-            for score, overlap_ratio, distance, candidate in scored_elements[:_MAX_MATCHED_ELEMENTS]
+            for score, overlap_ratio, distance, element in scored_elements[:_MAX_MATCHED_ELEMENTS]
         ]
+
+    def _page_elements_from_pass1_result(self, pass1_result: dict[str, Any]) -> list[dict[str, Any]]:
+        page_elements = pass1_result.get("page_elements")
+        if isinstance(page_elements, list):
+            return [element for element in page_elements if isinstance(element, dict)]
+
+        legacy_candidates = pass1_result.get("candidate_anchors")
+        if not isinstance(legacy_candidates, list):
+            return []
+
+        normalized_elements: list[dict[str, Any]] = []
+        for candidate in legacy_candidates:
+            if not isinstance(candidate, dict):
+                continue
+            normalized_elements.append(
+                {
+                    **candidate,
+                    "element_id": candidate.get("element_id") or candidate.get("region_id") or candidate.get("anchor_id"),
+                    "element_type": candidate.get("element_type") or candidate.get("region_type") or candidate.get("anchor_type"),
+                }
+            )
+        return normalized_elements
 
     def _rank_nearby_text_blocks(
         self,

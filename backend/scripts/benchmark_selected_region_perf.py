@@ -232,14 +232,19 @@ def _load_auto_selections(storage: Any, limit: int) -> list[SelectionSpec]:
             result = pass1_artifact.get("result")
             if not isinstance(result, dict):
                 continue
-            candidates = result.get("candidate_anchors")
+            candidates = result.get("page_elements") or result.get("candidate_anchors")
             if not isinstance(candidates, list):
                 continue
             for candidate in candidates:
                 bbox = _candidate_bbox(candidate)
                 if bbox is None:
                     continue
-                label = str(candidate.get("label") or candidate.get("anchor_id") or "auto_selection")
+                label = str(
+                    candidate.get("label")
+                    or candidate.get("element_id")
+                    or candidate.get("anchor_id")
+                    or "auto_selection"
+                )
                 specs.append(
                     SelectionSpec(
                         document_id=document.document_id,
@@ -298,21 +303,27 @@ def _bbox_metrics(bbox: list[float]) -> dict[str, float | None]:
 
 def _summarize_matches(matches: list[dict[str, Any]]) -> dict[str, Any]:
     top = matches[0] if matches else {}
+    element_ids = [
+        item.get("element_id") or item.get("anchor_id")
+        for item in matches
+        if item.get("element_id") or item.get("anchor_id")
+    ]
+    element_types = sorted(
+        {
+            str(item.get("element_type") or item.get("anchor_type"))
+            for item in matches
+            if item.get("element_type") is not None or item.get("anchor_type") is not None
+        }
+    )
     return {
         "matched_preprocessed_element_count": len(matches),
-        "matched_element_anchor_ids": [
-            item.get("anchor_id") or item.get("element_id")
-            for item in matches
-            if item.get("anchor_id") or item.get("element_id")
-        ],
-        "matched_element_anchor_types": sorted(
-            {
-                str(item.get("anchor_type") or item.get("element_type"))
-                for item in matches
-                if item.get("anchor_type") is not None or item.get("element_type") is not None
-            }
-        ),
-        "top_matched_anchor_id": top.get("anchor_id") or top.get("element_id"),
+        "matched_element_ids": element_ids,
+        "matched_element_types": element_types,
+        "matched_element_anchor_ids": element_ids,
+        "matched_element_anchor_types": element_types,
+        "top_matched_element_id": top.get("element_id") or top.get("anchor_id"),
+        "top_matched_anchor_id": top.get("element_id") or top.get("anchor_id"),
+        "top_matched_element_label": top.get("label"),
         "top_matched_anchor_label": top.get("label"),
         "top_match_score": top.get("match_score"),
         "top_selection_overlap_ratio": top.get("selection_overlap_ratio"),
@@ -323,6 +334,7 @@ def _summarize_matches(matches: list[dict[str, Any]]) -> dict[str, Any]:
 def _summarize_result(result: dict[str, Any] | None) -> dict[str, Any]:
     if not result:
         return {
+            "result_element_type": None,
             "result_anchor_type": None,
             "result_confidence": None,
             "result_study_importance": None,
@@ -337,7 +349,8 @@ def _summarize_result(result: dict[str, Any] | None) -> dict[str, Any]:
     short_explanation = result.get("short_explanation")
     long_explanation = result.get("long_explanation")
     return {
-        "result_anchor_type": result.get("anchor_type"),
+        "result_element_type": result.get("element_type") or result.get("anchor_type"),
+        "result_anchor_type": result.get("element_type") or result.get("anchor_type"),
         "result_confidence": result.get("confidence"),
         "result_study_importance": result.get("study_importance"),
         "result_related_pages_count": len(related_pages) if isinstance(related_pages, list) else None,

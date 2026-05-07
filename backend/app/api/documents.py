@@ -248,9 +248,10 @@ def get_page_result(
         ) from exc
 
     if pass2_artifact is not None:
+        pass1_result = pass1_artifact["result"] if pass1_artifact is not None else {}
         result = {
             **pass2_artifact["result"],
-            "page_elements": pass1_artifact["result"]["candidate_anchors"] if pass1_artifact is not None else [],
+            "page_elements": pass1_result.get("page_elements", []),
             "viewer_mode": "legacy_pass2",
         }
     elif pass1_artifact is not None:
@@ -262,7 +263,7 @@ def get_page_result(
             "page_role": pass1_result["page_role"],
             "page_summary": pass1_result["page_summary"],
             "final_anchors": [],
-            "page_elements": pass1_result["candidate_anchors"],
+            "page_elements": pass1_result.get("page_elements", []),
             "page_risk_note": (
                 "On-demand mode: this page is ready for drag-based selection explanations."
                 if document_context_ready

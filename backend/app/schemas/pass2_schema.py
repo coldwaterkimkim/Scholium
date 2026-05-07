@@ -4,13 +4,13 @@ from typing import Annotated
 
 from pydantic import Field, field_validator
 
-from app.schemas.common import FinalAnchor, PageResultBase
+from app.schemas.common import LegacyPrecomputedAnchor, PageResultBase
 
 
 PositivePageNumber = Annotated[int, Field(ge=1)]
 
 
-class Pass2FinalAnchor(FinalAnchor):
+class Pass2FinalAnchor(LegacyPrecomputedAnchor):
     related_pages: list[PositivePageNumber] = Field(max_length=2)
 
     @field_validator("related_pages")
