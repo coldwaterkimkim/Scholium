@@ -197,6 +197,7 @@
   height: 26px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 0 9px;
   border: 1px solid rgba(101, 121, 64, 0.34);
@@ -208,11 +209,13 @@
   font-size: 0.72rem;
   font-weight: 750;
   line-height: 1;
+  overflow: hidden;
   pointer-events: auto;
   transform: translate(var(--annotation-chip-offset-x), var(--annotation-chip-offset-y));
   transform-origin: left center;
   transition:
     background 160ms ease,
+    gap 140ms ease,
     transform 160ms ease,
     box-shadow 160ms ease;
 }
@@ -227,59 +230,77 @@
 .annotationChipDot {
   width: 6px;
   height: 6px;
+  flex: 0 0 6px;
   border-radius: 999px;
   background: #6f8f34;
   box-shadow: 0 0 0 3px rgba(111, 143, 52, 0.12);
+  transition:
+    flex-basis 140ms ease,
+    opacity 120ms ease,
+    transform 140ms ease,
+    width 140ms ease;
 }
 
 .annotationChipStar {
   min-width: 9px;
+  flex: 0 0 9px;
   color: #7a6428;
   font-size: 0.9rem;
   line-height: 1;
   transform: translateY(1px);
+  transition:
+    flex-basis 140ms ease,
+    min-width 140ms ease,
+    opacity 120ms ease,
+    transform 140ms ease;
 }
 
 .annotationChipText {
   min-width: 0;
+  max-width: 0;
   display: inline-flex;
   align-items: center;
   overflow: hidden;
-}
-
-.annotationChipStatusLabel,
-.annotationChipHoverLabel {
-  display: inline-block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-4px);
   transition:
     max-width 180ms ease,
     opacity 140ms ease,
     transform 180ms ease;
 }
 
-.annotationChipStatusLabel {
-  max-width: 78px;
-  opacity: 1;
-  transform: translateX(0);
-}
-
 .annotationChipHoverLabel {
-  max-width: 0;
-  opacity: 0;
-  transform: translateX(-4px);
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 178px;
 }
 
-.annotationChip:hover .annotationChipStatusLabel,
-.annotationChip:focus-visible .annotationChipStatusLabel {
-  max-width: 0;
-  opacity: 0;
-  transform: translateX(-4px);
+.annotationChip:hover,
+.annotationChip:focus-visible {
+  gap: 0;
 }
 
-.annotationChip:hover .annotationChipHoverLabel,
-.annotationChip:focus-visible .annotationChipHoverLabel {
+.annotationChip:hover .annotationChipDot,
+.annotationChip:focus-visible .annotationChipDot {
+  width: 0;
+  flex-basis: 0;
+  opacity: 0;
+  transform: scale(0.72);
+}
+
+.annotationChip:hover .annotationChipStar,
+.annotationChip:focus-visible .annotationChipStar {
+  min-width: 0;
+  flex-basis: 0;
+  opacity: 0;
+  transform: translateY(1px) scale(0.72);
+}
+
+.annotationChip:hover .annotationChipText,
+.annotationChip:focus-visible .annotationChipText {
   max-width: 178px;
   opacity: 1;
   transform: translateX(0);

@@ -162,11 +162,12 @@ type SelectionChipDraft = SelectionChipLayoutSource & {
 
 type SelectionChipLayoutResult = SelectionChipLayoutSource & SelectionChipPlacement;
 
-const ANNOTATION_CHIP_MAX_WIDTH = 228;
 const ANNOTATION_CHIP_HEIGHT = 26;
 const ANNOTATION_CHIP_GAP = 8;
 const ANNOTATION_CHIP_LANE_MARGIN = 8;
 const ANNOTATION_CHIP_STACK_GAP = 6;
+const ANNOTATION_CHIP_MARKER_WIDTH = 24;
+const ANNOTATION_CHIP_IMPORTANT_MARKER_WIDTH = 39;
 
 const RELATED_FOCUS_ALIASES: Array<[RegExp, string]> = [
   [/전도대/, "conduction band"],
@@ -551,9 +552,7 @@ function panelSideToChipSide(side: PanelCandidateSide): SelectionChipSide {
 }
 
 function estimateSelectionChipWidth(job: SelectionJob): number {
-  const statusTextWidth = Math.min(78, buildSelectionChipLabel(job).length * 7.4);
-  const importantWidth = job.isImportant ? 15 : 0;
-  return Math.round(clamp(18 + 6 + 6 + statusTextWidth + importantWidth, 64, ANNOTATION_CHIP_MAX_WIDTH));
+  return job.isImportant ? ANNOTATION_CHIP_IMPORTANT_MARKER_WIDTH : ANNOTATION_CHIP_MARKER_WIDTH;
 }
 
 function clampChipRectToImage(
@@ -852,22 +851,12 @@ function buildSelectionJobId(pageNumber: number, bbox: NormalizedBBox, sequence:
   return `selection-${pageNumber}-${bboxKey}-${sequence}`;
 }
 
-function buildSelectionChipLabel(job: SelectionJob): string {
+function buildSelectionChipHoverLabel(job: SelectionJob): string {
   if (job.status === "pending") {
     return "Generating";
   }
   if (job.status === "error") {
     return "Failed";
-  }
-  return "Ready";
-}
-
-function buildSelectionChipHoverLabel(job: SelectionJob): string {
-  if (job.status === "pending") {
-    return "설명 생성 중";
-  }
-  if (job.status === "error") {
-    return "생성 실패";
   }
 
   return job.explanation?.concept_title || job.explanation?.label || "선택 설명";
@@ -2051,7 +2040,6 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
                         ) : null}
                         <span className={styles.annotationChipDot} aria-hidden="true" />
                         <span className={styles.annotationChipText} aria-hidden="true">
-                          <span className={styles.annotationChipStatusLabel}>{buildSelectionChipLabel(job)}</span>
                           <span className={styles.annotationChipHoverLabel}>{buildSelectionChipHoverLabel(job)}</span>
                         </span>
                       </button>
