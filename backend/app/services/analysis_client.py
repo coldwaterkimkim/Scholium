@@ -68,9 +68,7 @@ class AnalysisClient(Protocol):
         page_number: int,
         selection_id: str,
         selected_bbox: list[float],
-        pass1_result: dict[str, Any],
-        document_summary: dict[str, Any],
-        matched_preprocessed_elements: list[dict[str, Any]],
+        selection_context: dict[str, Any],
     ) -> dict[str, Any]:
         ...
 

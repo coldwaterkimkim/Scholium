@@ -14,6 +14,7 @@ from app.services.analysis_client import (
     AnalysisResponseParseError,
     AnalysisResponseValidationError,
 )
+from app.services.storage import StorageService
 from app.utils.validation import get_json_schema, validate_payload
 
 
@@ -22,8 +23,13 @@ class CodexCLIClientError(AnalysisClientError):
 
 
 class CodexCLIClient:
-    def __init__(self, settings: AppSettings | None = None) -> None:
+    def __init__(
+        self,
+        settings: AppSettings | None = None,
+        storage: StorageService | None = None,
+    ) -> None:
         self.settings = settings or get_settings()
+        self.storage = storage
 
     def run_pass1(
         self,
@@ -123,9 +129,7 @@ class CodexCLIClient:
         page_number: int,
         selection_id: str,
         selected_bbox: list[float],
-        pass1_result: dict[str, Any],
-        document_summary: dict[str, Any],
-        matched_preprocessed_elements: list[dict[str, Any]],
+        selection_context: dict[str, Any],
     ) -> dict[str, Any]:
         payload = {
             "document_id": document_id,
@@ -136,10 +140,11 @@ class CodexCLIClient:
             "bbox": selected_bbox,
             "schema_version": self.settings.schema_version,
             "prompt_version": self.settings.stage_config("selection_explanation").prompt_version,
-            "pass1_result": pass1_result,
-            "document_summary": document_summary,
-            "matched_preprocessed_elements": matched_preprocessed_elements,
+            "selection_context": selection_context,
         }
+        payload["prompt_payload_size_chars"] = len(
+            json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        )
         return self._run_stage("selection_explanation", payload, page_image_path=page_image_path)
 
     def run_selection_follow_up(
@@ -182,6 +187,7 @@ class CodexCLIClient:
             )
             return self._validate_and_wrap(stage, stage_payload, raw_payload)
         except (AnalysisResponseParseError, AnalysisResponseValidationError) as exc:
+            self._record_call_repair(stage, stage_payload)
             repair_message = (
                 "Your previous response failed local JSON parsing or schema validation. "
                 "Return exactly one valid JSON object matching the provided schema. "
@@ -231,6 +237,7 @@ class CodexCLIClient:
             )
 
             try:
+                self._record_call_attempt(stage, stage_payload)
                 completed = subprocess.run(
                     command,
                     input=prompt,
@@ -241,17 +248,20 @@ class CodexCLIClient:
                     check=False,
                 )
             except subprocess.TimeoutExpired as exc:
+                self._record_call_error(stage, stage_payload)
                 raise CodexCLIClientError(
                     f"Codex CLI timed out for stage '{stage}' after "
                     f"{self.settings.codex_cli_timeout_seconds}s."
                 ) from exc
             except OSError as exc:
+                self._record_call_error(stage, stage_payload)
                 raise CodexCLIClientError(
                     f"Codex CLI failed to start for stage '{stage}'. "
                     f"Check CODEX_CLI_BIN={self.settings.codex_cli_bin!r}. Detail: {exc}"
                 ) from exc
 
             if completed.returncode != 0:
+                self._record_call_error(stage, stage_payload)
                 raise CodexCLIClientError(
                     f"Codex CLI exited with code {completed.returncode} for stage '{stage}'. "
                     f"stdout={self._summarize_process_text(completed.stdout)} "
@@ -259,12 +269,14 @@ class CodexCLIClient:
                 )
 
             if not output_path.exists():
+                self._record_call_error(stage, stage_payload)
                 raise AnalysisResponseParseError(
                     f"Codex CLI did not write a final JSON message for stage '{stage}'."
                 )
 
             raw_text = output_path.read_text(encoding="utf-8").strip()
             if not raw_text:
+                self._record_call_error(stage, stage_payload)
                 raise AnalysisResponseParseError(
                     f"Codex CLI wrote an empty final message for stage '{stage}'."
                 )
@@ -272,11 +284,13 @@ class CodexCLIClient:
             try:
                 parsed = json.loads(raw_text)
             except json.JSONDecodeError as exc:
+                self._record_call_error(stage, stage_payload)
                 raise AnalysisResponseParseError(
                     f"Codex CLI final message is not valid JSON for stage '{stage}': {exc}"
                 ) from exc
 
             if not isinstance(parsed, dict):
+                self._record_call_error(stage, stage_payload)
                 raise AnalysisResponseParseError(
                     f"Codex CLI final message must be a JSON object for stage '{stage}'."
                 )
@@ -370,7 +384,7 @@ class CodexCLIClient:
                 raise AnalysisResponseValidationError(str(exc)) from exc
 
             return {
-                "meta": self._build_meta(stage),
+                "meta": self._build_meta(stage, stage_payload),
                 "result": validated_result,
             }
 
@@ -396,20 +410,45 @@ class CodexCLIClient:
             raise AnalysisResponseValidationError(str(exc)) from exc
 
         return {
-            "meta": self._build_meta(stage),
+            "meta": self._build_meta(stage, stage_payload),
             "result": validated_result,
         }
 
-    def _build_meta(self, stage: StageName) -> dict[str, Any]:
+    def _build_meta(self, stage: StageName, stage_payload: dict[str, Any]) -> dict[str, Any]:
         stage_config = self.settings.stage_config(stage)
         model_name = self.settings.codex_cli_model or "default"
-        return {
+        meta: dict[str, Any] = {
             "schema_version": self.settings.schema_version,
             "prompt_version": stage_config.prompt_version,
             "model_name": f"codex-cli:{model_name}",
             "reasoning_effort": self.settings.codex_cli_reasoning_effort,
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
+        if stage == "selection_explanation":
+            selection_context = stage_payload.get("selection_context")
+            context_metrics = (
+                selection_context.get("metrics")
+                if isinstance(selection_context, dict) and isinstance(selection_context.get("metrics"), dict)
+                else {}
+            )
+            meta.update(
+                {
+                    "provider": "codex_cli",
+                    "context_hash": (
+                        selection_context.get("context_hash")
+                        if isinstance(selection_context, dict)
+                        else None
+                    ),
+                    "selection_context_size_chars": int(
+                        context_metrics.get("selection_context_size_chars", 0)
+                    ),
+                    "prompt_payload_size_chars": int(stage_payload.get("prompt_payload_size_chars", 0)),
+                    "matched_element_count": int(context_metrics.get("matched_element_count", 0)),
+                    "nearby_text_block_count": int(context_metrics.get("nearby_text_block_count", 0)),
+                    "source_candidate_count": int(context_metrics.get("source_candidate_count", 0)),
+                }
+            )
+        return meta
 
     def _load_prompt_text(self, stage_config: StageConfig) -> str:
         if not stage_config.prompt_path.exists():
@@ -417,6 +456,39 @@ class CodexCLIClient:
                 f"Prompt file is missing for stage '{stage_config.stage_name}': {stage_config.prompt_path}"
             )
         return stage_config.prompt_path.read_text(encoding="utf-8")
+
+    def _record_call_attempt(self, stage: StageName, stage_payload: dict[str, Any]) -> None:
+        if self.storage is None:
+            return
+        document_id = stage_payload.get("document_id")
+        if not document_id:
+            return
+        try:
+            self.storage.increment_codex_cli_call_count(str(document_id), stage)
+        except Exception:
+            return
+
+    def _record_call_error(self, stage: StageName, stage_payload: dict[str, Any]) -> None:
+        if self.storage is None:
+            return
+        document_id = stage_payload.get("document_id")
+        if not document_id:
+            return
+        try:
+            self.storage.increment_codex_cli_error_count(str(document_id))
+        except Exception:
+            return
+
+    def _record_call_repair(self, stage: StageName, stage_payload: dict[str, Any]) -> None:
+        if self.storage is None:
+            return
+        document_id = stage_payload.get("document_id")
+        if not document_id:
+            return
+        try:
+            self.storage.increment_codex_cli_repair_count(str(document_id), stage)
+        except Exception:
+            return
 
     def _build_pass1_text_first_guidance(self) -> str:
         return (

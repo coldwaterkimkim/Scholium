@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import hashlib
+import json
+from time import perf_counter
 from typing import Any
 
 from app.core.config import AppSettings, get_settings
 from app.models.document import RenderStatus
 from app.services.analysis_client import AnalysisClient, AnalysisClientError
 from app.services.llm_provider import get_analysis_client
+from app.services.selection_context_builder import SelectionContextBuilder
 from app.services.storage import StorageService, get_storage_service
 
 
@@ -20,6 +23,7 @@ class SelectionExplanationService:
         storage: StorageService | None = None,
         analysis_client: AnalysisClient | None = None,
         settings: AppSettings | None = None,
+        selection_context_builder: SelectionContextBuilder | None = None,
     ) -> None:
         self.settings = settings or get_settings()
         self.storage = storage or get_storage_service()
@@ -27,6 +31,7 @@ class SelectionExplanationService:
             settings=self.settings,
             storage=self.storage,
         )
+        self.selection_context_builder = selection_context_builder or SelectionContextBuilder(storage=self.storage)
 
     def explain_selection(
         self,
@@ -35,12 +40,8 @@ class SelectionExplanationService:
         page_number: int,
         selected_bbox: list[float],
     ) -> dict[str, Any]:
+        started_at = perf_counter()
         self._validate_selected_bbox(selected_bbox)
-        selection_id = self._build_selection_id(document_id, page_number, selected_bbox)
-
-        cached = self.storage.load_selection_explanation(document_id, page_number, selection_id)
-        if cached is not None and self._cache_matches_current_provider(cached):
-            return cached["result"]  # type: ignore[return-value]
 
         page = self.storage.get_page(document_id, page_number)
         if page is None:
@@ -53,16 +54,30 @@ class SelectionExplanationService:
             raise SelectionExplanationError("Pass1 preprocessing is required before selection explanation.")
 
         document_summary_artifact = self.storage.load_document_summary(document_id)
-        if document_summary_artifact is None:
-            raise SelectionExplanationError("Document synthesis is required before selection explanation.")
 
         image_path = self.storage.resolve_relative_path(page.image_path)
         if not image_path.exists():
             raise SelectionExplanationError("Rendered page image is unavailable.")
 
-        pass1_result = dict(pass1_artifact["result"])
-        document_summary = dict(document_summary_artifact["result"])
-        matched_elements = self._rank_preprocessed_elements(pass1_result, selected_bbox)
+        selection_context = self.selection_context_builder.build(
+            document_id=document_id,
+            page_number=page_number,
+            selected_bbox=selected_bbox,
+            pass1_artifact=dict(pass1_artifact),
+            document_summary_artifact=(
+                dict(document_summary_artifact) if document_summary_artifact is not None else None
+            ),
+        )
+        selection_id = self._build_selection_id(
+            document_id=document_id,
+            page_number=page_number,
+            selected_bbox=selected_bbox,
+            selection_context=selection_context,
+        )
+
+        cached = self.storage.load_selection_explanation(document_id, page_number, selection_id)
+        if cached is not None and self._cache_matches_current_provider(cached, selection_context):
+            return self._result_with_selected_bbox(dict(cached["result"]), selected_bbox)
 
         try:
             envelope = self.analysis_client.run_selection_explanation(
@@ -71,15 +86,18 @@ class SelectionExplanationService:
                 page_number=page_number,
                 selection_id=selection_id,
                 selected_bbox=selected_bbox,
-                pass1_result=pass1_result,
-                document_summary=document_summary,
-                matched_preprocessed_elements=matched_elements,
+                selection_context=selection_context,
             )
         except AnalysisClientError:
             raise
         except Exception as exc:
             raise SelectionExplanationError(f"Selection explanation provider failed: {exc}") from exc
 
+        envelope = self._attach_selection_cache_meta(
+            envelope,
+            selection_context,
+            latency_seconds=perf_counter() - started_at,
+        )
         self.storage.save_selection_explanation(document_id, page_number, selection_id, envelope)
         saved = self.storage.load_selection_explanation(document_id, page_number, selection_id)
         if saved is None:
@@ -115,8 +133,19 @@ class SelectionExplanationService:
             raise SelectionExplanationError("Pass1 preprocessing is required before follow-up answers.")
 
         document_summary_artifact = self.storage.load_document_summary(document_id)
-        if document_summary_artifact is None:
-            raise SelectionExplanationError("Document synthesis is required before follow-up answers.")
+        document_summary = (
+            dict(document_summary_artifact["result"])
+            if document_summary_artifact is not None
+            else {
+                "document_id": document_id,
+                "overall_topic": "Document context is still being prepared.",
+                "overall_summary": "Only page context and the existing selected-region explanation are available.",
+                "sections": [],
+                "key_concepts": [],
+                "difficult_pages": [],
+                "prerequisite_links": [],
+            }
+        )
 
         image_path = self.storage.resolve_relative_path(page.image_path)
         if not image_path.exists():
@@ -131,7 +160,7 @@ class SelectionExplanationService:
                 question=clean_question,
                 selection_explanation=dict(selection_artifact["result"]),
                 pass1_result=dict(pass1_artifact["result"]),
-                document_summary=dict(document_summary_artifact["result"]),
+                document_summary=document_summary,
             )
         except AnalysisClientError:
             raise
@@ -181,22 +210,28 @@ class SelectionExplanationService:
     ) -> bool:
         return self.storage.delete_selection_explanation(document_id, page_number, selection_id)
 
-    def _cache_matches_current_provider(self, envelope: dict[str, Any]) -> bool:
+    def _cache_matches_current_provider(
+        self,
+        envelope: dict[str, Any],
+        selection_context: dict[str, Any],
+    ) -> bool:
         meta = envelope.get("meta")
         if not isinstance(meta, dict):
             return False
 
-        expected_prompt_version = self.settings.stage_config("selection_explanation").prompt_version
-        expected_model_name = (
-            f"codex-cli:{self.settings.codex_cli_model}"
-            if self.settings.llm_provider == "codex_cli"
-            else None
-        )
         if meta.get("schema_version") != self.settings.schema_version:
             return False
-        if meta.get("prompt_version") != expected_prompt_version:
+        if meta.get("prompt_version") != self.settings.stage_config("selection_explanation").prompt_version:
             return False
-        if expected_model_name is not None and meta.get("model_name") != expected_model_name:
+        if meta.get("provider") != self.settings.llm_provider:
+            return False
+        if meta.get("model_name") != self._selection_model_name():
+            return False
+        if meta.get("reasoning_effort") != self._selection_reasoning_effort():
+            return False
+        if meta.get("context_hash") != selection_context.get("context_hash"):
+            return False
+        if meta.get("cache_version") != "selection_cache_v1":
             return False
         return True
 
@@ -209,75 +244,81 @@ class SelectionExplanationService:
         if x < 0 or y < 0 or x + width > 1 or y + height > 1:
             raise SelectionExplanationError("selected_bbox must stay inside the page image.")
 
-    def _build_selection_id(self, document_id: str, page_number: int, selected_bbox: list[float]) -> str:
-        rounded_bbox = [round(float(value), 4) for value in selected_bbox]
-        raw_key = f"{document_id}:{page_number}:{rounded_bbox}"
-        return f"sel_{hashlib.sha1(raw_key.encode('utf-8')).hexdigest()[:16]}"
-
-    def _rank_preprocessed_elements(
+    def _build_selection_id(
         self,
-        pass1_result: dict[str, Any],
+        *,
+        document_id: str,
+        page_number: int,
         selected_bbox: list[float],
-    ) -> list[dict[str, Any]]:
-        candidates = pass1_result.get("candidate_anchors")
-        if not isinstance(candidates, list):
-            return []
+        selection_context: dict[str, Any],
+    ) -> str:
+        raw_key = {
+            "cache_version": "selection_cache_v1",
+            "document_id": document_id,
+            "page_number": page_number,
+            "rounded_selected_bbox": SelectionContextBuilder.round_bbox(selected_bbox),
+            "schema_version": self.settings.schema_version,
+            "prompt_version": self.settings.stage_config("selection_explanation").prompt_version,
+            "provider": self.settings.llm_provider,
+            "model_name": self._selection_model_name(),
+            "reasoning_effort": self._selection_reasoning_effort(),
+            "context_hash": selection_context.get("context_hash"),
+        }
+        encoded_key = json.dumps(raw_key, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        return f"sel_{hashlib.sha1(encoded_key.encode('utf-8')).hexdigest()[:16]}"
 
-        scored_elements = []
-        for candidate in candidates:
-            if not isinstance(candidate, dict):
-                continue
-            bbox = candidate.get("bbox")
-            if not isinstance(bbox, list) or len(bbox) != 4:
-                continue
+    def _selection_model_name(self) -> str:
+        if self.settings.llm_provider == "codex_cli":
+            model_name = self.settings.codex_cli_model or "default"
+            return f"codex-cli:{model_name}"
+        if self.settings.llm_provider == "openai_api":
+            return self.settings.stage_config("selection_explanation").model_name
+        return "mock-analysis-provider"
 
-            overlap = self._intersection_area(selected_bbox, bbox)
-            candidate_area = self._area(bbox)
-            selection_area = self._area(selected_bbox)
-            overlap_ratio = overlap / max(0.0001, min(candidate_area, selection_area))
-            distance = self._center_distance(selected_bbox, bbox)
-            score = overlap_ratio - distance * 0.15
-            scored_elements.append((score, overlap_ratio, distance, candidate))
+    def _selection_reasoning_effort(self) -> str:
+        if self.settings.llm_provider == "codex_cli":
+            return self.settings.codex_cli_reasoning_effort
+        if self.settings.llm_provider == "openai_api":
+            return self.settings.stage_config("selection_explanation").reasoning_effort
+        return "none"
 
-        scored_elements.sort(key=lambda item: item[0], reverse=True)
-        top_elements = []
-        for score, overlap_ratio, distance, candidate in scored_elements[:6]:
-            top_elements.append(
-                {
-                    "anchor_id": candidate.get("anchor_id"),
-                    "label": candidate.get("label"),
-                    "anchor_type": candidate.get("anchor_type"),
-                    "bbox": candidate.get("bbox"),
-                    "question": candidate.get("question"),
-                    "short_explanation": candidate.get("short_explanation"),
-                    "confidence": candidate.get("confidence"),
-                    "selection_overlap_ratio": round(max(0.0, overlap_ratio), 4),
-                    "selection_center_distance": round(max(0.0, distance), 4),
-                    "match_score": round(score, 4),
-                }
-            )
-        return top_elements
+    def _attach_selection_cache_meta(
+        self,
+        envelope: dict[str, Any],
+        selection_context: dict[str, Any],
+        *,
+        latency_seconds: float,
+    ) -> dict[str, Any]:
+        metrics = dict(selection_context.get("metrics") or {})
+        meta = dict(envelope.get("meta") or {})
+        meta.update(
+            {
+                "provider": self.settings.llm_provider,
+                "cache_version": "selection_cache_v1",
+                "cache_hit": False,
+                "context_hash": selection_context.get("context_hash"),
+                "selection_explanation_first_latency": round(max(0.0, latency_seconds), 4),
+                "selection_context_size_chars": int(metrics.get("selection_context_size_chars", 0)),
+                "matched_element_count": int(metrics.get("matched_element_count", 0)),
+                "nearby_text_block_count": int(metrics.get("nearby_text_block_count", 0)),
+                "source_candidate_count": int(metrics.get("source_candidate_count", 0)),
+            }
+        )
+        if "prompt_payload_size_chars" not in meta:
+            meta["prompt_payload_size_chars"] = int(metrics.get("prompt_payload_size_chars", 0))
+        return {
+            "meta": meta,
+            "result": envelope["result"],
+        }
 
-    def _area(self, bbox: list[float]) -> float:
-        return max(0.0, float(bbox[2])) * max(0.0, float(bbox[3]))
-
-    def _intersection_area(self, left: list[float], right: list[float]) -> float:
-        left_x2 = float(left[0]) + float(left[2])
-        left_y2 = float(left[1]) + float(left[3])
-        right_x2 = float(right[0]) + float(right[2])
-        right_y2 = float(right[1]) + float(right[3])
-        x1 = max(float(left[0]), float(right[0]))
-        y1 = max(float(left[1]), float(right[1]))
-        x2 = min(left_x2, right_x2)
-        y2 = min(left_y2, right_y2)
-        return max(0.0, x2 - x1) * max(0.0, y2 - y1)
-
-    def _center_distance(self, left: list[float], right: list[float]) -> float:
-        left_x = float(left[0]) + float(left[2]) / 2
-        left_y = float(left[1]) + float(left[3]) / 2
-        right_x = float(right[0]) + float(right[2]) / 2
-        right_y = float(right[1]) + float(right[3]) / 2
-        return ((left_x - right_x) ** 2 + (left_y - right_y) ** 2) ** 0.5
+    def _result_with_selected_bbox(
+        self,
+        result: dict[str, Any],
+        selected_bbox: list[float],
+    ) -> dict[str, Any]:
+        result["bbox"] = list(selected_bbox)
+        result["selected_bbox"] = list(selected_bbox)
+        return result
 
 
 def get_selection_explanation_service() -> SelectionExplanationService:

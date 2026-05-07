@@ -34,9 +34,20 @@
 - `pass1.candidate_anchors`는 legacy field name을 유지하지만, 제품 의미는 visible anchor가 아니라 selected-region explanation을 위한 internal page-element map이다.
 - `pass2`는 legacy/debug path로 내려간다. `SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=true`일 때만 선제 final anchor artifact를 만든다.
 - 사용자가 viewer에서 drag-select한 bbox는 `POST /api/documents/{document_id}/pages/{page_number}/selection-explanation`로 전달된다.
-- selection explanation은 page image, pass1 page context, document synthesis context, bbox-overlap matched elements를 입력으로 Codex CLI가 생성한다.
+- selection explanation은 page image와 compact `SelectionContext`를 입력으로 Codex CLI가 생성한다. full pass1 artifact, full document summary, full page text, 모든 page element는 기본 payload에 넣지 않는다.
+- `SelectionContext`에는 선택 bbox, matched page elements 최대 5개, nearby text blocks 최대 5개, page role/summary, 짧은 document context, related page candidates 최대 3개, source candidates가 들어간다.
+- cache key는 document/page, 3자리 반올림 bbox, prompt/schema/provider/model/reasoning, context hash를 포함한다.
 - selection explanation artifact는 `data/analysis/{document_id}/pages/{page_number}/selection_explanations/{selection_id}.json`에 저장한다.
 - invalid JSON 또는 schema validation 실패 결과는 저장하지 않는다.
+
+## 2026-05 readiness split
+
+- viewer readiness는 `render_only`, `page_context_ready`, `on_demand`, `legacy_pass2`로 분리한다.
+- `render_only`: page image만 준비되어 PDF 읽기는 가능하지만, explanation은 막는다.
+- `page_context_ready`: pass1 page context가 준비되어 선택 설명을 만들 수 있다. document synthesis가 없으면 page 중심의 제한된 설명만 만든다.
+- `on_demand`: document synthesis까지 준비되어 full selected-region explanation을 만든다.
+- `legacy_pass2`: `SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=true`에서만 쓰는 precomputed anchor-click debug path다.
+- `/processing` 응답은 `render_ready_for_viewer`, `page_context_ready_pages`, `document_context_ready`를 함께 제공한다.
 
 ## timeout / retry
 

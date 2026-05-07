@@ -64,6 +64,7 @@ OpenAI API 키는 기본 실행에 필요하지 않다. 로컬 MVP 분석 provid
    CODEX_CLI_REASONING=medium
    CODEX_CLI_TIMEOUT_SECONDS=300
    SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=false
+   PASS1_MAX_WORKERS=3
    ```
 
 3. `data/raw_pdfs`에 테스트용 PDF를 넣거나 업로드 화면에서 PDF를 올린다.
@@ -119,12 +120,21 @@ OpenAI API 키는 기본 실행에 필요하지 않다. 로컬 MVP 분석 provid
 ## Selected-region flow
 
 1. viewer는 PDF 페이지 이미지를 깨끗하게 보여준다.
-2. 사용자가 헷갈리는 영역을 드래그한다.
-3. frontend가 normalized bbox `[x, y, w, h]`를 보낸다.
-4. backend가 pass1 page context와 document synthesis context를 불러온다.
-5. Codex CLI가 선택 영역 전용 JSON 설명을 생성한다.
-6. schema validation을 통과한 결과만 `data/analysis/<document_id>/pages/<page>/selection_explanations/`에 저장된다.
-7. floating academic annotation panel이 선택 영역 옆에 뜬다.
+2. page image만 준비된 상태면 viewer는 `render_only`로 먼저 열린다.
+3. pass1 page context가 준비되면 `page_context_ready`가 되고, 사용자가 헷갈리는 영역을 드래그할 수 있다.
+4. document synthesis까지 준비되면 `on_demand`가 되고, 문서 전체 맥락이 포함된 full selected-region explanation을 만든다.
+5. frontend가 normalized bbox `[x, y, w, h]`를 보낸다.
+6. backend가 full pass1/document artifact를 그대로 보내지 않고 compact `SelectionContext`를 만든다.
+7. Codex CLI가 선택 영역 전용 JSON 설명을 생성한다.
+8. schema validation을 통과한 결과만 `data/analysis/<document_id>/pages/<page>/selection_explanations/`에 저장된다.
+9. floating academic annotation panel이 선택 영역 옆에 뜬다.
+
+## Readiness modes
+
+- `render_only`: PDF page image만 준비됐다. 사용자는 읽을 수 있지만 selection explanation은 막힌다.
+- `page_context_ready`: pass1 page context가 준비됐다. selection explanation을 만들 수 있고, document context가 아직 없으면 page 중심으로 제한된다.
+- `on_demand`: page context와 document context가 모두 준비됐다. 기본 selected-region MVP 모드다.
+- `legacy_pass2`: precomputed anchor-click debug path다. 기본값에서는 쓰지 않는다.
 
 ## Codex CLI provider 제한
 
@@ -134,3 +144,39 @@ OpenAI API 키는 기본 실행에 필요하지 않다. 로컬 MVP 분석 provid
 - pass1과 selection explanation은 페이지 이미지가 Codex CLI image attachment로 전달된다.
 - selection explanation은 기본적으로 `CODEX_CLI_MODEL=gpt-5.5`, `CODEX_CLI_REASONING=medium`을 사용한다. 설치된 CLI가 지원하지 않으면 가장 가까운 지원 설정으로 바꾸고 이 파일에 기록해야 한다.
 - 기존 OpenAI provider 코드는 남아 있지만 기본값이 아니며, `SCHOLIUM_LLM_PROVIDER=openai_api`일 때만 사용된다.
+
+## Performance benchmarks
+
+selected-region dry-run:
+
+```bash
+cd backend
+./.venv/bin/python scripts/benchmark_selected_region_perf.py \
+  --auto-first-ready \
+  --limit 3 \
+  --dry-run
+```
+
+실제 selection explanation latency 측정:
+
+```bash
+cd backend
+./.venv/bin/python scripts/benchmark_selected_region_perf.py \
+  --selection-file ../docs/perf/selected_region_cases.json \
+  --no-dry-run
+```
+
+parser 후보 비교:
+
+```bash
+cd backend
+./.venv/bin/python scripts/benchmark_pdf_parsers.py \
+  --pdf-dir ../data/raw_pdfs \
+  --limit 5
+```
+
+full-product parser benchmark는 모든 parser output을 `PageElementMap` 형태로 정규화한 뒤 비교한다. 기준은 Markdown 예쁨이 아니라 selected-region explanation에 필요한 bbox 매칭, reading order, layout element, source cue, OCR/scan robustness, speed다. 기본 parser backend는 계속 `DOCUMENT_PARSER_BACKEND=pymupdf4llm`이고, 이 adapter가 현재는 `pymupdf4llm_enhanced+fitz` path로 동작한다. Docling/Marker/MinerU/MarkItDown은 production default install에 포함하지 않는다.
+
+gold selection starter는 `benchmarks/parser_selection_goldset.yaml`에 있다. 사람이 아직 확정 검수하지 않은 좌표는 proxy/gold seed로만 보고, 최종 parser 선택 전 viewer에서 직접 확인해야 한다.
+
+`PASS1_MAX_WORKERS=1|2|3`을 붙여 pass1 병렬도도 비교할 수 있다. 기본값은 `3`이고, Codex CLI subprocess 병렬도는 실제 PDF 묶음에서 측정한 뒤 조정한다.

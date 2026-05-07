@@ -13,10 +13,11 @@ def get_analysis_client(
     storage: StorageService | None = None,
 ) -> AnalysisClient:
     resolved_settings = settings or get_settings()
+    resolved_storage = storage or get_storage_service()
     if resolved_settings.llm_provider == "codex_cli":
-        return CodexCLIClient(settings=resolved_settings)
+        return CodexCLIClient(settings=resolved_settings, storage=resolved_storage)
     if resolved_settings.llm_provider == "openai_api":
-        return OpenAIResponsesClient(settings=resolved_settings, storage=storage or get_storage_service())
+        return OpenAIResponsesClient(settings=resolved_settings, storage=resolved_storage)
     if resolved_settings.llm_provider == "mock":
         return MockAnalysisClient(settings=resolved_settings)
-    return CodexCLIClient(settings=resolved_settings)
+    return CodexCLIClient(settings=resolved_settings, storage=resolved_storage)

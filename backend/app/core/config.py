@@ -47,6 +47,7 @@ class AppSettings:
     parser_schema_version: str
     document_parser_backend: DocumentParserBackend
     pass1_routing_mode: Pass1RoutingMode
+    pass1_max_workers: int
     pipeline_mode: PipelineMode
     v2_spine_mode: V2SpineMode
     pass2_execution_mode: Pass2ExecutionMode
@@ -182,6 +183,17 @@ def _load_bool_env(name: str, default: bool) -> bool:
     return default
 
 
+def _load_positive_int_env(name: str, default: int) -> int:
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+    try:
+        value = int(raw_value.strip())
+    except ValueError:
+        return default
+    return max(1, value)
+
+
 def _load_reasoning_effort_env(name: str, default: ReasoningEffort) -> ReasoningEffort:
     raw_value = os.getenv(name, default).strip().lower()
     if raw_value in {"minimal", "low", "medium", "high", "xhigh"}:
@@ -244,6 +256,7 @@ def _build_settings() -> AppSettings:
         parser_schema_version=os.getenv("PARSER_SCHEMA_VERSION", "parser_v0_2"),
         document_parser_backend=_load_document_parser_backend(),
         pass1_routing_mode=_load_pass1_routing_mode(),
+        pass1_max_workers=_load_positive_int_env("PASS1_MAX_WORKERS", 3),
         pipeline_mode=_load_pipeline_mode(),
         v2_spine_mode=_load_v2_spine_mode(),
         pass2_execution_mode=_load_pass2_execution_mode(),

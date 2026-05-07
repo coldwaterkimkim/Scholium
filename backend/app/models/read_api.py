@@ -50,7 +50,7 @@ class PagePublicResponse(PageResultBase):
     final_anchors: list[Pass2FinalAnchor] = Field(default_factory=list)
     page_elements: list[Pass1CandidateAnchor] = Field(default_factory=list)
     page_risk_note: str
-    viewer_mode: Literal["on_demand", "legacy_pass2"] = "on_demand"
+    viewer_mode: Literal["render_only", "page_context_ready", "on_demand", "legacy_pass2"] = "on_demand"
 
 
 class SelectionExplanationRequest(BaseModel):
@@ -126,6 +126,9 @@ class DocumentProcessingResponse(BaseModel):
     synthesis_ready: bool
     pass2_completed_pages: int
     pass2_failed_pages: int
+    render_ready_for_viewer: bool
+    page_context_ready_pages: int
+    document_context_ready: bool
     ready_for_viewer: bool
     current_page_number: int | None = None
     error_message: str | None = None

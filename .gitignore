@@ -6,6 +6,13 @@ __pycache__/
 *.pyc
 frontend/.next/
 frontend/tsconfig.tsbuildinfo
+localhost-root-check.png
+parallel-drag-after.png
+parallel-drag-before.png
+
+# Generated benchmark outputs. Keep concise summaries under docs/perf/ instead.
+docs/perf_runs/parser_benchmark_*/
+docs/perf_runs/goldset_bbox_review_*/
 
 data/raw_pdfs/*
 !data/raw_pdfs/.gitkeep

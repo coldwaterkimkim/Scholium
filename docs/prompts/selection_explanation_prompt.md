@@ -12,10 +12,15 @@ Return JSON only. No Markdown, no code fences, no prose outside JSON.
 Scholium does not pre-decide what the student should study. The student drags a confusing or interesting part of the page, and Scholium explains that selected region using preprocessed page/document context.
 
 Use the preprocessed context to improve speed and quality:
-- pass1_result describes the page role, page summary, and preprocessed page elements.
-- document_summary describes the full document topic, sections, key concepts, difficult pages, and prerequisite links.
-- matched_preprocessed_elements lists the preprocessed elements that overlap or best match the selected bbox.
+- selection_context is a compact, ranked context packet built for this exact bbox.
+- selection_context.page_role and selection_context.page_summary describe the current page.
+- selection_context.matched_page_elements lists the page elements that overlap or best match the selected bbox.
+- selection_context.nearby_text_blocks lists the closest parsed text blocks, capped for latency.
+- selection_context.document_context_brief describes the document topic, sections, and key concepts when document synthesis is ready.
+- selection_context.related_page_candidates and selection_context.source_candidates are the preferred grounding sources.
 - the attached image is the current page.
+
+The input intentionally does not include the full pass1 artifact, full document summary, full page text, every page element, or every candidate region. Do not assume omitted context exists.
 
 ## Required output
 
@@ -55,20 +60,20 @@ Score it by combining:
 
 confidence is grounding strength, not a guarantee of truth.
 Score it by combining:
-- how clearly the selected bbox maps to the matched_preprocessed_elements
-- how directly page_summary/document_summary/source_cues support the explanation
+- how clearly the selected bbox maps to selection_context.matched_page_elements and nearby_text_blocks
+- how directly page_summary, document_context_brief, and source_candidates support the explanation
 - whether the relevant source text or visual structure is visible on the current page
-- whether related page numbers are explicitly supported by document_summary
+- whether related page numbers are explicitly supported by selection_context.related_page_candidates or document_context_brief
 
 ## Rules
 
 - Explain the selected region, not the whole document.
 - Do not dump generic textbook background.
 - Keep explanations short and useful for a student who is already reading the document top-down.
-- Prefer the matched_preprocessed_elements when they fit the selected bbox.
+- Prefer selection_context.matched_page_elements and selection_context.nearby_text_blocks when they fit the selected bbox.
 - If the selected bbox cuts across multiple elements, explain the combined relationship.
 - If the selected region is visually ambiguous, say so through lower confidence and source_cues rather than inventing.
-- Do not hallucinate page numbers. Use only pages that appear in document_summary or the current page_number.
+- Do not hallucinate page numbers. Use only pages that appear in selection_context.related_page_candidates, selection_context.document_context_brief, or the current page_number.
 - Source cues should be conservative. If a cue is inferred from document-level context, use source_type "document_context".
 - If exact source text is unavailable, set snippet to null rather than inventing a quotation.
 - Use the selected_bbox as the spatial grounding. Do not move it to a different region.

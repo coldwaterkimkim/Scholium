@@ -161,17 +161,17 @@ class MockAnalysisClient:
         page_number: int,
         selection_id: str,
         selected_bbox: list[float],
-        pass1_result: dict[str, Any],
-        document_summary: dict[str, Any],
-        matched_preprocessed_elements: list[dict[str, Any]],
+        selection_context: dict[str, Any],
     ) -> dict[str, Any]:
+        matched_preprocessed_elements = list(selection_context.get("matched_page_elements", []))
+        document_context = dict(selection_context.get("document_context_brief") or {})
         matched_label = (
             str(matched_preprocessed_elements[0].get("label"))
             if matched_preprocessed_elements
             else "Selected region"
         )
         related_page = None
-        for concept in document_summary.get("key_concepts", []):
+        for concept in document_context.get("key_concepts", []):
             for page in concept.get("pages", []):
                 if int(page) != page_number:
                     related_page = int(page)
@@ -273,12 +273,16 @@ class MockAnalysisClient:
         return anchors
 
     def _wrap(self, stage: StageName, result: dict[str, Any]) -> dict[str, Any]:
+        meta: dict[str, Any] = {
+            "schema_version": self.settings.schema_version,
+            "prompt_version": self.settings.stage_config(stage).prompt_version,
+            "model_name": "mock-analysis-provider",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        if stage == "selection_explanation":
+            meta["provider"] = "mock"
+            meta["reasoning_effort"] = "none"
         return {
-            "meta": {
-                "schema_version": self.settings.schema_version,
-                "prompt_version": self.settings.stage_config(stage).prompt_version,
-                "model_name": "mock-analysis-provider",
-                "generated_at": datetime.now(timezone.utc).isoformat(),
-            },
+            "meta": meta,
             "result": validate_payload(stage, result),
         }

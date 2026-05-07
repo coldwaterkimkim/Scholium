@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 _BULLET_LIST_PATTERN = re.compile(r"^\s*[-*+•]\s+")
 _ORDERED_LIST_PATTERN = re.compile(r"^\s*\d+[\.\)]\s+")
 _CAPTION_PATTERN = re.compile(r"^\s*(figure|fig\.|table|chart|image)\b", re.IGNORECASE)
+_FORMULA_PATTERN = re.compile(r"(?:=|≤|≥|∑|∫|√|\b(?:pbr|npv|roe|eps|roi)\b)", re.IGNORECASE)
 _HEADING_MARKER_PATTERN = re.compile(r"^\s*#{1,6}\s+")
 _TABLE_OVERLAP_THRESHOLD = 0.35
 _HEADING_SIZE_DELTA = 2.0
@@ -52,7 +53,7 @@ class PyMuPDF4LLMDocumentParser:
         self,
         *,
         settings: AppSettings | None = None,
-        parser_source: str = "pymupdf4llm+fitz",
+        parser_source: str = "pymupdf4llm_enhanced+fitz",
     ) -> None:
         self.settings = settings or get_settings()
         self.parser_source = parser_source
@@ -381,6 +382,9 @@ class PyMuPDF4LLMDocumentParser:
         if previous_block_type in {ParseBlockType.FIGURE, ParseBlockType.TABLE} and _CAPTION_PATTERN.match(stripped):
             return ParseBlockType.CAPTION
 
+        if self._looks_like_formula(stripped):
+            return ParseBlockType.FORMULA
+
         if self._looks_like_heading(stripped, body_font_size, max_font_size):
             return ParseBlockType.HEADING
 
@@ -411,6 +415,17 @@ class PyMuPDF4LLMDocumentParser:
         if len(text) > _HEADING_MAX_CHARACTERS:
             return False
         return True
+
+    def _looks_like_formula(self, text: str) -> bool:
+        compact = " ".join(text.split())
+        if not compact or len(compact) > 220:
+            return False
+        if not _FORMULA_PATTERN.search(compact):
+            return False
+        # Avoid promoting ordinary prose with a single equals sign into formula blocks.
+        token_count = len(compact.split())
+        operator_count = sum(compact.count(operator) for operator in ("=", "+", "-", "/", "×", "*", "≤", "≥"))
+        return token_count <= 24 or operator_count >= 2
 
     def _clean_block_text(self, text: str, block_type: ParseBlockType) -> str:
         stripped = text.strip()

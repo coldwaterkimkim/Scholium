@@ -234,8 +234,13 @@ def get_page_result(
     image_url = str(request.url_for("rendered-pages", path=image_subpath))
 
     try:
-        pass2_artifact = storage.load_pass2_result(document_id, page_number)
         pass1_artifact = storage.load_pass1_result(document_id, page_number)
+        document_summary_artifact = storage.load_document_summary(document_id)
+        pass2_artifact = (
+            storage.load_pass2_result(document_id, page_number)
+            if storage.settings.precompute_anchored_explanations
+            else None
+        )
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -250,6 +255,7 @@ def get_page_result(
         }
     elif pass1_artifact is not None:
         pass1_result = pass1_artifact["result"]
+        document_context_ready = document_summary_artifact is not None
         result = {
             "document_id": pass1_result["document_id"],
             "page_number": pass1_result["page_number"],
@@ -257,14 +263,24 @@ def get_page_result(
             "page_summary": pass1_result["page_summary"],
             "final_anchors": [],
             "page_elements": pass1_result["candidate_anchors"],
-            "page_risk_note": "On-demand mode: this page is ready for drag-based selection explanations.",
-            "viewer_mode": "on_demand",
+            "page_risk_note": (
+                "On-demand mode: this page is ready for drag-based selection explanations."
+                if document_context_ready
+                else "Preparing document context for full selected-region explanations..."
+            ),
+            "viewer_mode": "on_demand" if document_context_ready else "page_context_ready",
         }
     else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Page preprocessing result not found.",
-        )
+        result = {
+            "document_id": document_id,
+            "page_number": page_number,
+            "page_role": "Rendered PDF page",
+            "page_summary": "This page is rendered and readable while Scholium prepares explanation context.",
+            "final_anchors": [],
+            "page_elements": [],
+            "page_risk_note": "Preparing explanations for this page...",
+            "viewer_mode": "render_only",
+        }
 
     return PagePublicResponse(
         image_url=image_url,

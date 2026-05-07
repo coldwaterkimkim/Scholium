@@ -92,7 +92,12 @@ export function ProcessingStatus({ documentId }: ProcessingStatusProps) {
         setError(null);
         setLoading(false);
 
-        if ((nextSnapshot.ready_for_viewer || nextSnapshot.status === "completed") && !redirectScheduledRef.current) {
+        if (
+          (nextSnapshot.render_ready_for_viewer ||
+            nextSnapshot.ready_for_viewer ||
+            nextSnapshot.status === "completed") &&
+          !redirectScheduledRef.current
+        ) {
           redirectScheduledRef.current = true;
           router.replace(`/documents/${encodeURIComponent(documentId)}`);
           return;
@@ -142,7 +147,7 @@ export function ProcessingStatus({ documentId }: ProcessingStatusProps) {
           <div className={styles.header}>
             <h1 className={styles.title}>문서 처리 상태</h1>
             <p className={styles.description}>
-              문서가 준비되면 자동으로 viewer로 이동해.
+              PDF 페이지가 먼저 준비되면 자동으로 viewer로 이동해.
             </p>
           </div>
 
@@ -210,8 +215,16 @@ export function ProcessingStatus({ documentId }: ProcessingStatusProps) {
                 <span className={styles.value}>{snapshot.has_errors ? "true" : "false"}</span>
               </div>
               <div className={styles.item}>
-                <span className={styles.label}>ready_for_viewer</span>
-                <span className={styles.value}>{snapshot.ready_for_viewer ? "true" : "false"}</span>
+                <span className={styles.label}>render_ready_for_viewer</span>
+                <span className={styles.value}>{snapshot.render_ready_for_viewer ? "true" : "false"}</span>
+              </div>
+              <div className={styles.item}>
+                <span className={styles.label}>page_context_ready_pages</span>
+                <span className={styles.value}>{snapshot.page_context_ready_pages}</span>
+              </div>
+              <div className={styles.item}>
+                <span className={styles.label}>document_context_ready</span>
+                <span className={styles.value}>{snapshot.document_context_ready ? "true" : "false"}</span>
               </div>
               <div className={styles.item}>
                 <span className={styles.label}>current_page_number</span>

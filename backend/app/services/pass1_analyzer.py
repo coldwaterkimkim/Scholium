@@ -28,11 +28,12 @@ class Pass1Analyzer:
         self,
         storage: StorageService | None = None,
         analysis_client: AnalysisClient | None = None,
-        max_workers: int = 3,
+        max_workers: int | None = None,
     ) -> None:
         self.storage = storage or get_storage_service()
         self.analysis_client = analysis_client or get_analysis_client(storage=self.storage)
-        self.max_workers = max(1, max_workers)
+        resolved_max_workers = max_workers if max_workers is not None else self.storage.settings.pass1_max_workers
+        self.max_workers = max(1, int(resolved_max_workers))
 
     def analyze_page(
         self,

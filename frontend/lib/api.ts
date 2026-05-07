@@ -51,6 +51,9 @@ export type DocumentProcessing = {
   synthesis_ready: boolean;
   pass2_completed_pages: number;
   pass2_failed_pages: number;
+  render_ready_for_viewer: boolean;
+  page_context_ready_pages: number;
+  document_context_ready: boolean;
   ready_for_viewer: boolean;
   current_page_number: number | null;
   error_message: string | null;
@@ -205,7 +208,7 @@ export type PageData = {
   final_anchors: FinalAnchor[];
   page_elements: PageElement[];
   page_risk_note: string;
-  viewer_mode: "on_demand" | "legacy_pass2";
+  viewer_mode: "render_only" | "page_context_ready" | "on_demand" | "legacy_pass2";
 };
 
 export class ApiRequestError extends Error {

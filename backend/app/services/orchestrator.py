@@ -357,6 +357,7 @@ class DocumentOrchestrator:
                     "analysis_image_long_edge": RENDER_LONG_EDGE_PIXELS,
                     "pipeline_mode": self.storage.settings.pipeline_mode,
                     "spine_mode": self.storage.settings.v2_spine_mode,
+                    "pass1_max_workers": self.storage.settings.pass1_max_workers,
                 },
             )
         except Exception as exc:
@@ -466,6 +467,7 @@ class DocumentOrchestrator:
                     "analysis_image_long_edge": RENDER_LONG_EDGE_PIXELS,
                     "pipeline_mode": self.storage.settings.pipeline_mode,
                     "spine_mode": self.storage.settings.v2_spine_mode,
+                    "pass1_max_workers": self.storage.settings.pass1_max_workers,
                     "rendered_pages": rendered_pages,
                     "parse_artifact_reused": bool(parse_context["parse_artifact_reused"]),
                     "page_manifest_reused": bool(parse_context["page_manifest_reused"]),

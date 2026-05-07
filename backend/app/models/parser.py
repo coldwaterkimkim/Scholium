@@ -12,6 +12,7 @@ class ParseBlockType(StrEnum):
     LIST = "list"
     TABLE = "table"
     FIGURE = "figure"
+    FORMULA = "formula"
     CAPTION = "caption"
     OTHER = "other"
 

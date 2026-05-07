@@ -1,0 +1,131 @@
+{
+  "schema_version": "parser_selection_goldset_v1",
+  "bbox_format": "normalized_xywh",
+  "notes": [
+    "Starter goldset for parser benchmarking, not final human accuracy labels.",
+    "Coordinates are normalized [x, y, w, h] in viewer/page space.",
+    "Selections were seeded from local corpus inspection and should be manually reviewed in the viewer before being treated as accuracy ground truth."
+  ],
+  "selections": [
+    {
+      "selection_id": "text_control_week4_summary_p2",
+      "pdf_filename": "doc_f9ba1ef0e03446d1bcf11dcc686d1275.pdf",
+      "page_number": 2,
+      "selected_bbox": [0.05, 0.057, 0.847, 0.733],
+      "selection_type": "paragraph",
+      "expected_concept_label": "Week 4 summary and Q/A flow",
+      "expected_source_type": "this_slide",
+      "notes": "Text-rich control region; verify reading order and local text completeness."
+    },
+    {
+      "selection_id": "text_control_lineage_diagram_p14",
+      "pdf_filename": "doc_f9ba1ef0e03446d1bcf11dcc686d1275.pdf",
+      "page_number": 14,
+      "selected_bbox": [0.05, 0.23, 0.86, 0.56],
+      "selection_type": "figure",
+      "expected_concept_label": "AI lineage diagram",
+      "expected_source_type": "this_slide",
+      "notes": "Text-based structure diagram; useful for flow/diagram region matching."
+    },
+    {
+      "selection_id": "research_dense_body_p2",
+      "pdf_filename": "유우_질병면역학 발표논문.pdf",
+      "page_number": 2,
+      "selected_bbox": [0.262, 0.061, 0.672, 0.888],
+      "selection_type": "paragraph",
+      "expected_concept_label": "Dense research-paper body text",
+      "expected_source_type": "this_slide",
+      "notes": "Research-paper-like dense text region."
+    },
+    {
+      "selection_id": "research_figure_panel_p10",
+      "pdf_filename": "유우_질병면역학 발표논문.pdf",
+      "page_number": 10,
+      "selected_bbox": [0.262, 0.065, 0.579, 0.724],
+      "selection_type": "figure",
+      "expected_concept_label": "Microscopy and bar-chart figure panel",
+      "expected_source_type": "this_slide",
+      "notes": "Checks figure detection and figure-caption pairing."
+    },
+    {
+      "selection_id": "research_caption_p10",
+      "pdf_filename": "유우_질병면역학 발표논문.pdf",
+      "page_number": 10,
+      "selected_bbox": [0.262, 0.801, 0.67, 0.12],
+      "selection_type": "caption",
+      "expected_concept_label": "Figure caption",
+      "expected_source_type": "caption",
+      "notes": "Checks caption detection and source cue grounding."
+    },
+    {
+      "selection_id": "finance_title_slide_p1",
+      "pdf_filename": "W1.Lecture01-Financial Management and Firm Value.pdf",
+      "page_number": 1,
+      "selected_bbox": [0.173, 0.122, 0.654, 0.756],
+      "selection_type": "page_role",
+      "expected_concept_label": "Lecture title slide",
+      "expected_source_type": "this_slide",
+      "notes": "Lecture slide visual composition."
+    },
+    {
+      "selection_id": "finance_decision_flow_p4",
+      "pdf_filename": "W1.Lecture01-Financial Management and Firm Value.pdf",
+      "page_number": 4,
+      "selected_bbox": [0.173, 0.557, 0.654, 0.321],
+      "selection_type": "figure",
+      "expected_concept_label": "Firm value decision flow",
+      "expected_source_type": "this_slide",
+      "notes": "Visual flow diagram region."
+    },
+    {
+      "selection_id": "pharma_brand_table_p22",
+      "pdf_filename": "comparisonofpfizernovartisbayergenentechandothertoppharmaceuticalcompaniesonfacebookin2015q3-151006115618-lva1-app6892.pdf",
+      "page_number": 22,
+      "selected_bbox": [0.08, 0.27, 0.84, 0.41],
+      "selection_type": "table",
+      "expected_concept_label": "Brand overview metrics table",
+      "expected_source_type": "this_slide",
+      "notes": "Table-heavy analytics slide; verify row/label/value alignment."
+    },
+    {
+      "selection_id": "pharma_brand_table_p59",
+      "pdf_filename": "comparisonofpfizernovartisbayergenentechandothertoppharmaceuticalcompaniesonfacebookin2015q3-151006115618-lva1-app6892.pdf",
+      "page_number": 59,
+      "selected_bbox": [0.08, 0.27, 0.84, 0.41],
+      "selection_type": "table",
+      "expected_concept_label": "Repeated brand overview metrics table",
+      "expected_source_type": "this_slide",
+      "notes": "Repeated template stability check."
+    },
+    {
+      "selection_id": "scanned_full_page_p2",
+      "pdf_filename": "백승준_Chapter06_배열 및 포인터, 문자열_1.pdf",
+      "page_number": 2,
+      "selected_bbox": [0.029, 0.0, 0.942, 1.0],
+      "selection_type": "page_role",
+      "expected_concept_label": "Full-page image-heavy slide",
+      "expected_source_type": "this_slide",
+      "notes": "Image-heavy/scanned robustness stress test."
+    },
+    {
+      "selection_id": "scanned_sort_sequence_p39",
+      "pdf_filename": "백승준_Chapter06_배열 및 포인터, 문자열_1.pdf",
+      "page_number": 39,
+      "selected_bbox": [0.136, 0.185, 0.811, 0.634],
+      "selection_type": "figure",
+      "expected_concept_label": "Selection sort visual sequence",
+      "expected_source_type": "this_slide",
+      "notes": "Visual algorithm sequence region."
+    },
+    {
+      "selection_id": "scanned_code_block_p43",
+      "pdf_filename": "백승준_Chapter06_배열 및 포인터, 문자열_1.pdf",
+      "page_number": 43,
+      "selected_bbox": [0.05, 0.198, 0.829, 0.552],
+      "selection_type": "paragraph",
+      "expected_concept_label": "Code block",
+      "expected_source_type": "this_slide",
+      "notes": "Checks code-like text extraction and bbox matching."
+    }
+  ]
+}

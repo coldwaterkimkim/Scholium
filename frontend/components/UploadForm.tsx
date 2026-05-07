@@ -167,15 +167,32 @@ export function UploadForm() {
           </div>
 
           <form className={styles.form} onSubmit={handleSubmit}>
-            <label className={styles.fileField}>
+            <div className={styles.fileField}>
               <span className={styles.fieldLabel}>PDF 파일</span>
               <input
+                id="pdf-upload-input"
+                className={styles.fileInput}
                 type="file"
                 accept="application/pdf,.pdf"
                 onChange={handleFileChange}
                 disabled={isSubmitting}
               />
-            </label>
+              <label
+                className={`${styles.filePicker} ${isSubmitting ? styles.filePickerDisabled : ""}`}
+                htmlFor="pdf-upload-input"
+                aria-disabled={isSubmitting}
+              >
+                <span className={styles.filePickerMain}>
+                  <span className={styles.filePickerTitle}>
+                    {selectedFile ? selectedFile.name : "PDF 파일 선택"}
+                  </span>
+                  <span className={styles.filePickerHint}>
+                    {selectedFile ? "다른 PDF로 바꾸려면 다시 선택해." : "문서를 열기 전에 먼저 PDF 하나를 골라줘."}
+                  </span>
+                </span>
+                <span className={styles.filePickerAction}>찾아보기</span>
+              </label>
+            </div>
 
             <div className={styles.fileInfo}>
               {selectedFile ? selectedFile.name : "아직 선택된 파일이 없어."}

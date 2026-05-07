@@ -43,6 +43,8 @@ type DocumentViewerProps = {
   documentId: string;
 };
 
+const PAGE_CONTEXT_PREPARING_MESSAGE = "This page is still being prepared for explanations.";
+
 type LoadingState = {
   document: boolean;
   page: boolean;
@@ -888,6 +890,22 @@ function buildSelectionHistoryJob(item: SelectionExplanationHistoryItem): Select
   };
 }
 
+function isSelectionExplanationReady(viewerMode: PageData["viewer_mode"]): boolean {
+  switch (viewerMode) {
+    case "page_context_ready":
+    case "on_demand":
+    case "legacy_pass2":
+      return true;
+    case "render_only":
+      return false;
+    default: {
+      const exhaustiveViewerMode: never = viewerMode;
+      void exhaustiveViewerMode;
+      return false;
+    }
+  }
+}
+
 function isSamePersistedSelection(job: SelectionJob, explanation: SelectionExplanation): boolean {
   return (
     job.explanation?.selection_id === explanation.selection_id ||
@@ -1465,6 +1483,19 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
       }
 
       event.preventDefault();
+      if (!isSelectionExplanationReady(currentPageData.viewer_mode)) {
+        setChipContextMenu(null);
+        setPendingRelatedFocus(null);
+        setRelatedFocus(null);
+        setViewerNotice({
+          left: point.x + 12,
+          top: Math.max(12, point.y - 42),
+          message: PAGE_CONTEXT_PREPARING_MESSAGE,
+          tone: "loading",
+        });
+        return;
+      }
+
       event.currentTarget.setPointerCapture(event.pointerId);
       setChipContextMenu(null);
       setPendingRelatedFocus(null);
@@ -1758,11 +1789,11 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
   }, [currentPageData, updateImageDisplayMetrics]);
 
   useEffect(() => {
-    if (!currentPageData) {
+    const requestId = ++selectionHistoryRequestIdRef.current;
+    if (!currentPageData || !isSelectionExplanationReady(currentPageData.viewer_mode)) {
       return;
     }
 
-    const requestId = ++selectionHistoryRequestIdRef.current;
     const controller = new AbortController();
 
     getSelectionExplanationHistory(

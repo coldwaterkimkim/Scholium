@@ -72,11 +72,26 @@ _BENCHMARK_COUNT_FIELDS = {
     "openai_pass1_call_count",
     "openai_synthesis_call_count",
     "openai_pass2_call_count",
+    "codex_cli_call_count",
+    "codex_cli_pass1_call_count",
+    "codex_cli_synthesis_call_count",
+    "codex_cli_pass2_call_count",
+    "codex_cli_selection_call_count",
+    "codex_cli_follow_up_call_count",
+    "codex_cli_error_count",
+    "codex_cli_repair_count",
 }
 _OPENAI_CALL_COUNT_FIELDS_BY_STAGE = {
     "pass1": "openai_pass1_call_count",
     "document_synthesis": "openai_synthesis_call_count",
     "pass2": "openai_pass2_call_count",
+}
+_CODEX_CLI_CALL_COUNT_FIELDS_BY_STAGE = {
+    "pass1": "codex_cli_pass1_call_count",
+    "document_synthesis": "codex_cli_synthesis_call_count",
+    "pass2": "codex_cli_pass2_call_count",
+    "selection_explanation": "codex_cli_selection_call_count",
+    "selection_follow_up": "codex_cli_follow_up_call_count",
 }
 
 
@@ -1008,6 +1023,35 @@ class StorageService:
                 return
             state[counter_field] = int(state.get(counter_field, 0)) + 1
 
+    def increment_codex_cli_call_count(self, document_id: str, stage_name: str) -> None:
+        counter_field = _CODEX_CLI_CALL_COUNT_FIELDS_BY_STAGE.get(stage_name)
+        if counter_field is None:
+            return
+
+        with self._benchmark_lock:
+            state = self._benchmark_states.get(document_id)
+            if state is None:
+                return
+            state[counter_field] = int(state.get(counter_field, 0)) + 1
+            state["codex_cli_call_count"] = int(state.get("codex_cli_call_count", 0)) + 1
+
+    def increment_codex_cli_error_count(self, document_id: str) -> None:
+        with self._benchmark_lock:
+            state = self._benchmark_states.get(document_id)
+            if state is None:
+                return
+            state["codex_cli_error_count"] = int(state.get("codex_cli_error_count", 0)) + 1
+
+    def increment_codex_cli_repair_count(self, document_id: str, stage_name: str) -> None:
+        if stage_name not in _CODEX_CLI_CALL_COUNT_FIELDS_BY_STAGE:
+            return
+
+        with self._benchmark_lock:
+            state = self._benchmark_states.get(document_id)
+            if state is None:
+                return
+            state["codex_cli_repair_count"] = int(state.get("codex_cli_repair_count", 0)) + 1
+
     def finalize_processing_benchmark(
         self,
         document_id: str,
@@ -1078,7 +1122,10 @@ class StorageService:
             error_message = summary_error_message
 
         has_errors = failed_page_count > 0 or bool(error_message)
-        ready_for_viewer = document.status is DocumentStatus.COMPLETED
+        render_ready_for_viewer = rendered_pages > 0
+        page_context_ready_pages = pass1_completed_pages
+        document_context_ready = synthesis_ready
+        ready_for_viewer = render_ready_for_viewer
         resolved_stage = current_stage or self._derive_processing_stage(
             status=document.status,
             rendered_pages=rendered_pages,
@@ -1109,6 +1156,9 @@ class StorageService:
             "synthesis_ready": synthesis_ready,
             "pass2_completed_pages": pass2_completed_pages,
             "pass2_failed_pages": len(pass2_failed_page_numbers),
+            "render_ready_for_viewer": render_ready_for_viewer,
+            "page_context_ready_pages": page_context_ready_pages,
+            "document_context_ready": document_context_ready,
             "ready_for_viewer": ready_for_viewer,
             "current_page_number": current_page_number,
             "error_message": error_message,
@@ -1317,7 +1367,7 @@ class StorageService:
                 raise ValueError(f"{field_name} must be >= 0.")
             normalized_payload[field_name] = seconds
 
-        for field_name in _BENCHMARK_COUNT_FIELDS - {"openai_call_count_total"}:
+        for field_name in _BENCHMARK_COUNT_FIELDS - {"openai_call_count_total", "codex_cli_call_count"}:
             count = int(normalized_payload[field_name])
             if count < 0:
                 raise ValueError(f"{field_name} must be >= 0.")
@@ -1327,6 +1377,13 @@ class StorageService:
             int(normalized_payload["openai_pass1_call_count"])
             + int(normalized_payload["openai_synthesis_call_count"])
             + int(normalized_payload["openai_pass2_call_count"])
+        )
+        normalized_payload["codex_cli_call_count"] = (
+            int(normalized_payload["codex_cli_pass1_call_count"])
+            + int(normalized_payload["codex_cli_synthesis_call_count"])
+            + int(normalized_payload["codex_cli_pass2_call_count"])
+            + int(normalized_payload["codex_cli_selection_call_count"])
+            + int(normalized_payload["codex_cli_follow_up_call_count"])
         )
 
         final_status = str(normalized_payload["final_status"]).strip()
@@ -1371,15 +1428,19 @@ class StorageService:
         openai_timeout_seconds = int(normalized_payload["openai_timeout_seconds"])
         openai_max_retries = int(normalized_payload["openai_max_retries"])
         analysis_image_long_edge = int(normalized_payload["analysis_image_long_edge"])
+        pass1_max_workers = int(normalized_payload["pass1_max_workers"])
         if openai_timeout_seconds < 0:
             raise ValueError("openai_timeout_seconds must be >= 0.")
         if openai_max_retries < 0:
             raise ValueError("openai_max_retries must be >= 0.")
         if analysis_image_long_edge < 0:
             raise ValueError("analysis_image_long_edge must be >= 0.")
+        if pass1_max_workers < 1:
+            raise ValueError("pass1_max_workers must be >= 1.")
         normalized_payload["openai_timeout_seconds"] = openai_timeout_seconds
         normalized_payload["openai_max_retries"] = openai_max_retries
         normalized_payload["analysis_image_long_edge"] = analysis_image_long_edge
+        normalized_payload["pass1_max_workers"] = pass1_max_workers
 
         normalized_payload["parse_artifact_reused"] = bool(normalized_payload["parse_artifact_reused"])
         normalized_payload["page_manifest_reused"] = bool(normalized_payload["page_manifest_reused"])
@@ -1935,8 +1996,17 @@ class StorageService:
             "openai_pass1_call_count": 0,
             "openai_synthesis_call_count": 0,
             "openai_pass2_call_count": 0,
+            "codex_cli_call_count": 0,
+            "codex_cli_pass1_call_count": 0,
+            "codex_cli_synthesis_call_count": 0,
+            "codex_cli_pass2_call_count": 0,
+            "codex_cli_selection_call_count": 0,
+            "codex_cli_follow_up_call_count": 0,
+            "codex_cli_error_count": 0,
+            "codex_cli_repair_count": 0,
             "document_parser_backend": self.settings.document_parser_backend,
             "pass1_routing_mode": self.settings.pass1_routing_mode,
+            "pass1_max_workers": self.settings.pass1_max_workers,
             "pipeline_mode": self.settings.pipeline_mode,
             "spine_mode": self.settings.v2_spine_mode,
             "openai_model_pass1": self.settings.stage_config("pass1").model_name,

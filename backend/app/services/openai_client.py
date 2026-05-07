@@ -145,9 +145,7 @@ class OpenAIResponsesClient:
         page_number: int,
         selection_id: str,
         selected_bbox: list[float],
-        pass1_result: dict[str, Any],
-        document_summary: dict[str, Any],
-        matched_preprocessed_elements: list[dict[str, Any]],
+        selection_context: dict[str, Any],
     ) -> dict[str, Any]:
         payload = {
             "document_id": document_id,
@@ -158,10 +156,11 @@ class OpenAIResponsesClient:
             "bbox": selected_bbox,
             "schema_version": self.settings.schema_version,
             "prompt_version": self.settings.stage_config("selection_explanation").prompt_version,
-            "pass1_result": pass1_result,
-            "document_summary": document_summary,
-            "matched_preprocessed_elements": matched_preprocessed_elements,
+            "selection_context": selection_context,
         }
+        payload["prompt_payload_size_chars"] = len(
+            json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        )
         return self._run_stage("selection_explanation", payload, page_image_path=page_image_path)
 
     def run_selection_follow_up(
@@ -271,7 +270,7 @@ class OpenAIResponsesClient:
             raise OpenAIResponseValidationError(str(exc)) from exc
 
         return {
-            "meta": self._build_meta(stage, response),
+            "meta": self._build_meta(stage, stage_payload, response),
             "result": validated_result,
         }
 
@@ -295,14 +294,40 @@ class OpenAIResponsesClient:
 
         return payload
 
-    def _build_meta(self, stage: StageName, response: Any) -> dict[str, Any]:
+    def _build_meta(self, stage: StageName, stage_payload: dict[str, Any], response: Any) -> dict[str, Any]:
         stage_config = self.settings.stage_config(stage)
-        return {
+        meta: dict[str, Any] = {
             "schema_version": self.settings.schema_version,
             "prompt_version": stage_config.prompt_version,
-            "model_name": getattr(response, "model", stage_config.model_name),
+            "model_name": stage_config.model_name,
+            "reasoning_effort": stage_config.reasoning_effort,
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
+        if stage == "selection_explanation":
+            selection_context = stage_payload.get("selection_context")
+            context_metrics = (
+                selection_context.get("metrics")
+                if isinstance(selection_context, dict) and isinstance(selection_context.get("metrics"), dict)
+                else {}
+            )
+            meta.update(
+                {
+                    "provider": "openai_api",
+                    "context_hash": (
+                        selection_context.get("context_hash")
+                        if isinstance(selection_context, dict)
+                        else None
+                    ),
+                    "selection_context_size_chars": int(
+                        context_metrics.get("selection_context_size_chars", 0)
+                    ),
+                    "prompt_payload_size_chars": int(stage_payload.get("prompt_payload_size_chars", 0)),
+                    "matched_element_count": int(context_metrics.get("matched_element_count", 0)),
+                    "nearby_text_block_count": int(context_metrics.get("nearby_text_block_count", 0)),
+                    "source_candidate_count": int(context_metrics.get("source_candidate_count", 0)),
+                }
+            )
+        return meta
 
     def _record_call_attempt(
         self,
