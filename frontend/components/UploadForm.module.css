@@ -281,6 +281,7 @@
   border-radius: 10px;
   background: #fbfcfd;
   color: var(--text-primary);
+  cursor: pointer;
   text-align: left;
   transition:
     background 150ms ease,
@@ -292,6 +293,17 @@
   border-color: rgba(101, 121, 64, 0.32);
   background: #f7f9f3;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.documentRow:focus-visible {
+  outline: 3px solid rgba(101, 121, 64, 0.22);
+  outline-offset: 2px;
+}
+
+.documentRowSelected {
+  border-color: rgba(101, 121, 64, 0.58);
+  background: #f3f7ed;
+  box-shadow: inset 3px 0 0 #657940;
 }
 
 .selectionCell {

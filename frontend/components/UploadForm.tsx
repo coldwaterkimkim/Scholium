@@ -149,6 +149,7 @@ export function UploadForm() {
 
   const hasDocuments = documents.length > 0;
   const selectedCount = selectedDocumentIds.size;
+  const allDocumentsSelected = hasDocuments && selectedCount === documents.length;
   const completedCount = useMemo(
     () => documents.filter((document) => document.status === "completed").length,
     [documents],
@@ -270,6 +271,42 @@ export function UploadForm() {
     });
   }
 
+  function toggleDocumentSelectionByRow(documentId: string) {
+    setSelectedDocumentIds((currentSelection) => {
+      const nextSelection = new Set(currentSelection);
+      if (nextSelection.has(documentId)) {
+        nextSelection.delete(documentId);
+      } else {
+        nextSelection.add(documentId);
+      }
+      return nextSelection;
+    });
+  }
+
+  function handleDocumentRowClick(documentId: string, event: React.MouseEvent<HTMLElement>) {
+    const target = event.target;
+    if (target instanceof Element && target.closest("button, input, label, a")) {
+      return;
+    }
+
+    toggleDocumentSelectionByRow(documentId);
+  }
+
+  function handleDocumentRowKeyDown(documentId: string, event: React.KeyboardEvent<HTMLElement>) {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      toggleDocumentSelectionByRow(documentId);
+    }
+  }
+
+  function selectAllDocuments() {
+    setSelectedDocumentIds(new Set(documents.map((document) => document.document_id)));
+  }
+
   function clearSelection() {
     setSelectedDocumentIds(new Set());
   }
@@ -385,6 +422,16 @@ export function UploadForm() {
               </p>
             </div>
             <div className={styles.worklistActions}>
+              {hasDocuments ? (
+                <button
+                  type="button"
+                  className={styles.refreshButton}
+                  onClick={selectAllDocuments}
+                  disabled={allDocumentsSelected}
+                >
+                  {allDocumentsSelected ? "전체 선택됨" : "전체 선택"}
+                </button>
+              ) : null}
               {selectedCount > 0 ? (
                 <>
                   <button type="button" className={styles.refreshButton} onClick={clearSelection}>
@@ -440,7 +487,16 @@ export function UploadForm() {
                 const statusDetail = getStatusDetail(document);
 
                 return (
-                  <article key={document.document_id} className={styles.documentRow}>
+                  <article
+                    key={document.document_id}
+                    className={`${styles.documentRow} ${
+                      selectedDocumentIds.has(document.document_id) ? styles.documentRowSelected : ""
+                    }`}
+                    tabIndex={0}
+                    aria-selected={selectedDocumentIds.has(document.document_id)}
+                    onClick={(event) => handleDocumentRowClick(document.document_id, event)}
+                    onKeyDown={(event) => handleDocumentRowKeyDown(document.document_id, event)}
+                  >
                     <label className={styles.selectionCell}>
                       <input
                         type="checkbox"
