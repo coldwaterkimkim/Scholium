@@ -170,7 +170,7 @@ export function PageGuidePanel({
       </div>
 
       {hasDetails ? (
-        <details className={styles.moreDetails} open>
+        <details className={styles.moreDetails}>
           <summary>More guide</summary>
           <div className={styles.detailGrid}>
             {keyConcepts.length > 0 ? (

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import sqlite3
 import sys
 import tempfile
 from dataclasses import replace
@@ -15,6 +16,7 @@ from app.core.config import get_settings
 from app.models.read_api import PagePublicResponse
 from app.services.selection_context_builder import SelectionContextBuilder
 from app.services.storage import StorageService
+from app.utils.validation import get_json_schema
 
 
 def _settings_for_tempdir(tempdir: Path):
@@ -183,12 +185,107 @@ def _assert_selection_context_uses_page_elements(
     assert context["matched_page_elements"][0]["element_type"] == "diagram"
 
 
+def _ensure_interaction_log_table(connection: sqlite3.Connection) -> None:
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS interaction_logs (
+            event_id TEXT PRIMARY KEY,
+            document_id TEXT NOT NULL,
+            page_number INTEGER NOT NULL,
+            anchor_id TEXT NULL,
+            event_type TEXT NOT NULL,
+            timestamp TEXT NOT NULL
+        )
+        """
+    )
+
+
+def _insert_interaction_log(storage: StorageService, document_id: str, event_id: str) -> None:
+    with storage._connect() as connection:
+        _ensure_interaction_log_table(connection)
+        connection.execute(
+            """
+            INSERT INTO interaction_logs (
+                event_id,
+                document_id,
+                page_number,
+                anchor_id,
+                event_type,
+                timestamp
+            )
+            VALUES (?, ?, 1, NULL, 'selection_created', '2026-05-08T00:00:00Z')
+            """,
+            (event_id, document_id),
+        )
+
+
+def _interaction_log_count(storage: StorageService, document_id: str) -> int:
+    with storage._connect() as connection:
+        _ensure_interaction_log_table(connection)
+        row = connection.execute(
+            "SELECT COUNT(*) FROM interaction_logs WHERE document_id = ?",
+            (document_id,),
+        ).fetchone()
+    return int(row[0])
+
+
+def _assert_delete_clears_runtime_state_and_logs(storage: StorageService) -> None:
+    document = storage.save_uploaded_document("delete-smoke.pdf", b"%PDF-1.4\n%delete smoke\n")
+    document_id = document.document_id
+
+    for directory in (
+        storage.analysis_dir / document_id,
+        storage.parsed_dir / document_id,
+        storage.rendered_pages_dir / document_id,
+    ):
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory / "artifact.json").write_text("{}", encoding="utf-8")
+    _insert_interaction_log(storage, document_id, "evt_delete_smoke")
+
+    assert storage.delete_document(document_id)
+    assert storage.get_document(document_id) is None
+    assert not (storage.raw_pdfs_dir / f"{document_id}.pdf").exists()
+    assert not (storage.analysis_dir / document_id).exists()
+    assert not (storage.parsed_dir / document_id).exists()
+    assert not (storage.rendered_pages_dir / document_id).exists()
+    assert _interaction_log_count(storage, document_id) == 0
+
+    orphan_id = "doc_orphan_smoke"
+    for path, _owner_dir in storage._runtime_paths_for_document_id(orphan_id):
+        if path.suffix == ".pdf":
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b"%PDF-1.4\n%orphan smoke\n")
+        else:
+            path.mkdir(parents=True, exist_ok=True)
+            (path / "artifact.json").write_text("{}", encoding="utf-8")
+    _insert_interaction_log(storage, orphan_id, "evt_orphan_smoke")
+
+    summary = storage.prune_orphan_document_state()
+    assert orphan_id in summary["removed_runtime_document_ids"]
+    assert orphan_id in summary["removed_log_document_ids"]
+    assert summary["removed_log_count"] == 1
+    assert _interaction_log_count(storage, orphan_id) == 0
+    for path, _owner_dir in storage._runtime_paths_for_document_id(orphan_id):
+        assert not path.exists()
+
+
+def _assert_strict_pass1_schema_requires_page_guide_fields() -> None:
+    schema = get_json_schema("pass1")
+    page_guide_schema = schema["$defs"]["PageGuide"]
+    page_guide_properties = set(page_guide_schema["properties"].keys())
+    assert set(page_guide_schema["required"]) == page_guide_properties
+    assert "default" not in page_guide_schema["properties"]["page_role"]
+    assert "default" not in page_guide_schema["properties"]["reading_path"]
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory(prefix="scholium-page-elements-") as raw_tempdir:
         storage = StorageService(settings=_settings_for_tempdir(Path(raw_tempdir)))
         pass1_artifact = _assert_pass1_aliases(storage)
         _assert_public_response_accepts_page_elements(pass1_artifact)
         _assert_selection_context_uses_page_elements(storage, pass1_artifact)
+        _assert_delete_clears_runtime_state_and_logs(storage)
+        _assert_strict_pass1_schema_requires_page_guide_fields()
 
     print("page-elements compatibility smoke passed")
     return 0

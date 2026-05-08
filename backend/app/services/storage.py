@@ -326,14 +326,77 @@ class StorageService:
 
         document = self.get_document(document_id)
         if document is None:
-            return False
+            return self.delete_orphan_document_state(document_id)
 
         with self._connect() as connection:
             connection.execute("DELETE FROM pages WHERE document_id = ?", (document_id,))
+            self._delete_interaction_logs(connection, document_id)
             connection.execute("DELETE FROM documents WHERE document_id = ?", (document_id,))
 
         self._clear_document_runtime_state(document)
         return True
+
+    def delete_orphan_document_state(self, document_id: str) -> bool:
+        self.init_storage()
+
+        if not self._is_safe_document_id(document_id):
+            return False
+
+        removed_anything = False
+        with self._connect() as connection:
+            removed_anything = self._delete_interaction_logs(connection, document_id) > 0
+
+        for path, owner_dir in self._runtime_paths_for_document_id(document_id):
+            if path.is_file():
+                try:
+                    path.resolve().relative_to(owner_dir.resolve())
+                except ValueError:
+                    continue
+                path.unlink()
+                removed_anything = True
+            elif path.is_dir():
+                before_exists = path.exists()
+                self._remove_directory_if_owned(path, owner_dir)
+                removed_anything = removed_anything or before_exists
+
+        return removed_anything
+
+    def prune_orphan_document_state(self) -> dict[str, object]:
+        self.init_storage()
+
+        with self._connect() as connection:
+            live_document_ids = {
+                str(row[0])
+                for row in connection.execute("SELECT document_id FROM documents").fetchall()
+            }
+
+        with self._connect() as connection:
+            orphan_log_counts = dict(self._orphan_interaction_log_counts(connection, live_document_ids))
+
+        runtime_document_ids = self._collect_runtime_document_ids()
+        removed_runtime_document_ids: list[str] = []
+        removed_log_document_ids: list[str] = []
+        removed_log_count = 0
+        for document_id in sorted(runtime_document_ids - live_document_ids):
+            if self.delete_orphan_document_state(document_id):
+                removed_runtime_document_ids.append(document_id)
+            deleted_log_count = orphan_log_counts.pop(document_id, 0)
+            if deleted_log_count:
+                removed_log_document_ids.append(document_id)
+                removed_log_count += deleted_log_count
+
+        with self._connect() as connection:
+            for document_id, count in orphan_log_counts.items():
+                removed = self._delete_interaction_logs(connection, document_id)
+                if removed:
+                    removed_log_document_ids.append(document_id)
+                    removed_log_count += removed
+
+        return {
+            "removed_runtime_document_ids": removed_runtime_document_ids,
+            "removed_log_document_ids": removed_log_document_ids,
+            "removed_log_count": removed_log_count,
+        }
 
     def update_document(
         self,
@@ -1301,6 +1364,7 @@ class StorageService:
 
         with self._connect() as connection:
             connection.execute("DELETE FROM pages WHERE document_id = ?", (document.document_id,))
+            self._delete_interaction_logs(connection, document.document_id)
 
         self._remove_file_if_owned(document.original_path, self.raw_pdfs_dir)
         for directory, owner_dir in (
@@ -1309,6 +1373,80 @@ class StorageService:
             (self.parsed_dir / document.document_id, self.parsed_dir),
         ):
             self._remove_directory_if_owned(directory, owner_dir)
+
+    def _runtime_paths_for_document_id(self, document_id: str) -> list[tuple[Path, Path]]:
+        return [
+            (self.raw_pdfs_dir / f"{document_id}.pdf", self.raw_pdfs_dir),
+            (self.rendered_pages_dir / document_id, self.rendered_pages_dir),
+            (self.analysis_dir / document_id, self.analysis_dir),
+            (self.parsed_dir / document_id, self.parsed_dir),
+        ]
+
+    def _collect_runtime_document_ids(self) -> set[str]:
+        document_ids: set[str] = set()
+        for directory in (self.rendered_pages_dir, self.analysis_dir, self.parsed_dir):
+            if not directory.exists():
+                continue
+            for child in directory.iterdir():
+                if child.is_dir() and self._is_safe_document_id(child.name):
+                    document_ids.add(child.name)
+
+        if self.raw_pdfs_dir.exists():
+            for pdf_path in self.raw_pdfs_dir.glob("doc_*.pdf"):
+                document_id = pdf_path.stem
+                if self._is_safe_document_id(document_id):
+                    document_ids.add(document_id)
+
+        return document_ids
+
+    def _delete_interaction_logs(self, connection: sqlite3.Connection, document_id: str) -> int:
+        if not self._table_exists(connection, "interaction_logs"):
+            return 0
+        cursor = connection.execute(
+            "DELETE FROM interaction_logs WHERE document_id = ?",
+            (document_id,),
+        )
+        return int(cursor.rowcount if cursor.rowcount is not None else 0)
+
+    def _orphan_interaction_log_counts(
+        self,
+        connection: sqlite3.Connection,
+        live_document_ids: set[str],
+    ) -> list[tuple[str, int]]:
+        if not self._table_exists(connection, "interaction_logs"):
+            return []
+
+        rows = connection.execute(
+            """
+            SELECT document_id, COUNT(*)
+            FROM interaction_logs
+            GROUP BY document_id
+            """
+        ).fetchall()
+        return [
+            (str(row[0]), int(row[1]))
+            for row in rows
+            if self._is_safe_document_id(str(row[0])) and str(row[0]) not in live_document_ids
+        ]
+
+    def _table_exists(self, connection: sqlite3.Connection, table_name: str) -> bool:
+        row = connection.execute(
+            """
+            SELECT 1
+            FROM sqlite_master
+            WHERE type = 'table' AND name = ?
+            LIMIT 1
+            """,
+            (table_name,),
+        ).fetchone()
+        return row is not None
+
+    def _is_safe_document_id(self, document_id: str) -> bool:
+        if not document_id.startswith("doc_"):
+            return False
+        if "/" in document_id or "\\" in document_id or ".." in document_id:
+            return False
+        return all(character.isalnum() or character == "_" for character in document_id)
 
     def _remove_file_if_owned(self, relative_path: str, owner_dir: Path) -> None:
         target_path = self.resolve_relative_path(relative_path)
