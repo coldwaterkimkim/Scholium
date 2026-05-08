@@ -6,7 +6,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.document import DocumentStatus, ProcessingStage
-from app.schemas.common import NormalizedBBox, PageElement, PageResultBase, SourceCue
+from app.schemas.common import NormalizedBBox, PageElement, PageGuide, PageResultBase, SourceCue
 from app.schemas.document_summary_schema import DocumentSummaryResult
 from app.schemas.pass2_schema import Pass2FinalAnchor
 from app.schemas.selection_explanation_schema import SelectionExplanationResult
@@ -48,6 +48,7 @@ class PagePublicResponse(PageResultBase):
     image_url: str
     final_anchors: list[Pass2FinalAnchor] = Field(default_factory=list)
     page_elements: list[PageElement] = Field(default_factory=list)
+    page_guide: PageGuide | None = None
     page_risk_note: str
     viewer_mode: Literal["render_only", "page_context_ready", "on_demand", "legacy_pass2"] = "on_demand"
 

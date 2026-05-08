@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, UploadFile, status
 
@@ -50,6 +51,61 @@ def _get_document_or_404(storage: StorageService, document_id: str) -> DocumentR
             detail="Document not found.",
         )
     return document
+
+
+def _page_guide_with_document_connections(
+    page_guide: object,
+    *,
+    document_summary_artifact: dict[str, object] | None,
+    page_number: int,
+) -> dict[str, Any] | None:
+    if not isinstance(page_guide, dict):
+        return None
+
+    enriched_page_guide = dict(page_guide)
+    connection = enriched_page_guide.get("before_next_connection")
+    if isinstance(connection, dict):
+        normalized_connection: dict[str, Any] = dict(connection)
+    else:
+        normalized_connection = {}
+
+    if document_summary_artifact is not None and isinstance(document_summary_artifact.get("result"), dict):
+        summary_result = document_summary_artifact["result"]
+        prerequisite_links = summary_result.get("prerequisite_links")
+        if isinstance(prerequisite_links, list):
+            if not normalized_connection.get("previous"):
+                previous_link = next(
+                    (
+                        link
+                        for link in prerequisite_links
+                        if isinstance(link, dict) and int(link.get("from_page", 0)) == page_number
+                    ),
+                    None,
+                )
+                if previous_link is not None:
+                    normalized_connection["previous"] = (
+                        f"p. {int(previous_link['to_page'])}: {str(previous_link['reason']).strip()}"
+                    )
+
+            if not normalized_connection.get("next"):
+                next_link = next(
+                    (
+                        link
+                        for link in prerequisite_links
+                        if isinstance(link, dict) and int(link.get("to_page", 0)) == page_number
+                    ),
+                    None,
+                )
+                if next_link is not None:
+                    normalized_connection["next"] = (
+                        f"p. {int(next_link['from_page'])}: {str(next_link['reason']).strip()}"
+                    )
+
+    enriched_page_guide["before_next_connection"] = {
+        "previous": normalized_connection.get("previous"),
+        "next": normalized_connection.get("next"),
+    }
+    return enriched_page_guide
 
 
 @router.post("", response_model=DocumentUploadResponse, status_code=status.HTTP_201_CREATED)
@@ -265,6 +321,11 @@ def get_page_result(
         result = {
             **pass2_artifact["result"],
             "page_elements": pass1_result.get("page_elements", []),
+            "page_guide": _page_guide_with_document_connections(
+                pass1_result.get("page_guide"),
+                document_summary_artifact=document_summary_artifact,
+                page_number=page_number,
+            ),
             "viewer_mode": "legacy_pass2",
         }
     elif pass1_artifact is not None:
@@ -277,6 +338,11 @@ def get_page_result(
             "page_summary": pass1_result["page_summary"],
             "final_anchors": [],
             "page_elements": pass1_result.get("page_elements", []),
+            "page_guide": _page_guide_with_document_connections(
+                pass1_result.get("page_guide"),
+                document_summary_artifact=document_summary_artifact,
+                page_number=page_number,
+            ),
             "page_risk_note": (
                 "On-demand mode: this page is ready for drag-based selection explanations."
                 if document_context_ready
@@ -292,6 +358,7 @@ def get_page_result(
             "page_summary": "This page is rendered and readable while Scholium prepares explanation context.",
             "final_anchors": [],
             "page_elements": [],
+            "page_guide": None,
             "page_risk_note": "Preparing explanations for this page...",
             "viewer_mode": "render_only",
         }

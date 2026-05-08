@@ -37,6 +37,7 @@ import {
 } from "@/utils/bbox";
 
 import { SelectedExplanationPanel } from "./SelectedExplanationPanel";
+import { PageGuidePanel } from "./PageGuidePanel";
 import styles from "./DocumentViewer.module.css";
 
 type DocumentViewerProps = {
@@ -1962,26 +1963,33 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
                   </div>
                 </div>
               ) : currentPageData ? (
-                <div
-                  ref={viewerCanvasRef}
-                  className={styles.viewerCanvas}
-                  onPointerDown={handleCanvasPointerDown}
-                  onPointerMove={handleCanvasPointerMove}
-                  onPointerUp={handleCanvasPointerUp}
-                  onPointerCancel={handleCanvasPointerCancel}
-                >
-                  <img
-                    ref={imageRef}
-                    alt={`${documentMeta?.filename ?? documentId} ${currentPage}페이지`}
-                    className={styles.pageImage}
-                    draggable={false}
-                    src={currentPageData.image_url}
-                    onLoad={handlePageImageLoad}
-                    onError={() => {
-                      setImageDisplayMetrics(null);
-                      loggedPageViewKeyRef.current = null;
-                    }}
+                <div className={styles.viewerStack}>
+                  <PageGuidePanel
+                    pageGuide={currentPageData.page_guide}
+                    viewerMode={currentPageData.viewer_mode}
+                    pageRole={currentPageData.page_role}
+                    pageSummary={currentPageData.page_summary}
                   />
+                  <div
+                    ref={viewerCanvasRef}
+                    className={styles.viewerCanvas}
+                    onPointerDown={handleCanvasPointerDown}
+                    onPointerMove={handleCanvasPointerMove}
+                    onPointerUp={handleCanvasPointerUp}
+                    onPointerCancel={handleCanvasPointerCancel}
+                  >
+                    <img
+                      ref={imageRef}
+                      alt={`${documentMeta?.filename ?? documentId} ${currentPage}페이지`}
+                      className={styles.pageImage}
+                      draggable={false}
+                      src={currentPageData.image_url}
+                      onLoad={handlePageImageLoad}
+                      onError={() => {
+                        setImageDisplayMetrics(null);
+                        loggedPageViewKeyRef.current = null;
+                      }}
+                    />
                   {selectedRegionRect ? (
                     <div
                       className={styles.selectedRegionRect}
@@ -2165,23 +2173,24 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
                       {viewerNotice.message}
                     </div>
                   ) : null}
-                  {selectedExplanation && panelPlacement && selectedRegionRect ? (
-                    <SelectedExplanationPanel
-                      explanation={selectedExplanation}
-                      currentPage={currentPage}
-                      panelStyle={{
-                        left: `${panelPlacement.panelStyle.left}px`,
-                        top: `${panelPlacement.panelStyle.top}px`,
-                        width: `${panelPlacement.panelStyle.width}px`,
-                      }}
-                      connectorLine={panelPlacement.connectorLine}
-                      selectedRect={selectedRegionRect}
-                      canvasWidth={panelPlacement.canvasWidth}
-                      canvasHeight={panelPlacement.canvasHeight}
-                      onNavigateToRelatedPage={handleRelatedPageNavigate}
-                      onClose={handleCloseSelectedExplanation}
-                    />
-                  ) : null}
+                    {selectedExplanation && panelPlacement && selectedRegionRect ? (
+                      <SelectedExplanationPanel
+                        explanation={selectedExplanation}
+                        currentPage={currentPage}
+                        panelStyle={{
+                          left: `${panelPlacement.panelStyle.left}px`,
+                          top: `${panelPlacement.panelStyle.top}px`,
+                          width: `${panelPlacement.panelStyle.width}px`,
+                        }}
+                        connectorLine={panelPlacement.connectorLine}
+                        selectedRect={selectedRegionRect}
+                        canvasWidth={panelPlacement.canvasWidth}
+                        canvasHeight={panelPlacement.canvasHeight}
+                        onNavigateToRelatedPage={handleRelatedPageNavigate}
+                        onClose={handleCloseSelectedExplanation}
+                      />
+                    ) : null}
+                  </div>
                 </div>
               ) : (
                 <div className={styles.stateBlock}>페이지 데이터를 아직 표시할 수 없어.</div>

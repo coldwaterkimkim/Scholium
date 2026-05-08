@@ -51,6 +51,17 @@
 - `legacy_pass2`: `SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=true`에서만 쓰는 precomputed anchor-click debug path다.
 - `/processing` 응답은 `render_ready_for_viewer`, `page_context_ready_pages`, `document_context_ready`를 함께 제공한다.
 
+## 2026-05 page guide layer
+
+- Scholium의 설명 UI는 두 레이어로 나뉜다.
+  - `Page Guide`: 페이지 단위 proactive macro orientation. viewer 상단에 붙어서 페이지 역할, thesis, key question, reading path, logic flow, key concepts, omitted context, study focus, confusions, takeaways, self-check를 보여준다.
+  - `Selected Explanation Panel`: 선택 영역 단위 reactive micro explanation. 기존처럼 selected bbox 근처에 floating panel로 뜬다.
+- `page_guide`는 pass1 page artifact의 일부로 생성한다.
+- public page API는 `page_guide: PageGuide | null`을 반환한다.
+- 오래된 pass1 artifact에 `page_guide`가 없으면 loader/API에서 `page_role`과 `page_summary` 기반의 최소 fallback을 제공하고, unavailable rich fields는 비워둔다.
+- `before_next_connection`은 pass1에서 확실하지 않으면 비워두며, document synthesis의 prerequisite relation이 준비된 경우 page API에서 previous/next 연결을 가볍게 보강할 수 있다.
+- selected-region endpoint와 follow-up endpoint의 provider/model/parser 기본값은 이 변경으로 바꾸지 않는다.
+
 ## timeout / retry
 
 - Codex CLI timeout: 기본 300초

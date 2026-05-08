@@ -60,11 +60,13 @@ class DocumentSynthesizer:
             result = artifact["result"]
             page_elements = result.get("page_elements") or result.get("candidate_anchors", [])
             page_element_summaries = self._build_page_element_summaries(page_elements)
+            page_guide_summary = self._build_page_guide_summary(result.get("page_guide"))
             usable_summaries.append(
                 {
                     "page_number": result["page_number"],
                     "page_role": result["page_role"],
                     "page_summary": result["page_summary"],
+                    "page_guide_summary": page_guide_summary,
                     "page_element_summaries": page_element_summaries,
                     "candidate_anchor_summaries": page_element_summaries,
                 }
@@ -160,6 +162,48 @@ class DocumentSynthesizer:
                 }
             )
         return summaries
+
+    def _build_page_guide_summary(
+        self,
+        page_guide: object,
+    ) -> dict[str, Any] | None:
+        if not isinstance(page_guide, dict):
+            return None
+
+        summary: dict[str, Any] = {}
+        for key in ("one_line_thesis", "key_question"):
+            value = str(page_guide.get(key) or "").strip()
+            if value:
+                summary[key] = value
+
+        for key in ("logic_flow", "study_focus", "must_remember"):
+            values = [
+                str(item).strip()
+                for item in (page_guide.get(key) or [])
+                if str(item).strip()
+            ]
+            if values:
+                summary[key] = values[:3]
+
+        concepts = []
+        for concept in page_guide.get("key_concepts") or []:
+            if not isinstance(concept, dict):
+                continue
+            concept_name = str(concept.get("concept") or "").strip()
+            if not concept_name:
+                continue
+            concepts.append(
+                {
+                    "concept": concept_name,
+                    "role_on_page": str(concept.get("role_on_page") or "").strip() or None,
+                }
+            )
+            if len(concepts) >= 4:
+                break
+        if concepts:
+            summary["key_concepts"] = concepts
+
+        return summary or None
 
     def _normalize_summary_envelope(
         self,

@@ -92,24 +92,31 @@
 .viewerFrame {
   min-height: 588px;
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   overflow: auto;
   border-radius: 12px;
   background: var(--surface-subtle);
   padding: 16px;
 }
 
+.viewerStack {
+  width: min(100%, 1160px);
+  display: grid;
+  gap: 12px;
+}
+
 .viewerCanvas {
   position: relative;
-  width: min(100%, 1160px);
+  width: 100%;
   line-height: 0;
   touch-action: none;
   user-select: none;
   cursor: crosshair;
 }
 
-.shellWithFloatingPanel .viewerCanvas {
+.shellWithFloatingPanel .viewerStack {
   width: min(100%, 1480px);
 }
 
@@ -555,6 +562,7 @@
 
 .stateBlock {
   min-height: 240px;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;

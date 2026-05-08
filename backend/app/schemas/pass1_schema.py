@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pydantic import Field, field_validator, model_validator
 
-from app.schemas.common import CandidateAnchor, PageResultBase
+from app.schemas.common import CandidateAnchor, PageGuide, PageResultBase
 
 
 class Pass1CandidateAnchor(CandidateAnchor):
@@ -25,6 +25,7 @@ class Pass1CandidateAnchor(CandidateAnchor):
 
 
 class Pass1Result(PageResultBase):
+    page_guide: PageGuide
     candidate_anchors: list[Pass1CandidateAnchor] = Field(max_length=15)
 
     @field_validator("candidate_anchors")

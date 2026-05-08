@@ -71,9 +71,32 @@ def _assert_pass1_aliases(storage: StorageService) -> dict[str, object]:
     legacy_result = normalized_from_legacy["result"]
     assert legacy_result["candidate_anchors"][0]["anchor_id"] == "legacy_anchor_1"
     assert legacy_result["page_elements"][0]["element_id"] == "legacy_anchor_1"
+    assert legacy_result["page_guide"]["page_role"] == "Concept page"
+    assert legacy_result["page_guide"]["one_line_thesis"] == "A compact page summary."
 
     page_elements_payload = _base_envelope(
         {
+            "page_guide": {
+                "page_role": "Concept bridge",
+                "one_line_thesis": "The page connects a diagram to the core idea.",
+                "key_question": "How should this diagram be read?",
+                "reading_path": ["Start from the title", "Follow the diagram labels"],
+                "logic_flow": ["Claim", "Diagram evidence", "Takeaway"],
+                "key_concepts": [
+                    {
+                        "concept": "Band gap",
+                        "brief_description": "A compact concept description.",
+                        "role_on_page": "Connects the diagram to the page thesis.",
+                    }
+                ],
+                "omitted_context": ["Prior definition is assumed."],
+                "study_focus": ["Diagram-to-concept mapping."],
+                "common_confusions": ["Do not confuse axis labels with the measured quantity."],
+                "example_or_application": "Use the diagram to explain a material comparison.",
+                "must_remember": ["Band gap frames the page interpretation."],
+                "self_check_questions": ["Can you explain why the diagram matters?"],
+                "before_next_connection": {"previous": None, "next": None},
+            },
             "page_elements": [
                 {
                     "element_id": "element_1",
@@ -97,6 +120,7 @@ def _assert_pass1_aliases(storage: StorageService) -> dict[str, object]:
     assert result["candidate_anchors"][0]["anchor_type"] == "diagram"
     assert result["page_elements"][0]["element_id"] == "element_1"
     assert result["page_elements"][0]["element_type"] == "diagram"
+    assert result["page_guide"]["key_question"] == "How should this diagram be read?"
 
     candidate_regions_payload = _base_envelope(
         {
@@ -134,11 +158,14 @@ def _assert_public_response_accepts_page_elements(pass1_artifact: dict[str, obje
         page_summary=result["page_summary"],
         final_anchors=[],
         page_elements=result["page_elements"],
+        page_guide=result["page_guide"],
         page_risk_note="Ready for selected-region explanations.",
         viewer_mode="on_demand",
     )
     assert response.page_elements[0].element_id == "element_1"
     assert response.page_elements[0].anchor_id == "element_1"
+    assert response.page_guide is not None
+    assert response.page_guide.key_question == "How should this diagram be read?"
 
 
 def _assert_selection_context_uses_page_elements(

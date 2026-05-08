@@ -55,6 +55,7 @@ Raw generated benchmark runs belong in ignored local `docs/perf_runs/` outputs, 
 - `frontend/components/UploadForm.tsx`
 - `frontend/components/ProcessingStatus.tsx`
 - `frontend/components/DocumentViewer.tsx`
+- `frontend/components/PageGuidePanel.tsx`
 - `frontend/components/SelectedExplanationPanel.tsx`
 - `frontend/components/LegacyAnchorOverlay.tsx` only for legacy/debug precomputed anchor-click mode
 - `frontend/components/RightPanel.tsx` only for legacy/debug precomputed anchor-click mode

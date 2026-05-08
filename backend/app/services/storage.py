@@ -1397,6 +1397,7 @@ class StorageService:
         )
         normalized_result.pop("page_elements", None)
         normalized_result.pop("candidate_regions", None)
+        normalized_result["page_guide"] = self._page_guide_from_pass1_result(normalized_result)
         validated_result = validate_payload("pass1", normalized_result)
         if include_page_elements_alias:
             validated_result["page_elements"] = [
@@ -1407,6 +1408,32 @@ class StorageService:
         return {
             "meta": self._normalize_pass1_meta(meta),
             "result": validated_result,
+        }
+
+    def _page_guide_from_pass1_result(self, result: dict[str, object]) -> object:
+        raw_page_guide = result.get("page_guide")
+        if isinstance(raw_page_guide, dict):
+            return raw_page_guide
+
+        page_role = str(result.get("page_role") or "").strip() or "Rendered PDF page"
+        one_line_thesis = str(result.get("page_summary") or "").strip() or None
+        return {
+            "page_role": page_role,
+            "one_line_thesis": one_line_thesis,
+            "key_question": None,
+            "reading_path": [],
+            "logic_flow": [],
+            "key_concepts": [],
+            "omitted_context": [],
+            "study_focus": [],
+            "common_confusions": [],
+            "example_or_application": None,
+            "must_remember": [],
+            "self_check_questions": [],
+            "before_next_connection": {
+                "previous": None,
+                "next": None,
+            },
         }
 
     def _legacy_candidate_anchors_from_pass1_result(

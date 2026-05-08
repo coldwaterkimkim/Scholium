@@ -28,6 +28,10 @@ class MockAnalysisClient:
                 "page_number": page_number,
                 "page_role": "핵심 개념을 소개하는 페이지",
                 "page_summary": "이 페이지는 문서의 핵심 개념과 읽을 때 막힐 수 있는 지점을 보여준다.",
+                "page_guide": self._page_guide(
+                    page_role="핵심 개념 소개",
+                    one_line_thesis="이 페이지는 뒤에서 반복될 핵심 개념을 먼저 잡아주는 역할을 한다.",
+                ),
                 "candidate_anchors": self._candidate_anchors(count=8),
             },
         )
@@ -56,6 +60,10 @@ class MockAnalysisClient:
                 "page_number": page_number,
                 "page_role": "텍스트 중심 개념 설명 페이지",
                 "page_summary": "추출 텍스트를 바탕으로 핵심 용어와 문맥상 중요한 문장을 뽑은 페이지다.",
+                "page_guide": self._page_guide(
+                    page_role="텍스트 중심 개념 설명",
+                    one_line_thesis="추출된 텍스트 블록을 순서대로 읽으면 이 페이지의 핵심 논리를 따라갈 수 있다.",
+                ),
                 "candidate_anchors": anchors,
             },
         )
@@ -271,6 +279,51 @@ class MockAnalysisClient:
                 }
             )
         return anchors
+
+    def _page_guide(self, *, page_role: str, one_line_thesis: str) -> dict[str, Any]:
+        return {
+            "page_role": page_role,
+            "one_line_thesis": one_line_thesis,
+            "key_question": "이 페이지를 읽을 때 먼저 잡아야 할 중심 질문은 무엇인가?",
+            "reading_path": [
+                "제목과 핵심 문장을 먼저 읽는다.",
+                "강조된 개념과 시각 요소를 연결한다.",
+                "마지막으로 후보 요소들이 어떤 질문을 만들 수 있는지 확인한다.",
+            ],
+            "logic_flow": [
+                "핵심 개념 제시",
+                "근거 또는 예시 확인",
+                "선택 설명으로 세부 의미 확인",
+            ],
+            "key_concepts": [
+                {
+                    "concept": "Mock concept",
+                    "brief_description": "테스트용 page guide가 노출되는지 확인하기 위한 개념이다.",
+                    "role_on_page": "Page Guide 렌더링과 schema validation을 확인한다.",
+                }
+            ],
+            "omitted_context": [
+                "Mock provider 결과이므로 실제 강의 배경은 포함하지 않는다.",
+            ],
+            "study_focus": [
+                "페이지 역할과 선택 가능한 핵심 요소의 관계를 확인한다.",
+            ],
+            "common_confusions": [
+                "Page Guide는 전체 페이지 방향이고, 선택 설명은 사용자가 고른 영역의 세부 설명이다.",
+            ],
+            "example_or_application": "테스트 문서에서 Page Guide 패널이 PDF 상단에 보이면 연결이 정상이다.",
+            "must_remember": [
+                "Page Guide는 페이지 읽기 방향을 제공한다.",
+                "선택 설명은 드래그한 영역에만 반응한다.",
+            ],
+            "self_check_questions": [
+                "이 페이지가 문서에서 맡는 역할을 한 문장으로 말할 수 있는가?",
+            ],
+            "before_next_connection": {
+                "previous": None,
+                "next": None,
+            },
+        }
 
     def _wrap(self, stage: StageName, result: dict[str, Any]) -> dict[str, Any]:
         meta: dict[str, Any] = {

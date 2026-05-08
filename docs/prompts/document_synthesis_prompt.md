@@ -29,7 +29,7 @@
 너의 임무는 여러 페이지의 1차 분석 결과를 보고, 이 문서가 전체적으로 어떤 흐름을 갖는지 구조화하는 것이다.
 
 중요 원칙:
-- 입력은 원본 PDF 전체가 아니라 **page_role / page_summary / page element summary(label + element_type) 정보**다. `candidate_anchor_summaries`가 같이 오면 legacy alias로만 취급한다.
+- 입력은 원본 PDF 전체가 아니라 **page_role / page_summary / page_guide_summary / page element summary(label + element_type) 정보**다. `candidate_anchor_summaries`가 같이 오면 legacy alias로만 취급한다.
 - 각 페이지의 미세한 의미를 다시 해설하려 하지 말고, **문서 레벨 구조**에 집중하라.
 - 섹션 구조는 가능하면 3~7개 정도의 의미 있는 구간으로 나눈다. 너무 잘게 쪼개지 마라.
 - key_concepts는 단순 단어 목록이 아니라, 문서 전체에서 반복적으로 중요한 역할을 하는 개념만 뽑아라.
@@ -48,6 +48,13 @@
   - page_number
   - page_role
   - page_summary
+  - page_guide_summary (optional)
+    - one_line_thesis
+    - key_question
+    - logic_flow
+    - study_focus
+    - must_remember
+    - key_concepts
   - page_element_summaries (optional)
     - label
     - element_type
@@ -68,6 +75,19 @@
       "page_number": 1,
       "page_role": "문제 정의",
       "page_summary": "문서가 다루는 핵심 문제와 배경을 소개한다.",
+      "page_guide_summary": {
+        "one_line_thesis": "이 페이지는 문서가 답하려는 문제를 한 문장으로 제시한다.",
+        "key_question": "왜 이 문제가 중요한가?",
+        "logic_flow": ["문제 제시", "배경 압축", "다음 페이지의 개념 정의로 연결"],
+        "study_focus": ["문제와 핵심 용어의 관계"],
+        "must_remember": ["이 문제 정의가 뒤 페이지 해석의 기준이다"],
+        "key_concepts": [
+          {
+            "concept": "문제 정의",
+            "role_on_page": "뒤에서 반복될 기준 질문"
+          }
+        ]
+      },
       "page_element_summaries": [
         {
           "label": "문제 정의",
@@ -166,6 +186,7 @@
 - `reason`: 왜 prerequisite인지
 - 모든 페이지 관계를 억지로 만들지 말고, 핵심 prerequisite만 생성하라
 - 입력으로 주어진 페이지 번호 범위 안에서만 관계를 만들고, 반드시 `to_page < from_page`를 유지하라
+- `page_guide_summary`가 있으면 page-level reading logic과 study focus를 참고해 페이지 간 prerequisite 관계를 더 보수적으로 잡아라.
 
 ---
 

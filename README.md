@@ -3,7 +3,7 @@
 이번 스프린트 목표는 완성형 서비스가 아니라 내부 테스트 가능한 작동 데모다.
 
 현재 MVP 방향은 precomputed anchor-click viewer가 아니라 selected-region viewer다.
-Scholium은 PDF를 먼저 전처리해서 문서/페이지/요소 맥락을 이해해두고, 사용자가 실제로 막힌 영역을 드래그했을 때 그 영역에 붙는 설명을 생성한다.
+Scholium은 PDF를 먼저 전처리해서 문서/페이지/요소 맥락을 이해해두고, 페이지 상단 Page Guide로 먼저 읽는 방향을 잡아준 뒤, 사용자가 실제로 막힌 영역을 드래그했을 때 그 영역에 붙는 설명을 생성한다.
 
 ## 이번 스프린트 범위
 
@@ -131,15 +131,21 @@ OpenAI API 키는 기본 실행에 필요하지 않다. 로컬 MVP 분석 provid
 1. viewer는 PDF 페이지 이미지를 깨끗하게 보여준다.
 2. 홈의 작업 목록은 저장된 문서, 준비 상태, 준비 시간, 삭제/처리상태/viewer 진입 버튼을 보여준다.
 3. page image만 준비된 상태면 viewer는 `render_only`로 먼저 열린다.
-4. pass1 page context가 준비되면 `page_context_ready`가 되고, 사용자가 헷갈리는 영역을 드래그할 수 있다.
-5. document synthesis까지 준비되면 `on_demand`가 되고, 문서 전체 맥락이 포함된 full selected-region explanation을 만든다.
-6. frontend가 normalized bbox `[x, y, w, h]`를 보낸다.
+4. pass1 page context가 준비되면 top-edge `Page Guide`가 페이지 역할, 핵심 질문, 읽는 순서, 논리 흐름, study focus를 보여준다.
+5. 사용자가 헷갈리는 영역을 드래그하면 frontend가 normalized bbox `[x, y, w, h]`를 보낸다.
+6. document synthesis까지 준비되면 `on_demand`가 되고, 문서 전체 맥락이 포함된 full selected-region explanation을 만든다.
 7. backend가 full pass1/document artifact를 그대로 보내지 않고 compact `SelectionContext`를 만든다.
 8. Codex CLI가 선택 영역 전용 JSON 설명을 생성한다.
 9. schema validation을 통과한 결과만 `data/analysis/<document_id>/pages/<page>/selection_explanations/`에 저장된다.
 10. floating academic annotation panel이 선택 영역 옆에 뜬다.
 
+Scholium의 설명 UI는 두 레이어로 나뉜다.
+
+- `Page Guide`: 페이지 단위, proactive, macro orientation. "이 페이지를 어떻게 읽어야 하지?"에 답한다.
+- `Selected Explanation Panel`: 선택 영역 단위, reactive, micro explanation. "내가 드래그한 이 부분은 무슨 뜻이지?"에 답한다.
+
 Pass1 artifact의 persisted field는 legacy 호환 때문에 아직 `candidate_anchors`지만, 현재 제품 의미와 public page API 이름은 `page_elements`다. 새 코드에서는 `page_elements` / `element_id` / `element_type`을 우선 쓰고, `candidate_anchors` / `anchor_id` / `anchor_type`은 저장 artifact와 legacy/debug 호환용으로만 취급한다.
+`page_guide`는 pass1의 page-level artifact로 저장되며, 오래된 artifact에 없으면 API가 `page_role`과 `page_summary` 기반의 최소 fallback만 제공한다.
 
 ## Readiness modes
 

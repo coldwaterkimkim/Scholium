@@ -8,6 +8,7 @@ The default product flow is:
 PDF upload / render / preprocess
 -> document worklist with status, elapsed time, delete, and processing entry
 -> clean PDF viewer
+-> top-edge Page Guide gives page-level reading orientation
 -> user drag-selects a confusing region
 -> backend builds compact SelectionContext
 -> Codex CLI generates an on-demand selected-region explanation
@@ -18,9 +19,21 @@ PDF upload / render / preprocess
 
 - The viewer shows a clean rendered PDF page first.
 - The home screen is the document worklist. Uploads stay in the list while they prepare, and duplicate filenames overwrite the existing document job.
+- When pass1 page context exists, the viewer shows a top-edge Page Guide attached to the learning material area. This is a proactive page-level reading guide, not a chatbot and not a side rail.
 - The user chooses what is confusing by dragging a region on the page.
 - Scholium explains that selected region on demand, using page/document context that was prepared earlier.
 - The explanation appears in the floating academic annotation panel near the selected region.
+
+## Explanation Layers
+
+Scholium now has two complementary explanation layers.
+
+| Layer | Timing | Scope | Placement | Answers |
+| --- | --- | --- | --- | --- |
+| `Page Guide` | proactive | page-level macro orientation | top edge of the viewer surface | "How should I read this page?" |
+| `Selected Explanation Panel` | reactive | selected-region micro explanation | floating near the selected bbox | "What does this exact selected part mean?" |
+
+The Page Guide should reconstruct the page's role, thesis, reading path, logic flow, concepts, omitted context, study focus, confusions, takeaways, self-check questions, and optional before/next connection. It should not repeat the whole slide or replace selected-region explanations.
 
 Precomputed anchor-click is legacy/debug only. It can still be useful for internal comparison or rollback checks, but it is not the primary user experience.
 
@@ -53,6 +66,8 @@ Scholium now separates viewer readiness from full explanation readiness.
 | `on_demand` | Page context and document synthesis are ready. This is the default selected-region MVP mode. |
 | `legacy_pass2` | Precomputed anchor-click debug path. Used only when `SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=true`. |
 
+`render_only` can show the PDF with a Page Guide preparing state. `page_context_ready`, `on_demand`, and `legacy_pass2` can show `page_guide` when available. Old pass1 artifacts without `page_guide` are loaded with a minimal fallback from `page_role` and `page_summary`.
+
 ## Runtime Context
 
 `SelectionContext` is the core runtime context object for selected-region explanations.
@@ -79,6 +94,7 @@ The backend should not send full pass1 artifacts, full document summaries, or ev
 | `SelectedRegion` | The user-dragged bbox region. |
 | `SelectionExplanation` | The generated explanation for a selected region. |
 | `SelectionContext` | The compact context built from page/document artifacts for one selected region. |
+| `PageGuide` | Proactive page-level reading orientation generated during pass1 and exposed on the page API. |
 | `LegacyPrecomputedAnchor` | Old precomputed explanation region used only for legacy/debug/pass2 compatibility. |
 
 ## Legacy Naming Compatibility
