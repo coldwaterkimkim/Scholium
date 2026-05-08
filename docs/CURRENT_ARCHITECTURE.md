@@ -6,6 +6,7 @@ The default product flow is:
 
 ```text
 PDF upload / render / preprocess
+-> document worklist with status, elapsed time, delete, and processing entry
 -> clean PDF viewer
 -> user drag-selects a confusing region
 -> backend builds compact SelectionContext
@@ -16,6 +17,7 @@ PDF upload / render / preprocess
 ## Current Default UX
 
 - The viewer shows a clean rendered PDF page first.
+- The home screen is the document worklist. Uploads stay in the list while they prepare, and duplicate filenames overwrite the existing document job.
 - The user chooses what is confusing by dragging a region on the page.
 - Scholium explains that selected region on demand, using page/document context that was prepared earlier.
 - The explanation appears in the floating academic annotation panel near the selected region.

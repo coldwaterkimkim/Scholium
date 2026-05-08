@@ -333,6 +333,21 @@ export function getDocumentProcessing(
   );
 }
 
+export async function deleteDocument(documentId: string, signal?: AbortSignal): Promise<void> {
+  const response = await fetch(
+    buildApiUrl(`/api/documents/${encodeURIComponent(documentId)}`),
+    {
+      method: "DELETE",
+      cache: "no-store",
+      signal,
+    },
+  );
+
+  if (!response.ok) {
+    throw new ApiRequestError(await readErrorMessage(response, "문서를 삭제할 수 없어."), response.status);
+  }
+}
+
 export function getDocumentSummary(documentId: string, signal?: AbortSignal): Promise<DocumentSummary> {
   return fetchJson<DocumentSummary>(
     `/api/documents/${encodeURIComponent(documentId)}/summary`,

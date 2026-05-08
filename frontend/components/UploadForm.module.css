@@ -160,6 +160,15 @@
   line-height: 1.5;
 }
 
+.noticeBox {
+  border: 1px solid rgba(101, 121, 64, 0.22);
+  background: #f3f7ed;
+  color: #4f6f2a;
+  border-radius: 12px;
+  padding: 12px 14px;
+  line-height: 1.5;
+}
+
 .submitButton {
   width: 100%;
   min-width: 180px;
@@ -201,6 +210,14 @@
   font-size: 0.88rem;
 }
 
+.worklistActions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .refreshButton {
   flex: 0 0 auto;
   padding: 8px 10px;
@@ -220,6 +237,15 @@
 .refreshButton:disabled {
   cursor: wait;
   opacity: 0.52;
+}
+
+.dangerButton {
+  border-color: rgba(163, 58, 43, 0.22);
+  color: #a33a2b;
+}
+
+.dangerButton:hover:not(:disabled) {
+  background: #fff0ed;
 }
 
 .listState,
@@ -247,20 +273,18 @@
 .documentRow {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 14px;
-  align-items: center;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
   padding: 13px 14px;
   border: 1px solid rgba(214, 221, 230, 0.86);
   border-radius: 10px;
   background: #fbfcfd;
   color: var(--text-primary);
-  cursor: pointer;
   text-align: left;
   transition:
     background 150ms ease,
     border-color 150ms ease,
-    transform 150ms ease,
     box-shadow 150ms ease;
 }
 
@@ -268,13 +292,41 @@
   border-color: rgba(101, 121, 64, 0.32);
   background: #f7f9f3;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
-  transform: translateY(-1px);
+}
+
+.selectionCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.selectionCell input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #4f6f2a;
+}
+
+.selectionLabel {
+  display: none;
 }
 
 .documentMain {
   min-width: 0;
   display: grid;
-  gap: 5px;
+  gap: 6px;
+}
+
+.documentTopline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
 }
 
 .documentName {
@@ -292,10 +344,60 @@
   line-height: 1.35;
 }
 
+.documentProgress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  color: #60704d;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 .documentError {
   color: var(--danger);
   font-size: 0.8rem;
   line-height: 1.35;
+}
+
+.documentActions {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 6px;
+  justify-content: end;
+}
+
+.rowButton {
+  min-height: 30px;
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.rowButton:hover:not(:disabled) {
+  background: #eef3e8;
+  border-color: rgba(101, 121, 64, 0.32);
+}
+
+.rowButton:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.deleteButton {
+  border-color: rgba(163, 58, 43, 0.2);
+  color: #a33a2b;
+}
+
+.deleteButton:hover:not(:disabled) {
+  background: #fff0ed;
 }
 
 .statusPill {
@@ -347,11 +449,40 @@
     flex-direction: column;
   }
 
+  .worklistActions {
+    justify-content: stretch;
+  }
+
+  .worklistActions .refreshButton {
+    flex: 1 1 auto;
+  }
+
   .documentRow {
+    grid-template-columns: 1fr;
+  }
+
+  .documentTopline {
     grid-template-columns: 1fr;
   }
 
   .statusPill {
     justify-self: start;
+  }
+
+  .selectionCell {
+    justify-self: start;
+  }
+
+  .selectionLabel {
+    display: inline;
+  }
+
+  .documentActions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-content: stretch;
+  }
+
+  .rowButton {
+    width: 100%;
   }
 }

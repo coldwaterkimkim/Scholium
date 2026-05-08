@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -61,7 +61,6 @@ export function ProcessingStatus({ documentId }: ProcessingStatusProps) {
   const [snapshot, setSnapshot] = useState<DocumentProcessing | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const redirectScheduledRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -92,18 +91,7 @@ export function ProcessingStatus({ documentId }: ProcessingStatusProps) {
         setError(null);
         setLoading(false);
 
-        if (
-          (nextSnapshot.render_ready_for_viewer ||
-            nextSnapshot.ready_for_viewer ||
-            nextSnapshot.status === "completed") &&
-          !redirectScheduledRef.current
-        ) {
-          redirectScheduledRef.current = true;
-          router.replace(`/documents/${encodeURIComponent(documentId)}`);
-          return;
-        }
-
-        if (nextSnapshot.status === "failed") {
+        if (nextSnapshot.status === "completed" || nextSnapshot.status === "failed") {
           return;
         }
 
@@ -138,6 +126,7 @@ export function ProcessingStatus({ documentId }: ProcessingStatusProps) {
   }, [documentId, router]);
 
   const isFailed = snapshot?.status === "failed";
+  const canOpenViewer = Boolean(snapshot?.render_ready_for_viewer || snapshot?.ready_for_viewer);
   const showInlineWarning = Boolean(snapshot?.has_errors && snapshot.status !== "failed");
 
   return (
@@ -147,7 +136,7 @@ export function ProcessingStatus({ documentId }: ProcessingStatusProps) {
           <div className={styles.header}>
             <h1 className={styles.title}>문서 처리 상태</h1>
             <p className={styles.description}>
-              PDF 페이지가 먼저 준비되면 자동으로 viewer로 이동해.
+              준비 단계를 확인하고, viewer가 열릴 수 있는 시점부터 직접 들어갈 수 있어.
             </p>
           </div>
 
@@ -232,6 +221,20 @@ export function ProcessingStatus({ documentId }: ProcessingStatusProps) {
               </div>
             </div>
           ) : null}
+
+          <div className={styles.actionRow}>
+            <button type="button" className={styles.secondaryButton} onClick={() => router.push("/")}>
+              작업 목록
+            </button>
+            <button
+              type="button"
+              className={styles.primaryButton}
+              onClick={() => router.push(`/documents/${encodeURIComponent(documentId)}`)}
+              disabled={!canOpenViewer}
+            >
+              viewer 열기
+            </button>
+          </div>
 
           {snapshot?.error_message ? (
             <div className={`${styles.infoBox} ${isFailed ? styles.errorBox : styles.warningBox}`}>

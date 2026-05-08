@@ -69,6 +69,7 @@ OpenAI API 키는 기본 실행에 필요하지 않다. 로컬 MVP 분석 provid
    ```
 
 3. `data/raw_pdfs`에 테스트용 PDF를 넣거나 업로드 화면에서 PDF를 올린다.
+   업로드한 PDF는 바로 viewer로 이동하지 않고 작업 목록에 추가된다. 같은 파일명을 다시 올리면 기존 작업을 덮어쓰고 새로 준비한다.
 
 4. 백엔드와 프런트엔드를 실행한다.
 
@@ -128,14 +129,15 @@ OpenAI API 키는 기본 실행에 필요하지 않다. 로컬 MVP 분석 provid
 ## Selected-region flow
 
 1. viewer는 PDF 페이지 이미지를 깨끗하게 보여준다.
-2. page image만 준비된 상태면 viewer는 `render_only`로 먼저 열린다.
-3. pass1 page context가 준비되면 `page_context_ready`가 되고, 사용자가 헷갈리는 영역을 드래그할 수 있다.
-4. document synthesis까지 준비되면 `on_demand`가 되고, 문서 전체 맥락이 포함된 full selected-region explanation을 만든다.
-5. frontend가 normalized bbox `[x, y, w, h]`를 보낸다.
-6. backend가 full pass1/document artifact를 그대로 보내지 않고 compact `SelectionContext`를 만든다.
-7. Codex CLI가 선택 영역 전용 JSON 설명을 생성한다.
-8. schema validation을 통과한 결과만 `data/analysis/<document_id>/pages/<page>/selection_explanations/`에 저장된다.
-9. floating academic annotation panel이 선택 영역 옆에 뜬다.
+2. 홈의 작업 목록은 저장된 문서, 준비 상태, 준비 시간, 삭제/처리상태/viewer 진입 버튼을 보여준다.
+3. page image만 준비된 상태면 viewer는 `render_only`로 먼저 열린다.
+4. pass1 page context가 준비되면 `page_context_ready`가 되고, 사용자가 헷갈리는 영역을 드래그할 수 있다.
+5. document synthesis까지 준비되면 `on_demand`가 되고, 문서 전체 맥락이 포함된 full selected-region explanation을 만든다.
+6. frontend가 normalized bbox `[x, y, w, h]`를 보낸다.
+7. backend가 full pass1/document artifact를 그대로 보내지 않고 compact `SelectionContext`를 만든다.
+8. Codex CLI가 선택 영역 전용 JSON 설명을 생성한다.
+9. schema validation을 통과한 결과만 `data/analysis/<document_id>/pages/<page>/selection_explanations/`에 저장된다.
+10. floating academic annotation panel이 선택 영역 옆에 뜬다.
 
 Pass1 artifact의 persisted field는 legacy 호환 때문에 아직 `candidate_anchors`지만, 현재 제품 의미와 public page API 이름은 `page_elements`다. 새 코드에서는 `page_elements` / `element_id` / `element_type`을 우선 쓰고, `candidate_anchors` / `anchor_id` / `anchor_type`은 저장 artifact와 legacy/debug 호환용으로만 취급한다.
 

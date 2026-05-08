@@ -146,6 +146,19 @@ def get_document(
     )
 
 
+@router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_document(
+    document_id: str,
+    storage: StorageService = Depends(get_storage_service),
+) -> None:
+    deleted = storage.delete_document(document_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found.",
+        )
+
+
 @router.get("/{document_id}/processing", response_model=DocumentProcessingResponse)
 def get_document_processing(
     document_id: str,

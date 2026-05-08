@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
@@ -102,7 +103,7 @@ class StorageService:
         self.raw_pdfs_dir = self._resolve_project_path(self.settings.raw_pdfs_dir)
         self.rendered_pages_dir = self._resolve_project_path(self.settings.rendered_pages_dir)
         self.analysis_dir = self._resolve_project_path(self.settings.analysis_dir)
-        self.parsed_dir = self._resolve_project_path("./data/parsed")
+        self.parsed_dir = self._resolve_project_path(os.getenv("PARSED_DIR", "./data/parsed"))
         self._benchmark_lock = RLock()
         self._benchmark_states: dict[str, dict[str, object]] = {}
 
@@ -155,9 +156,17 @@ class StorageService:
 
         self.init_storage()
 
-        document_id = f"doc_{uuid4().hex}"
+        existing_document = self.get_document_by_filename(filename)
+        document_id = existing_document.document_id if existing_document else f"doc_{uuid4().hex}"
         original_file_path = self.raw_pdfs_dir / f"{document_id}.pdf"
-        original_relative_path = original_file_path.relative_to(PROJECT_ROOT).as_posix()
+        original_relative_path = self._stored_data_path(
+            original_file_path,
+            runtime_root=self.raw_pdfs_dir,
+            stored_root=Path("data/raw_pdfs"),
+        )
+
+        if existing_document:
+            self._clear_document_runtime_state(existing_document)
 
         original_file_path.write_bytes(file_bytes)
 
@@ -175,37 +184,91 @@ class StorageService:
 
         try:
             with self._connect() as connection:
-                connection.execute(
-                    """
-                    INSERT INTO documents (
-                        document_id,
-                        filename,
-                        original_path,
-                        status,
-                        total_pages,
-                        created_at,
-                        updated_at,
-                        error_message
+                if existing_document:
+                    connection.execute(
+                        """
+                        UPDATE documents
+                        SET
+                            filename = ?,
+                            original_path = ?,
+                            status = ?,
+                            total_pages = ?,
+                            created_at = ?,
+                            updated_at = ?,
+                            error_message = ?
+                        WHERE document_id = ?
+                        """,
+                        (
+                            document.filename,
+                            document.original_path,
+                            document.status.value,
+                            document.total_pages,
+                            document.created_at.isoformat(),
+                            document.updated_at.isoformat(),
+                            document.error_message,
+                            document.document_id,
+                        ),
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
-                    (
-                        document.document_id,
-                        document.filename,
-                        document.original_path,
-                        document.status.value,
-                        document.total_pages,
-                        document.created_at.isoformat(),
-                        document.updated_at.isoformat(),
-                        document.error_message,
-                    ),
-                )
+                else:
+                    connection.execute(
+                        """
+                        INSERT INTO documents (
+                            document_id,
+                            filename,
+                            original_path,
+                            status,
+                            total_pages,
+                            created_at,
+                            updated_at,
+                            error_message
+                        )
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            document.document_id,
+                            document.filename,
+                            document.original_path,
+                            document.status.value,
+                            document.total_pages,
+                            document.created_at.isoformat(),
+                            document.updated_at.isoformat(),
+                            document.error_message,
+                        ),
+                    )
         except Exception:
             if original_file_path.exists():
                 original_file_path.unlink()
             raise
 
         return document
+
+    def get_document_by_filename(self, filename: str) -> DocumentRecord | None:
+        self.init_storage()
+
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    document_id,
+                    filename,
+                    original_path,
+                    status,
+                    total_pages,
+                    created_at,
+                    updated_at,
+                    error_message
+                FROM documents
+                WHERE filename = ?
+                ORDER BY updated_at DESC, created_at DESC
+                LIMIT 1
+                """,
+                (filename,),
+            ).fetchone()
+
+        if row is None:
+            return None
+
+        return self._row_to_document(row)
 
     def get_document(self, document_id: str) -> DocumentRecord | None:
         self.init_storage()
@@ -257,6 +320,20 @@ class StorageService:
             ).fetchall()
 
         return [self._row_to_document(row) for row in rows]
+
+    def delete_document(self, document_id: str) -> bool:
+        self.init_storage()
+
+        document = self.get_document(document_id)
+        if document is None:
+            return False
+
+        with self._connect() as connection:
+            connection.execute("DELETE FROM pages WHERE document_id = ?", (document_id,))
+            connection.execute("DELETE FROM documents WHERE document_id = ?", (document_id,))
+
+        self._clear_document_runtime_state(document)
+        return True
 
     def update_document(
         self,
@@ -1180,6 +1257,23 @@ class StorageService:
         }
 
     def resolve_relative_path(self, relative_path: str) -> Path:
+        stored_path = Path(relative_path)
+        if stored_path.is_absolute():
+            return stored_path.resolve()
+
+        for stored_root, runtime_root in (
+            (Path("data/raw_pdfs"), self.raw_pdfs_dir),
+            (Path("data/rendered_pages"), self.rendered_pages_dir),
+            (Path("data/analysis"), self.analysis_dir),
+            (Path("data/parsed"), self.parsed_dir),
+            (Path("data/logs"), self._resolve_project_path(self.settings.logs_dir)),
+        ):
+            try:
+                suffix = stored_path.relative_to(stored_root)
+            except ValueError:
+                continue
+            return (runtime_root / suffix).resolve()
+
         return self._resolve_project_path(relative_path)
 
     def get_rendered_image_subpath(self, image_path: str) -> str:
@@ -1196,7 +1290,51 @@ class StorageService:
         return connection
 
     def _resolve_project_path(self, configured_path: str) -> Path:
-        return (PROJECT_ROOT / configured_path).resolve()
+        configured = Path(configured_path)
+        if configured.is_absolute():
+            return configured.resolve()
+        return (PROJECT_ROOT / configured).resolve()
+
+    def _clear_document_runtime_state(self, document: DocumentRecord) -> None:
+        with self._benchmark_lock:
+            self._benchmark_states.pop(document.document_id, None)
+
+        with self._connect() as connection:
+            connection.execute("DELETE FROM pages WHERE document_id = ?", (document.document_id,))
+
+        self._remove_file_if_owned(document.original_path, self.raw_pdfs_dir)
+        for directory, owner_dir in (
+            (self.rendered_pages_dir / document.document_id, self.rendered_pages_dir),
+            (self.analysis_dir / document.document_id, self.analysis_dir),
+            (self.parsed_dir / document.document_id, self.parsed_dir),
+        ):
+            self._remove_directory_if_owned(directory, owner_dir)
+
+    def _remove_file_if_owned(self, relative_path: str, owner_dir: Path) -> None:
+        target_path = self.resolve_relative_path(relative_path)
+        try:
+            target_path.relative_to(owner_dir)
+        except ValueError:
+            return
+
+        if target_path.exists() and target_path.is_file():
+            target_path.unlink()
+
+    def _remove_directory_if_owned(self, directory: Path, owner_dir: Path) -> None:
+        try:
+            directory.resolve().relative_to(owner_dir.resolve())
+        except ValueError:
+            return
+
+        if directory.exists() and directory.is_dir():
+            shutil.rmtree(directory)
+
+    def _stored_data_path(self, path: Path, *, runtime_root: Path, stored_root: Path) -> str:
+        try:
+            return path.relative_to(PROJECT_ROOT).as_posix()
+        except ValueError:
+            suffix = path.resolve().relative_to(runtime_root.resolve())
+            return (stored_root / suffix).as_posix()
 
     def _enum_value_list(self, enum_type: type[DocumentStatus] | type[RenderStatus] | type[StageStatus]) -> str:
         return ", ".join(f"'{member.value}'" for member in enum_type)
