@@ -68,6 +68,7 @@ class SelectionContextBuilder:
         nearby_text_blocks = self._rank_nearby_text_blocks(page_parse, rounded_bbox)
         page_guide_brief = self._build_page_guide_brief(
             pass1_result.get("page_guide"),
+            pass1_result.get("wrap_up"),
             semantic_result,
             page_number,
         )
@@ -588,36 +589,66 @@ class SelectionContextBuilder:
     def _build_page_guide_brief(
         self,
         pass1_page_guide: object,
+        pass1_wrap_up: object,
         semantic_result: dict[str, Any] | None,
         page_number: int,
     ) -> dict[str, Any]:
         page_guide = dict(pass1_page_guide) if isinstance(pass1_page_guide, dict) else {}
+        wrap_up = dict(pass1_wrap_up) if isinstance(pass1_wrap_up, dict) else {}
         if isinstance(semantic_result, dict):
             for candidate in semantic_result.get("page_guides", []):
                 if not isinstance(candidate, dict) or int(candidate.get("page_number", 0)) != page_number:
                     continue
-                page_guide.update(
-                    {
-                        key: value
-                        for key, value in candidate.items()
-                        if key not in {"document_id", "page_number"}
-                    }
-                )
+                semantic_page_guide = candidate.get("page_guide")
+                semantic_wrap_up = candidate.get("wrap_up")
+                if isinstance(semantic_page_guide, dict):
+                    page_guide.update(semantic_page_guide)
+                else:
+                    page_guide.update(
+                        {
+                            key: value
+                            for key, value in candidate.items()
+                            if key
+                            in {
+                                "page_role",
+                                "previous_slide_connection",
+                                "one_line_thesis",
+                            }
+                        }
+                    )
+                if isinstance(semantic_wrap_up, dict):
+                    wrap_up.update(semantic_wrap_up)
+                else:
+                    wrap_up.update(
+                        {
+                            key: value
+                            for key, value in candidate.items()
+                            if key
+                            in {
+                                "logic_flow",
+                                "study_focus",
+                                "must_remember",
+                                "next_slide_connection",
+                            }
+                        }
+                    )
                 break
 
         return {
-            "available": bool(page_guide),
+            "available": bool(page_guide or wrap_up),
             "page_role": self._compact_text(page_guide.get("page_role"), max_chars=160),
-            "one_line_thesis": self._compact_text(page_guide.get("one_line_thesis"), max_chars=260),
-            "key_question": self._compact_text(page_guide.get("key_question"), max_chars=200),
-            "logic_flow": self._compact_text_list(page_guide.get("logic_flow"), max_items=3, max_chars=180),
-            "study_focus": self._compact_text_list(page_guide.get("study_focus"), max_items=3, max_chars=180),
-            "common_confusions": self._compact_text_list(
-                page_guide.get("common_confusions"),
-                max_items=3,
-                max_chars=180,
+            "previous_slide_connection": self._compact_text(
+                page_guide.get("previous_slide_connection"),
+                max_chars=220,
             ),
-            "must_remember": self._compact_text_list(page_guide.get("must_remember"), max_items=3, max_chars=180),
+            "one_line_thesis": self._compact_text(page_guide.get("one_line_thesis"), max_chars=260),
+            "logic_flow": self._compact_text_list(wrap_up.get("logic_flow"), max_items=3, max_chars=180),
+            "study_focus": self._compact_text(wrap_up.get("study_focus"), max_chars=220),
+            "must_remember": self._compact_text_list(wrap_up.get("must_remember"), max_items=3, max_chars=180),
+            "next_slide_connection": self._compact_text(
+                wrap_up.get("next_slide_connection"),
+                max_chars=220,
+            ),
         }
 
     def _build_source_candidates(

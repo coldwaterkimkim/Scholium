@@ -166,31 +166,17 @@ export type PageElement = {
   confidence: number;
 };
 
-export type PageGuideKeyConcept = {
-  concept: string;
-  brief_description?: string | null;
-  role_on_page?: string | null;
-};
-
-export type PageGuideConnection = {
-  previous?: string | null;
-  next?: string | null;
-};
-
 export type PageGuide = {
   page_role?: string | null;
+  previous_slide_connection?: string | null;
   one_line_thesis?: string | null;
-  key_question?: string | null;
-  reading_path?: string[];
+};
+
+export type PageWrapUp = {
   logic_flow?: string[];
-  key_concepts?: PageGuideKeyConcept[];
-  omitted_context?: string[];
-  study_focus?: string[];
-  common_confusions?: string[];
-  example_or_application?: string | null;
+  study_focus?: string | null;
   must_remember?: string[];
-  self_check_questions?: string[];
-  before_next_connection?: PageGuideConnection | null;
+  next_slide_connection?: string | null;
 };
 
 // Compatibility export for old debug components and external callers.
@@ -259,6 +245,7 @@ export type PageData = {
   final_anchors: LegacyPrecomputedAnchor[];
   page_elements: PageElement[];
   page_guide: PageGuide | null;
+  wrap_up: PageWrapUp | null;
   document_guide_summary?: {
     overall_topic?: string | null;
     overall_summary?: string | null;

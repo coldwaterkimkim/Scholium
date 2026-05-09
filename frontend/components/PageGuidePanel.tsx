@@ -1,4 +1,4 @@
-import type { PageData, PageGuide } from "@/lib/api";
+import type { PageData, PageGuide, PageWrapUp } from "@/lib/api";
 import type { ResponseLanguage } from "@/lib/language";
 
 import styles from "./PageGuidePanel.module.css";
@@ -11,7 +11,13 @@ type PageGuidePanelProps = {
   responseLanguage: ResponseLanguage;
 };
 
-type SectionConfig = {
+type WrapUpPanelProps = {
+  wrapUp: PageWrapUp | null;
+  viewerMode: PageData["viewer_mode"];
+  responseLanguage: ResponseLanguage;
+};
+
+type GuideItem = {
   key: string;
   title: string;
   content: string | string[] | null | undefined;
@@ -29,7 +35,7 @@ function cleanList(values: string[] | null | undefined): string[] {
   return values.map((value) => value.trim()).filter(Boolean);
 }
 
-function hasSectionContent(content: SectionConfig["content"]): boolean {
+function hasContent(content: GuideItem["content"]): boolean {
   return Array.isArray(content) ? cleanList(content).length > 0 : hasText(content);
 }
 
@@ -64,77 +70,54 @@ function localizedModeLabel(viewerMode: PageData["viewer_mode"], language: Respo
 
 const COPY = {
   ko: {
-    label: "페이지 가이드",
-    preparingTitle: "페이지 가이드 준비 중...",
-    preparingBody: "PDF는 먼저 읽을 수 있고, 페이지 안내는 전처리가 끝나면 여기에 붙어.",
+    pageGuideLabel: "페이지 가이드",
+    wrapUpLabel: "Wrap-up",
+    preparingGuideTitle: "페이지 가이드 준비 중...",
+    preparingGuideBody: "전처리가 끝나면 이 페이지를 읽기 전에 볼 방향 안내가 여기에 붙어.",
+    preparingWrapTitle: "Wrap-up 준비 중...",
+    preparingWrapBody: "읽고 난 뒤 짧게 확인할 정리는 전처리가 끝나면 여기에 붙어.",
     emptyText: "아직 정리된 내용 없음",
-    emptyReadingPath: "아직 정리된 읽기 순서 없음",
-    pageRole: "페이지 역할",
-    thesis: "한 줄 핵심",
-    keyQuestion: "핵심 질문",
-    readingPath: "읽기 순서",
-    moreGuide: "더 보기",
-    keyConcepts: "핵심 개념",
-    logic: "논리 흐름",
-    omitted: "생략된 맥락",
-    focus: "공부 포인트",
-    confusions: "헷갈리기 쉬운 점",
-    example: "예시 / 적용",
-    remember: "꼭 기억할 것",
-    selfCheck: "자가 점검 질문",
-    connection: "이전 / 다음 연결",
-    previous: "이전",
-    next: "다음",
-    legacyNote: "이전 처리 artifact라 페이지 역할과 요약 중심으로만 표시 중이야.",
+    pageRole: "Page Role",
+    previousConnection: "Previous Connection",
+    thesis: "One-line Thesis",
+    logicFlow: "Logic Flow",
+    studyFocus: "Study Focus",
+    mustRemember: "Must Remember",
+    nextConnection: "Next Connection",
   },
   en: {
-    label: "Page Guide",
-    preparingTitle: "Preparing page guide...",
-    preparingBody: "The PDF is readable first; page guidance appears here after preprocessing.",
+    pageGuideLabel: "Page Guide",
+    wrapUpLabel: "Wrap-up",
+    preparingGuideTitle: "Preparing page guide...",
+    preparingGuideBody: "Orientation for this page appears here after preprocessing.",
+    preparingWrapTitle: "Preparing wrap-up...",
+    preparingWrapBody: "A short review strip appears here after preprocessing.",
     emptyText: "No guide content yet",
-    emptyReadingPath: "No reading path yet",
     pageRole: "Page Role",
+    previousConnection: "Previous Connection",
     thesis: "One-line Thesis",
-    keyQuestion: "Key Question",
-    readingPath: "Reading Path",
-    moreGuide: "More guide",
-    keyConcepts: "Key Concepts",
-    logic: "Logic Flow",
-    omitted: "Omitted Context",
-    focus: "Study Focus",
-    confusions: "Common Confusions",
-    example: "Example / Application",
-    remember: "Must Remember",
-    selfCheck: "Self-check Questions",
-    connection: "Before / Next",
-    previous: "Previous",
-    next: "Next",
-    legacyNote: "This legacy artifact only has page role and summary.",
+    logicFlow: "Logic Flow",
+    studyFocus: "Study Focus",
+    mustRemember: "Must Remember",
+    nextConnection: "Next Connection",
   },
 } satisfies Record<ResponseLanguage, Record<string, string>>;
 
-function renderList(values: string[], ordered = false) {
-  const ListTag = ordered ? "ol" : "ul";
-  return (
-    <ListTag className={ordered ? styles.orderedList : styles.list}>
-      {values.map((value, index) => (
-        <li key={`${value}-${index}`}>{value}</li>
-      ))}
-    </ListTag>
-  );
-}
-
-function renderContent(
-  content: SectionConfig["content"],
-  emptyText = "아직 정리된 내용 없음",
-  ordered = false,
-) {
+function renderContent(content: GuideItem["content"], emptyText: string, ordered = false) {
   if (Array.isArray(content)) {
     const values = cleanList(content);
     if (values.length === 0) {
       return <p className={styles.emptyText}>{emptyText}</p>;
     }
-    return renderList(values, ordered);
+
+    const ListTag = ordered ? "ol" : "ul";
+    return (
+      <ListTag className={ordered ? styles.orderedList : styles.list}>
+        {values.map((value, index) => (
+          <li key={`${value}-${index}`}>{value}</li>
+        ))}
+      </ListTag>
+    );
   }
 
   if (!hasText(content)) {
@@ -144,36 +127,19 @@ function renderContent(
   return <p className={styles.bodyText}>{content}</p>;
 }
 
-function PrimaryCard({
-  title,
-  content,
+function GuideRow({
+  item,
   emptyText,
   ordered = false,
 }: {
-  title: string;
-  content: string | string[] | null | undefined;
+  item: GuideItem;
   emptyText: string;
   ordered?: boolean;
 }) {
   return (
-    <section className={styles.primaryCard}>
-      <h3>{title}</h3>
-      {Array.isArray(content)
-        ? renderContent(content, emptyText, ordered)
-        : renderContent(content, emptyText)}
-    </section>
-  );
-}
-
-function DetailSection({ title, content }: { title: string; content: SectionConfig["content"] }) {
-  if (!hasSectionContent(content)) {
-    return null;
-  }
-
-  return (
-    <section className={styles.detailSection}>
-      <h3>{title}</h3>
-      {Array.isArray(content) ? renderList(cleanList(content)) : renderContent(content)}
+    <section className={styles.guideRow}>
+      <h3>{item.title}</h3>
+      {renderContent(item.content, emptyText, ordered)}
     </section>
   );
 }
@@ -190,84 +156,97 @@ export function PageGuidePanel({
 
   if (!pageGuide) {
     return (
-      <aside className={`${styles.panel} ${styles.panelPreparing}`} aria-label={copy.label}>
+      <aside className={`${styles.panel} ${styles.panelPreparing}`} aria-label={copy.pageGuideLabel}>
         <div className={styles.header}>
           <div>
-            <span className={styles.eyebrow}>{copy.label}</span>
-            <h2>{copy.preparingTitle}</h2>
+            <span className={styles.eyebrow}>{copy.pageGuideLabel}</span>
+            <h2>{copy.preparingGuideTitle}</h2>
           </div>
           <span className={styles.statusPill}>{statusLabel}</span>
         </div>
-        <p className={styles.bodyText}>{copy.preparingBody}</p>
+        <p className={styles.bodyText}>{copy.preparingGuideBody}</p>
       </aside>
     );
   }
 
-  const role = pageGuide.page_role || pageRole;
-  const thesis = pageGuide.one_line_thesis || pageSummary;
-  const readingPath = cleanList(pageGuide.reading_path);
-  const keyConcepts = pageGuide.key_concepts ?? [];
-  const connection = pageGuide.before_next_connection;
-  const connectionItems = [
-    connection?.previous ? `${copy.previous}: ${connection.previous}` : "",
-    connection?.next ? `${copy.next}: ${connection.next}` : "",
-  ].filter(Boolean);
-  const detailSections: SectionConfig[] = [
-    { key: "logic", title: copy.logic, content: cleanList(pageGuide.logic_flow) },
-    { key: "omitted", title: copy.omitted, content: cleanList(pageGuide.omitted_context) },
-    { key: "focus", title: copy.focus, content: cleanList(pageGuide.study_focus) },
-    { key: "confusions", title: copy.confusions, content: cleanList(pageGuide.common_confusions) },
-    { key: "example", title: copy.example, content: pageGuide.example_or_application },
-    { key: "remember", title: copy.remember, content: cleanList(pageGuide.must_remember) },
-    { key: "self-check", title: copy.selfCheck, content: cleanList(pageGuide.self_check_questions) },
-    { key: "connection", title: copy.connection, content: connectionItems },
+  const items: GuideItem[] = [
+    { key: "role", title: copy.pageRole, content: pageGuide.page_role || pageRole },
+    {
+      key: "previous",
+      title: copy.previousConnection,
+      content: pageGuide.previous_slide_connection,
+    },
+    { key: "thesis", title: copy.thesis, content: pageGuide.one_line_thesis || pageSummary },
   ];
-  const hasDetails =
-    keyConcepts.length > 0 || detailSections.some((section) => hasSectionContent(section.content));
 
   return (
-    <aside className={styles.panel} aria-label={copy.label}>
+    <aside className={styles.panel} aria-label={copy.pageGuideLabel}>
       <div className={styles.header}>
         <div>
-          <span className={styles.eyebrow}>{copy.label}</span>
-          <h2>{role}</h2>
+          <span className={styles.eyebrow}>{copy.pageGuideLabel}</span>
+          <h2>{copy.pageGuideLabel}</h2>
         </div>
         <span className={styles.statusPill}>{statusLabel}</span>
       </div>
 
-      <div className={styles.primaryGrid}>
-        <PrimaryCard title={copy.pageRole} content={role} emptyText={copy.emptyText} />
-        <PrimaryCard title={copy.thesis} content={thesis} emptyText={copy.emptyText} />
-        <PrimaryCard title={copy.keyQuestion} content={pageGuide.key_question} emptyText={copy.emptyText} />
-        <PrimaryCard title={copy.readingPath} content={readingPath} emptyText={copy.emptyReadingPath} ordered />
+      <div className={styles.guideGrid}>
+        {items.map((item) => (
+          <GuideRow key={item.key} item={item} emptyText={copy.emptyText} />
+        ))}
       </div>
+    </aside>
+  );
+}
 
-      {hasDetails ? (
-        <details className={styles.moreDetails}>
-          <summary>{copy.moreGuide}</summary>
-          <div className={styles.detailGrid}>
-            {keyConcepts.length > 0 ? (
-              <section className={`${styles.detailSection} ${styles.keyConceptSection}`}>
-                <h3>{copy.keyConcepts}</h3>
-                <div className={styles.conceptList}>
-                  {keyConcepts.map((concept, index) => (
-                    <article className={styles.conceptItem} key={`${concept.concept}-${index}`}>
-                      <strong>{concept.concept}</strong>
-                      {hasText(concept.brief_description) ? <p>{concept.brief_description}</p> : null}
-                      {hasText(concept.role_on_page) ? <span>{concept.role_on_page}</span> : null}
-                    </article>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-            {detailSections.map((section) => (
-              <DetailSection key={section.key} title={section.title} content={section.content} />
-            ))}
+export function WrapUpPanel({ wrapUp, viewerMode, responseLanguage }: WrapUpPanelProps) {
+  const copy = COPY[responseLanguage];
+  const statusLabel = localizedModeLabel(viewerMode, responseLanguage);
+
+  if (!wrapUp) {
+    return (
+      <aside className={`${styles.panel} ${styles.wrapPanel} ${styles.panelPreparing}`} aria-label={copy.wrapUpLabel}>
+        <div className={styles.header}>
+          <div>
+            <span className={styles.eyebrow}>{copy.wrapUpLabel}</span>
+            <h2>{copy.preparingWrapTitle}</h2>
           </div>
-        </details>
-      ) : (
-        <p className={styles.legacyNote}>{copy.legacyNote}</p>
-      )}
+          <span className={styles.statusPill}>{statusLabel}</span>
+        </div>
+        <p className={styles.bodyText}>{copy.preparingWrapBody}</p>
+      </aside>
+    );
+  }
+
+  const items: GuideItem[] = [
+    { key: "logic", title: copy.logicFlow, content: cleanList(wrapUp.logic_flow) },
+    { key: "focus", title: copy.studyFocus, content: wrapUp.study_focus },
+    { key: "remember", title: copy.mustRemember, content: cleanList(wrapUp.must_remember) },
+    { key: "next", title: copy.nextConnection, content: wrapUp.next_slide_connection },
+  ];
+  const hasAnyContent = items.some((item) => hasContent(item.content));
+
+  return (
+    <aside className={`${styles.panel} ${styles.wrapPanel}`} aria-label={copy.wrapUpLabel}>
+      <details open={hasAnyContent} className={styles.wrapDetails}>
+        <summary>
+          <span>
+            <span className={styles.eyebrow}>{copy.wrapUpLabel}</span>
+            <strong>{copy.wrapUpLabel}</strong>
+          </span>
+          <span className={styles.statusPill}>{statusLabel}</span>
+        </summary>
+
+        <div className={styles.wrapGrid}>
+          {items.map((item) => (
+            <GuideRow
+              key={item.key}
+              item={item}
+              emptyText={copy.emptyText}
+              ordered={item.key === "logic"}
+            />
+          ))}
+        </div>
+      </details>
     </aside>
   );
 }

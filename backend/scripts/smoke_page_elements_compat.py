@@ -122,7 +122,10 @@ def _assert_pass1_aliases(storage: StorageService) -> dict[str, object]:
     assert result["candidate_anchors"][0]["anchor_type"] == "diagram"
     assert result["page_elements"][0]["element_id"] == "element_1"
     assert result["page_elements"][0]["element_type"] == "diagram"
-    assert result["page_guide"]["key_question"] == "How should this diagram be read?"
+    assert result["page_guide"]["page_role"] == "Concept bridge"
+    assert result["page_guide"]["one_line_thesis"] == "The page connects a diagram to the core idea."
+    assert result["wrap_up"]["logic_flow"] == ["Claim", "Diagram evidence", "Takeaway"]
+    assert result["wrap_up"]["study_focus"] == "Diagram-to-concept mapping."
 
     candidate_regions_payload = _base_envelope(
         {
@@ -161,13 +164,16 @@ def _assert_public_response_accepts_page_elements(pass1_artifact: dict[str, obje
         final_anchors=[],
         page_elements=result["page_elements"],
         page_guide=result["page_guide"],
+        wrap_up=result["wrap_up"],
         page_risk_note="Ready for selected-region explanations.",
         viewer_mode="on_demand",
     )
     assert response.page_elements[0].element_id == "element_1"
     assert response.page_elements[0].anchor_id == "element_1"
     assert response.page_guide is not None
-    assert response.page_guide.key_question == "How should this diagram be read?"
+    assert response.page_guide.page_role == "Concept bridge"
+    assert response.wrap_up is not None
+    assert response.wrap_up.logic_flow == ["Claim", "Diagram evidence", "Takeaway"]
 
 
 def _assert_selection_context_uses_page_elements(
@@ -273,9 +279,19 @@ def _assert_strict_pass1_schema_requires_page_guide_fields() -> None:
     schema = get_json_schema("pass1")
     page_guide_schema = schema["$defs"]["PageGuide"]
     page_guide_properties = set(page_guide_schema["properties"].keys())
+    assert page_guide_properties == {"page_role", "previous_slide_connection", "one_line_thesis"}
     assert set(page_guide_schema["required"]) == page_guide_properties
-    assert "default" not in page_guide_schema["properties"]["page_role"]
-    assert "default" not in page_guide_schema["properties"]["reading_path"]
+    assert "key_question" not in page_guide_properties
+    assert "reading_path" not in page_guide_properties
+    wrap_up_schema = schema["$defs"]["PageWrapUp"]
+    wrap_up_properties = set(wrap_up_schema["properties"].keys())
+    assert wrap_up_properties == {
+        "logic_flow",
+        "study_focus",
+        "must_remember",
+        "next_slide_connection",
+    }
+    assert set(wrap_up_schema["required"]) == wrap_up_properties
 
 
 def main() -> int:

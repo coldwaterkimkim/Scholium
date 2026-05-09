@@ -829,11 +829,13 @@ class SemanticGuideGenerator:
             if pass1_artifact is None:
                 continue
             pass1_result = dict(pass1_artifact["result"])
-            pass1_result["page_role"] = str(page_guide.get("page_role") or pass1_result["page_role"])
+            guide_section = dict(page_guide.get("page_guide") or {})
+            pass1_result["page_role"] = str(guide_section.get("page_role") or pass1_result["page_role"])
             pass1_result["page_summary"] = str(
-                page_guide.get("one_line_thesis") or pass1_result["page_summary"]
+                guide_section.get("one_line_thesis") or pass1_result["page_summary"]
             )
             pass1_result["page_guide"] = self._page_guide_for_pass1(page_guide)
+            pass1_result["wrap_up"] = self._wrap_up_for_pass1(page_guide)
             self.storage.save_pass1_result(
                 document_id,
                 page_number,
@@ -846,10 +848,24 @@ class SemanticGuideGenerator:
         return updated_count
 
     def _page_guide_for_pass1(self, page_guide: dict[str, Any]) -> dict[str, Any]:
+        guide_section = page_guide.get("page_guide")
+        if isinstance(guide_section, dict):
+            return dict(guide_section)
         return {
-            key: value
-            for key, value in page_guide.items()
-            if key not in {"document_id", "page_number"}
+            "page_role": page_guide.get("page_role"),
+            "previous_slide_connection": page_guide.get("previous_slide_connection"),
+            "one_line_thesis": page_guide.get("one_line_thesis"),
+        }
+
+    def _wrap_up_for_pass1(self, page_guide: dict[str, Any]) -> dict[str, Any]:
+        wrap_up = page_guide.get("wrap_up")
+        if isinstance(wrap_up, dict):
+            return dict(wrap_up)
+        return {
+            "logic_flow": list(page_guide.get("logic_flow") or []),
+            "study_focus": page_guide.get("study_focus"),
+            "must_remember": list(page_guide.get("must_remember") or []),
+            "next_slide_connection": page_guide.get("next_slide_connection"),
         }
 
     def _save_semantic_status(

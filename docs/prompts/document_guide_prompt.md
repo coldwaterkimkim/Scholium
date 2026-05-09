@@ -11,7 +11,7 @@ Return JSON only. No Markdown, no code fences, no prose outside JSON.
 
 Scholium is a selected-region explanation viewer.
 
-The Semantic Guide is the proactive macro layer. This prompt creates the whole-document orientation only. Page-level PageGuides are generated later in smaller required chunks.
+The Semantic Guide is the proactive macro layer. This prompt creates the whole-document orientation only. Page-level Page Guide and Wrap-up records are generated later in smaller required chunks.
 
 Do not create full PageGuides here.
 

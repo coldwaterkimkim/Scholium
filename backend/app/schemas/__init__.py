@@ -1,6 +1,6 @@
 from app.schemas.document_summary_schema import DocumentSummaryResult
 from app.schemas.document_guide_schema import DocumentGuideResult
-from app.schemas.common import CandidateRegion, LegacyPrecomputedAnchor, PageElement
+from app.schemas.common import CandidateRegion, LegacyPrecomputedAnchor, PageElement, PageGuide, PageWrapUp
 from app.schemas.page_guide_chunk_schema import PageGuideChunkResult
 from app.schemas.pass1_schema import Pass1Result
 from app.schemas.pass2_schema import Pass2Result
@@ -11,6 +11,8 @@ __all__ = [
     "DocumentGuideResult",
     "DocumentSummaryResult",
     "LegacyPrecomputedAnchor",
+    "PageGuide",
+    "PageWrapUp",
     "PageGuideChunkResult",
     "PageElement",
     "Pass1Result",

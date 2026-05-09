@@ -53,7 +53,46 @@ def _get_document_or_404(storage: StorageService, document_id: str) -> DocumentR
     return document
 
 
-def _page_guide_with_document_connections(
+def _connection_from_document_summary(
+    *,
+    document_summary_artifact: dict[str, object] | None,
+    page_number: int,
+    direction: str,
+) -> str | None:
+    if document_summary_artifact is None or not isinstance(document_summary_artifact.get("result"), dict):
+        return None
+
+    summary_result = document_summary_artifact["result"]
+    prerequisite_links = summary_result.get("prerequisite_links")
+    if not isinstance(prerequisite_links, list):
+        return None
+
+    if direction == "previous":
+        link = next(
+            (
+                item
+                for item in prerequisite_links
+                if isinstance(item, dict) and int(item.get("from_page", 0)) == page_number
+            ),
+            None,
+        )
+        if link is not None:
+            return f"p. {int(link['to_page'])}: {str(link['reason']).strip()}"
+    if direction == "next":
+        link = next(
+            (
+                item
+                for item in prerequisite_links
+                if isinstance(item, dict) and int(item.get("to_page", 0)) == page_number
+            ),
+            None,
+        )
+        if link is not None:
+            return f"p. {int(link['from_page'])}: {str(link['reason']).strip()}"
+    return None
+
+
+def _page_guide_for_response(
     page_guide: object,
     *,
     document_summary_artifact: dict[str, object] | None,
@@ -63,49 +102,32 @@ def _page_guide_with_document_connections(
         return None
 
     enriched_page_guide = dict(page_guide)
-    connection = enriched_page_guide.get("before_next_connection")
-    if isinstance(connection, dict):
-        normalized_connection: dict[str, Any] = dict(connection)
-    else:
-        normalized_connection = {}
-
-    if document_summary_artifact is not None and isinstance(document_summary_artifact.get("result"), dict):
-        summary_result = document_summary_artifact["result"]
-        prerequisite_links = summary_result.get("prerequisite_links")
-        if isinstance(prerequisite_links, list):
-            if not normalized_connection.get("previous"):
-                previous_link = next(
-                    (
-                        link
-                        for link in prerequisite_links
-                        if isinstance(link, dict) and int(link.get("from_page", 0)) == page_number
-                    ),
-                    None,
-                )
-                if previous_link is not None:
-                    normalized_connection["previous"] = (
-                        f"p. {int(previous_link['to_page'])}: {str(previous_link['reason']).strip()}"
-                    )
-
-            if not normalized_connection.get("next"):
-                next_link = next(
-                    (
-                        link
-                        for link in prerequisite_links
-                        if isinstance(link, dict) and int(link.get("to_page", 0)) == page_number
-                    ),
-                    None,
-                )
-                if next_link is not None:
-                    normalized_connection["next"] = (
-                        f"p. {int(next_link['from_page'])}: {str(next_link['reason']).strip()}"
-                    )
-
-    enriched_page_guide["before_next_connection"] = {
-        "previous": normalized_connection.get("previous"),
-        "next": normalized_connection.get("next"),
-    }
+    if not enriched_page_guide.get("previous_slide_connection"):
+        enriched_page_guide["previous_slide_connection"] = _connection_from_document_summary(
+            document_summary_artifact=document_summary_artifact,
+            page_number=page_number,
+            direction="previous",
+        )
     return enriched_page_guide
+
+
+def _wrap_up_for_response(
+    wrap_up: object,
+    *,
+    document_summary_artifact: dict[str, object] | None,
+    page_number: int,
+) -> dict[str, Any] | None:
+    if not isinstance(wrap_up, dict):
+        return None
+
+    enriched_wrap_up = dict(wrap_up)
+    if not enriched_wrap_up.get("next_slide_connection"):
+        enriched_wrap_up["next_slide_connection"] = _connection_from_document_summary(
+            document_summary_artifact=document_summary_artifact,
+            page_number=page_number,
+            direction="next",
+        )
+    return enriched_wrap_up
 
 
 def _document_guide_summary(
@@ -411,8 +433,13 @@ def get_page_result(
         result = {
             **pass2_artifact["result"],
             "page_elements": pass1_result.get("page_elements", []),
-            "page_guide": _page_guide_with_document_connections(
+            "page_guide": _page_guide_for_response(
                 pass1_result.get("page_guide"),
+                document_summary_artifact=document_summary_artifact,
+                page_number=page_number,
+            ),
+            "wrap_up": _wrap_up_for_response(
+                pass1_result.get("wrap_up"),
                 document_summary_artifact=document_summary_artifact,
                 page_number=page_number,
             ),
@@ -432,8 +459,13 @@ def get_page_result(
             "page_summary": pass1_result["page_summary"],
             "final_anchors": [],
             "page_elements": pass1_result.get("page_elements", []),
-            "page_guide": _page_guide_with_document_connections(
+            "page_guide": _page_guide_for_response(
                 pass1_result.get("page_guide"),
+                document_summary_artifact=document_summary_artifact,
+                page_number=page_number,
+            ),
+            "wrap_up": _wrap_up_for_response(
+                pass1_result.get("wrap_up"),
                 document_summary_artifact=document_summary_artifact,
                 page_number=page_number,
             ),
@@ -457,6 +489,7 @@ def get_page_result(
             "final_anchors": [],
             "page_elements": [],
             "page_guide": None,
+            "wrap_up": None,
             "document_guide_summary": _document_guide_summary(
                 semantic_guide_artifact,
                 document_summary_artifact,

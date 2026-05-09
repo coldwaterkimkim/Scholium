@@ -62,7 +62,7 @@ function formatSemanticGuideStage(stage: string | null | undefined): string {
     case "document_guide":
       return "DocumentGuide";
     case "page_guide_chunks":
-      return "PageGuide chunks";
+      return "Page guide + wrap-up chunks";
     case "merge":
       return "merge";
     case "completed":
@@ -265,13 +265,13 @@ export function ProcessingStatus({ documentId }: ProcessingStatusProps) {
                 </span>
               </div>
               <div className={styles.item}>
-                <span className={styles.label}>page_guides</span>
+                <span className={styles.label}>page_guide_wrapups</span>
                 <span className={styles.value}>
                   {snapshot.page_guide_count} / {snapshot.rendered_pages}
                 </span>
               </div>
               <div className={styles.item}>
-                <span className={styles.label}>page_guide_chunks</span>
+                <span className={styles.label}>guide_wrapup_chunks</span>
                 <span className={styles.value}>
                   {snapshot.semantic_guide_completed_chunks} / {snapshot.semantic_guide_total_chunks}
                   {snapshot.semantic_guide_failed_chunks > 0

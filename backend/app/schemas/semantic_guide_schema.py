@@ -4,7 +4,7 @@ from typing import Annotated
 
 from pydantic import Field, field_validator, model_validator
 
-from app.schemas.common import PageGuide, StrictModel
+from app.schemas.common import PageGuide, PageWrapUp, StrictModel
 
 
 PositivePageNumber = Annotated[int, Field(ge=1)]
@@ -61,10 +61,31 @@ class DocumentGuide(StrictModel):
         return sorted({int(page) for page in value})
 
 
-class SemanticPageGuide(PageGuide):
+class SemanticPageGuide(StrictModel):
     document_id: str = Field(min_length=1)
     page_number: PositivePageNumber
-    page_role: str = Field(min_length=1)
+    page_guide: PageGuide
+    wrap_up: PageWrapUp
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_legacy_page_guide(cls, data: object) -> object:
+        if not isinstance(data, dict):
+            return data
+
+        normalized = dict(data)
+        page_guide = normalized.get("page_guide")
+        wrap_up = normalized.get("wrap_up")
+        if not isinstance(page_guide, dict):
+            page_guide = normalized
+        if not isinstance(wrap_up, dict):
+            wrap_up = normalized
+        return {
+            "document_id": normalized.get("document_id"),
+            "page_number": normalized.get("page_number"),
+            "page_guide": page_guide,
+            "wrap_up": wrap_up,
+        }
 
 
 class SemanticGuideResult(StrictModel):

@@ -44,7 +44,7 @@ import {
 } from "@/utils/bbox";
 
 import { SelectedExplanationPanel } from "./SelectedExplanationPanel";
-import { PageGuidePanel } from "./PageGuidePanel";
+import { PageGuidePanel, WrapUpPanel } from "./PageGuidePanel";
 import styles from "./DocumentViewer.module.css";
 
 type DocumentViewerProps = {
@@ -2236,6 +2236,11 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
                       />
                     ) : null}
                   </div>
+                  <WrapUpPanel
+                    wrapUp={currentPageData.wrap_up}
+                    viewerMode={currentPageData.viewer_mode}
+                    responseLanguage={responseLanguage}
+                  />
                 </div>
               ) : (
                 <div className={styles.stateBlock}>페이지 데이터를 아직 표시할 수 없어.</div>

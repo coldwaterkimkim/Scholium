@@ -1,19 +1,17 @@
 # Scholium MVP v0 - Legacy Single-Call Semantic Guide Prompt
 
-Prompt version: semantic_guide_v0_2
+Prompt version: semantic_guide_v0_3
 Schema version: 0.2
 
 This prompt is retained for `SEMANTIC_GUIDE_MODE=legacy_single_call` only.
 
-The default Scholium path is now `chunked_full_required`:
+The default Scholium path is `chunked_full_required`:
 
 1. `document_guide_prompt.md` generates DocumentGuide.
-2. `page_guide_chunk_prompt.md` generates required PageGuides in page chunks.
-3. The backend merges the chunks and only then marks the viewer ready.
+2. `page_guide_chunk_prompt.md` generates required Page Guide and Wrap-up chunks.
+3. The backend merges all chunks and only then marks the viewer ready.
 
 Use this prompt only for debug/rollback. It is not the current default product path.
-
-You generate a concise Semantic Guide for a PDF/deck from a compact parser-generated document digest.
 
 Return JSON only. No Markdown, no code fences, no prose outside JSON.
 
@@ -21,9 +19,13 @@ Return JSON only. No Markdown, no code fences, no prose outside JSON.
 
 Scholium is a selected-region explanation viewer.
 
-The user does not click precomputed anchors. The user reads the clean PDF, then drag-selects a confusing region. Selection Explanation is the reactive micro layer.
+The user reads the clean PDF, then drag-selects a confusing region. Selection Explanation is the reactive micro layer.
 
-This Semantic Guide is the proactive macro layer. It should help the student understand how to read the document/page sequence, but it must not pre-explain every visual element.
+This legacy single-call Semantic Guide must still follow the current proactive information architecture:
+
+- Page Guide: short orientation before reading
+- Wrap-up: short review after reading
+- no rich per-page explanation dump
 
 ## Input
 
@@ -51,17 +53,7 @@ Follow `document_digest.response_language_instruction`.
 - Do not treat `response_language` as a request to translate source text.
 - Preserve PDF/deck wording for source-derived expressions even when the explanatory prose is in another language.
 
-Source-derived fields must keep the source language and wording:
-- `document_guide.section_structure[].title` when based on page/section titles
-- `document_guide.key_concepts[].concept`
-- `page_guides[].page_role` when it is a visible page title or compact title phrase
-- `page_guides[].key_concepts[].concept`
-- page titles, quoted phrases, acronyms, formulas, captions, visible labels, and text snippets
-
-Examples:
-- If the deck says `Rule-Based AI`, keep `Rule-Based AI` as the concept. Do not output `규칙 기반 AI` as the concept label.
-- If the deck says `규칙 기반 AI`, keep `규칙 기반 AI` as the concept. Do not output `Rule-Based AI` as the concept label.
-- The concept label can stay in the source language while `description`, `brief_description`, `role_on_page`, `study_focus`, and other explanatory fields follow `response_language`.
+Source terms, page titles, quoted phrases, acronyms, formulas, captions, visible labels, and text snippets should stay in the source language when referenced.
 
 ## Output Shape
 
@@ -103,27 +95,16 @@ Return one JSON object matching the `semantic_guide_result` schema:
     {
       "document_id": "string",
       "page_number": 1,
-      "page_role": "string",
-      "one_line_thesis": "string or null",
-      "key_question": "string or null",
-      "reading_path": ["string"],
-      "logic_flow": ["string"],
-      "key_concepts": [
-        {
-          "concept": "string",
-          "brief_description": "string or null",
-          "role_on_page": "string or null"
-        }
-      ],
-      "omitted_context": ["string"],
-      "study_focus": ["string"],
-      "common_confusions": ["string"],
-      "example_or_application": "string or null",
-      "must_remember": ["string"],
-      "self_check_questions": ["string"],
-      "before_next_connection": {
-        "previous": "string or null",
-        "next": "string or null"
+      "page_guide": {
+        "page_role": "string or null",
+        "previous_slide_connection": "string or null",
+        "one_line_thesis": "string or null"
+      },
+      "wrap_up": {
+        "logic_flow": ["string"],
+        "study_focus": "string or null",
+        "must_remember": ["string"],
+        "next_slide_connection": "string or null"
       }
     }
   ]
@@ -136,25 +117,30 @@ Return one JSON object matching the `semantic_guide_result` schema:
 - Do not invent unsupported pages, sources, quotations, formulas, or examples.
 - Keep the guide concise and student-facing.
 - Do not dump generic textbook material.
-- Do not write long explanations for every visual element.
-- Do not translate, paraphrase, or semantically "improve" source labels. If the parser digest has the exact wording, reuse that wording.
+- Do not translate, paraphrase, or semantically "improve" source labels.
 - Use parser quality notes conservatively. If a page is scan-like or low-text, say the guide is based on limited parser evidence.
 - `section_structure` should usually use contiguous page ranges.
 - `prerequisite_links` must satisfy `to_page < from_page`.
 - `page_guides` should include every page in the digest unless the digest is clearly invalid.
-- Each PageGuide should focus on page role, reading strategy, logic flow, omitted context, study focus, likely confusions, and before/next connection.
-- Selection Explanation will handle micro-level explanations later. Do not turn PageGuide into selected-region explanation.
+- Page Guide fields must focus on page role, previous connection, and one-line thesis only.
+- Wrap-up fields must focus on logic flow, study focus, must remember, and next connection only.
+- Do not output removed proactive fields: `key_concepts`, `omitted_context`, `example_or_application`, `common_confusions`, `self_check_questions`, `reading_path`, `key_question`, or `before_next_connection`.
+- Selection Explanation will handle micro-level explanations later.
 
 ## Quality Target
 
 Good output feels like a teaching assistant saying:
 
-- what this document is about
-- how the pages fit together
-- what each page is doing
-- what the student should pay attention to before selecting details
-- where confusion is likely
-- how the current page connects to previous/next pages
+- "Here is why this page exists here."
+- "Here is the one thing this page is trying to say."
+- "After reading, here is the reasoning flow and what to carry forward."
+
+Bad output feels like:
+
+- a second textbook
+- a list of every visible element
+- a generic study plan
+- a translated or rewritten version of source terms
 
 ## Final Instruction
 

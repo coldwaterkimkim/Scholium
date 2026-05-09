@@ -9,6 +9,7 @@ PDF upload / render / parser-first preprocess / semantic guide
 -> document worklist with status, elapsed time, delete, and processing entry
 -> clean PDF viewer
 -> top-edge Page Guide gives page-level reading orientation
+-> bottom-edge Wrap-up gives a brief after-reading review
 -> user drag-selects a confusing region
 -> backend builds compact SelectionContext
 -> Codex CLI generates an on-demand selected-region explanation
@@ -20,7 +21,8 @@ PDF upload / render / parser-first preprocess / semantic guide
 - The home screen is the document worklist. Uploads stay in the list while they prepare, and duplicate filenames overwrite the existing document job.
 - The user-facing flow is not upload -> empty viewer. Viewer entry is enabled after the document is usable.
 - The viewer shows a clean rendered PDF page after parser map and minimum semantic guide readiness.
-- When pass1 page context exists, the viewer shows a top-edge Page Guide attached to the learning material area. This is a proactive page-level reading guide, not a chatbot and not a side rail.
+- When required semantic guide artifacts exist, the viewer shows a compact top-edge Page Guide attached to the learning material area. This is a proactive page-level orientation strip, not a chatbot and not a side rail.
+- The viewer also shows a compact bottom-edge Wrap-up strip for after-reading review.
 - The user chooses what is confusing by dragging a region on the page.
 - Scholium explains that selected region on demand, using page/document context that was prepared earlier.
 - The explanation appears in the floating academic annotation panel near the selected region.
@@ -31,10 +33,15 @@ Scholium now has two complementary explanation layers.
 
 | Layer | Timing | Scope | Placement | Answers |
 | --- | --- | --- | --- | --- |
-| `Page Guide` | proactive | page-level macro orientation | top edge of the viewer surface | "How should I read this page?" |
+| `Page Guide` | proactive | page-level orientation before reading | top edge of the viewer surface | "Why does this page exist here?" |
+| `Wrap-up` | proactive | page-level review after reading | bottom edge of the viewer surface | "What should I carry forward?" |
 | `Selected Explanation Panel` | reactive | selected-region micro explanation | floating near the selected bbox | "What does this exact selected part mean?" |
 
-The Page Guide should reconstruct the page's role, thesis, reading path, logic flow, concepts, omitted context, study focus, confusions, takeaways, self-check questions, and optional before/next connection. It should not repeat the whole slide or replace selected-region explanations.
+The proactive Page Guide now generates only `page_role`, `previous_slide_connection`, and `one_line_thesis`.
+
+The proactive Wrap-up now generates only `logic_flow`, `study_focus`, `must_remember`, and `next_slide_connection`.
+
+Removed proactive fields are not generated silently: per-page `key_concepts`, `omitted_context`, `example_or_application`, `common_confusions`, `self_check_questions`, `reading_path`, and `key_question`. These detailed fields belong later in Selection Explanation or optional deep-dive flows.
 
 Precomputed anchor-click is legacy/debug only. It can still be useful for internal comparison or rollback checks, but it is not the primary user experience.
 
@@ -65,9 +72,9 @@ Do not change provider selection logic as part of repo hygiene or naming cleanup
 
 - Semantic Guide is the document/page meaning layer.
 - It consumes compact parser-generated document digest, not full raw artifacts for every page.
-- It is generated through local Codex CLI using one document-level call in the current implementation.
+- It is generated through local Codex CLI using one DocumentGuide call plus required Page Guide/Wrap-up chunk calls.
 - `DocumentGuide` captures overall topic, summary, section structure, key concepts, page sequence, prerequisite links, difficult pages, and study strategy notes.
-- `PageGuide` remains proactive macro information. It does not replace selected-region explanations and does not pre-explain every visual element.
+- `PageGuide` remains proactive orientation, and `Wrap-up` remains proactive review. They do not replace selected-region explanations and do not pre-explain every visual element.
 - A compatibility `document_summary.json` is still saved so existing summary APIs, follow-up, and old artifact loaders keep working.
 
 ## Readiness Modes
@@ -78,13 +85,13 @@ Scholium now separates viewer readiness from full explanation readiness.
 | --- | --- |
 | `render_only` | Page image exists, but this is not the main user-facing viewer destination after upload. |
 | `parser_map_ready` | Deterministic PageContext/PageElementMap exists. |
-| `semantic_guide_ready` | DocumentGuide plus PageGuides for every rendered page exist. |
-| `viewer_ready` | Render, parser map, DocumentGuide, full PageGuides, and compatibility `document_summary.json` exist. This is the worklist/processing gate for viewer entry. |
+| `semantic_guide_ready` | DocumentGuide plus required Page Guide/Wrap-up records for every rendered page exist. |
+| `viewer_ready` | Render, parser map, DocumentGuide, required Page Guide/Wrap-up records, and compatibility `document_summary.json` exist. This is the worklist/processing gate for viewer entry. |
 | `page_context_ready` | Existing API compatibility name for parser map/page context ready. |
 | `on_demand` | Page context and semantic/document context are ready. This is the default selected-region MVP mode. |
 | `legacy_pass2` | Precomputed anchor-click debug path. Used only when `SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=true`. |
 
-The API may still return `render_only` for direct page requests while processing, but worklist/processing viewer entry is gated by `viewer_ready` / `ready_for_viewer`. `render_only` alone is not a user-facing viewer destination after upload. Old pass1 artifacts without `page_guide` are loaded with a minimal fallback from `page_role` and `page_summary`, but new documents must complete the full required Semantic Guide before viewer entry.
+The API may still return `render_only` for direct page requests while processing, but worklist/processing viewer entry is gated by `viewer_ready` / `ready_for_viewer`. `render_only` alone is not a user-facing viewer destination after upload. Old pass1 artifacts without `page_guide` / `wrap_up` are loaded with safe fallback/null values, but new documents must complete the required Semantic Guide before viewer entry.
 
 ## Semantic Guide Generation
 
@@ -94,11 +101,11 @@ The old single-call Semantic Guide path is retained as `legacy_single_call` for 
 
 1. Build compact parser digest from PageContext/PageElementMap artifacts.
 2. Generate one DocumentGuide.
-3. Generate required PageGuides in page chunks, default `SEMANTIC_GUIDE_PAGE_CHUNK_SIZE=5`.
-4. Merge all PageGuide chunks.
+3. Generate required Page Guide/Wrap-up records in page chunks, default `SEMANTIC_GUIDE_PAGE_CHUNK_SIZE=5`.
+4. Merge all Page Guide/Wrap-up chunks.
 5. Save final `semantic_guide.json`.
 6. Save compatibility `document_summary.json`.
-7. Apply PageGuide back into pass1 compatibility artifacts.
+7. Apply Page Guide/Wrap-up back into pass1 compatibility artifacts.
 
 If any required chunk fails after retry attempts, the document remains failed/not viewer-ready and the processing snapshot exposes the failed semantic stage/chunk counters.
 
@@ -112,7 +119,7 @@ It is built for one selected bbox and should stay compact. It includes:
 - matched page elements
 - nearby text blocks
 - page role and page summary
-- compact PageGuide subset when available
+- compact Page Guide/Wrap-up subset when available
 - brief document context when available
 - Semantic Guide DocumentGuide brief when available
 - related page candidates
@@ -129,9 +136,9 @@ The backend should not send full pass1 artifacts, full document summaries, or ev
 | `data/parsed/{document_id}/page_manifest.json` | Parser/triage signal for text-rich, visual-rich, and scan-like pages. |
 | `data/analysis/{document_id}/pages/{page}/page_context.json` | Deterministic parser-first PageContext/PageElementMap. |
 | `data/analysis/{document_id}/pages/{page}/page_analysis_pass1.json` | Compatibility envelope. In parser_first mode it contains parser-derived `candidate_anchors` and loaded `page_elements`. |
-| `data/analysis/{document_id}/semantic_guide.json` | Semantic Guide artifact with DocumentGuide and PageGuides. |
+| `data/analysis/{document_id}/semantic_guide.json` | Semantic Guide artifact with DocumentGuide and Page Guide/Wrap-up records. |
 | `data/analysis/{document_id}/semantic/document_guide.json` | Internal chunked pipeline DocumentGuide artifact. |
-| `data/analysis/{document_id}/semantic/page_guide_chunks/pages_001_005.json` | Internal PageGuide chunk artifact. |
+| `data/analysis/{document_id}/semantic/page_guide_chunks/pages_001_005.json` | Internal Page Guide/Wrap-up chunk artifact. |
 | `data/analysis/{document_id}/semantic/status.json` | Internal chunk progress/failure diagnostics. |
 | `data/analysis/{document_id}/document_summary.json` | Compatibility summary generated from Semantic Guide for existing APIs/follow-up. |
 
@@ -144,7 +151,8 @@ The backend should not send full pass1 artifacts, full document summaries, or ev
 | `SelectedRegion` | The user-dragged bbox region. |
 | `SelectionExplanation` | The generated explanation for a selected region. |
 | `SelectionContext` | The compact context built from page/document artifacts for one selected region. |
-| `PageGuide` | Proactive page-level reading orientation generated during pass1 and exposed on the page API. |
+| `PageGuide` | Proactive top-edge reading orientation generated by Semantic Guide chunks and exposed on the page API. |
+| `WrapUp` | Proactive bottom-edge after-reading review generated by Semantic Guide chunks and exposed as `wrap_up` on the page API. |
 | `LegacyPrecomputedAnchor` | Old precomputed explanation region used only for legacy/debug/pass2 compatibility. |
 
 ## Legacy Naming Compatibility

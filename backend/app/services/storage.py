@@ -1761,6 +1761,7 @@ class StorageService:
         )
         normalized_result.pop("page_elements", None)
         normalized_result.pop("candidate_regions", None)
+        normalized_result["wrap_up"] = self._wrap_up_from_pass1_result(normalized_result)
         normalized_result["page_guide"] = self._page_guide_from_pass1_result(normalized_result)
         validated_result = validate_payload("pass1", normalized_result)
         if include_page_elements_alias:
@@ -1776,28 +1777,38 @@ class StorageService:
 
     def _page_guide_from_pass1_result(self, result: dict[str, object]) -> object:
         raw_page_guide = result.get("page_guide")
+        raw_wrap_up = result.get("wrap_up")
         if isinstance(raw_page_guide, dict):
-            return raw_page_guide
+            page_guide = dict(raw_page_guide)
+        else:
+            page_guide = {}
+        if isinstance(raw_wrap_up, dict):
+            page_guide["wrap_up"] = raw_wrap_up
+        connection = page_guide.get("before_next_connection")
+        previous_connection = None
+        if isinstance(connection, dict):
+            previous_connection = connection.get("previous")
 
         page_role = str(result.get("page_role") or "").strip() or "Rendered PDF page"
         one_line_thesis = str(result.get("page_summary") or "").strip() or None
         return {
-            "page_role": page_role,
-            "one_line_thesis": one_line_thesis,
-            "key_question": None,
-            "reading_path": [],
+            "page_role": page_guide.get("page_role") or page_role,
+            "previous_slide_connection": page_guide.get("previous_slide_connection") or previous_connection,
+            "one_line_thesis": page_guide.get("one_line_thesis") or one_line_thesis,
+        }
+
+    def _wrap_up_from_pass1_result(self, result: dict[str, object]) -> object:
+        raw_wrap_up = result.get("wrap_up")
+        if isinstance(raw_wrap_up, dict):
+            return raw_wrap_up
+        raw_page_guide = result.get("page_guide")
+        if isinstance(raw_page_guide, dict):
+            return raw_page_guide
+        return {
             "logic_flow": [],
-            "key_concepts": [],
-            "omitted_context": [],
-            "study_focus": [],
-            "common_confusions": [],
-            "example_or_application": None,
+            "study_focus": None,
             "must_remember": [],
-            "self_check_questions": [],
-            "before_next_connection": {
-                "previous": None,
-                "next": None,
-            },
+            "next_slide_connection": None,
         }
 
     def _legacy_candidate_anchors_from_pass1_result(
@@ -2327,6 +2338,9 @@ class StorageService:
             normalized_document_guide = dict(normalized_result["document_guide"])
             normalized_document_guide["document_id"] = document_id
             normalized_result["document_guide"] = normalized_document_guide
+        for page_guide in normalized_result.get("page_guides", []):
+            if isinstance(page_guide, dict):
+                page_guide["document_id"] = document_id
 
         validated_result = validate_payload("semantic_guide", normalized_result)
         return {

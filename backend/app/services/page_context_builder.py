@@ -155,6 +155,7 @@ class PageContextBuilder:
                 "page_role": page_role,
                 "page_summary": page_summary,
                 "page_guide": self._placeholder_page_guide(page_role, page_summary, page_context),
+                "wrap_up": self._placeholder_wrap_up(page_context),
                 "candidate_anchors": self._legacy_candidates_from_page_elements(page_elements),
             },
         }
@@ -346,25 +347,19 @@ class PageContextBuilder:
         page_summary: str,
         page_context: dict[str, Any],
     ) -> dict[str, Any]:
-        heading_chain = [str(item) for item in page_context.get("heading_chain", []) if str(item).strip()]
-        notes = [str(item) for item in page_context.get("parser_quality_notes", []) if str(item).strip()]
         return {
             "page_role": page_role,
+            "previous_slide_connection": None,
             "one_line_thesis": page_summary,
-            "key_question": None,
-            "reading_path": heading_chain[:2],
+        }
+
+    def _placeholder_wrap_up(self, page_context: dict[str, Any]) -> dict[str, Any]:
+        notes = [str(item) for item in page_context.get("parser_quality_notes", []) if str(item).strip()]
+        return {
             "logic_flow": [],
-            "key_concepts": [],
-            "omitted_context": notes[:3],
-            "study_focus": [],
-            "common_confusions": [],
-            "example_or_application": None,
+            "study_focus": " ".join(notes[:2]) if notes else None,
             "must_remember": [],
-            "self_check_questions": [],
-            "before_next_connection": {
-                "previous": None,
-                "next": None,
-            },
+            "next_slide_connection": None,
         }
 
     def _deterministic_page_role(self, page_context: dict[str, Any]) -> str:

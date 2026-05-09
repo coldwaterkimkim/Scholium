@@ -3,7 +3,7 @@
 이번 스프린트 목표는 완성형 서비스가 아니라 내부 테스트 가능한 작동 데모다.
 
 현재 MVP 방향은 precomputed anchor-click viewer가 아니라 selected-region viewer다.
-Scholium은 PDF를 먼저 전처리해서 문서/페이지/요소 맥락을 이해해두고, 페이지 상단 Page Guide로 먼저 읽는 방향을 잡아준 뒤, 사용자가 실제로 막힌 영역을 드래그했을 때 그 영역에 붙는 설명을 생성한다.
+Scholium은 PDF를 먼저 전처리해서 문서/페이지/요소 맥락을 이해해두고, 페이지 상단 Page Guide로 읽기 전 방향을 잡고, 페이지 하단 Wrap-up으로 읽은 뒤 핵심 흐름을 짧게 정리한다. 사용자가 실제로 막힌 영역을 드래그했을 때만 그 영역에 붙는 자세한 설명을 생성한다.
 
 ## 이번 스프린트 범위
 
@@ -132,7 +132,7 @@ OpenAI API 키는 기본 실행에 필요하지 않다. 로컬 MVP 분석 provid
 1. viewer는 PDF 페이지 이미지를 깨끗하게 보여준다.
 2. 홈의 작업 목록은 저장된 문서, 준비 상태, 준비 시간, 삭제/처리상태/viewer 진입 버튼을 보여준다.
 3. page image만 준비된 `render_only`는 내부 상태일 뿐, 사용자-facing 기본 flow에서는 viewer 진입 조건이 아니다.
-4. render, parser-first PageContext/PageElementMap, DocumentGuide, 전체 PageGuide가 모두 준비되면 viewer 진입이 가능해지고, top-edge `Page Guide`가 페이지 역할, 핵심 질문, 읽는 순서, 논리 흐름, study focus를 보여준다.
+4. render, parser-first PageContext/PageElementMap, DocumentGuide, 전체 Page Guide/Wrap-up이 모두 준비되면 viewer 진입이 가능해진다. top-edge `Page Guide`는 page role, previous connection, one-line thesis만 보여준다.
 5. 사용자가 헷갈리는 영역을 드래그하면 frontend가 normalized bbox `[x, y, w, h]`를 보낸다.
 6. Semantic Guide/document summary compatibility artifact까지 준비되면 `on_demand`가 되고, 문서 전체 맥락이 포함된 full selected-region explanation을 만든다.
 7. backend가 full pass1/document artifact를 그대로 보내지 않고 compact `SelectionContext`를 만든다.
@@ -140,21 +140,24 @@ OpenAI API 키는 기본 실행에 필요하지 않다. 로컬 MVP 분석 provid
 9. schema validation을 통과한 결과만 `data/analysis/<document_id>/pages/<page>/selection_explanations/`에 저장된다.
 10. floating academic annotation panel이 선택 영역 옆에 뜬다.
 
-Scholium의 설명 UI는 두 레이어로 나뉜다.
+Scholium의 설명 UI는 세 레이어로 나뉜다.
 
-- `Page Guide`: 페이지 단위, proactive, macro orientation. "이 페이지를 어떻게 읽어야 하지?"에 답한다.
+- `Page Guide`: 페이지 단위, proactive, 읽기 전 macro orientation. "이 페이지가 여기서 어떤 역할이지?"에 답한다.
+- `Wrap-up`: 페이지 단위, proactive, 읽은 뒤 짧은 복습. logic flow, study focus, must remember, next connection만 보여준다.
 - `Selected Explanation Panel`: 선택 영역 단위, reactive, micro explanation. "내가 드래그한 이 부분은 무슨 뜻이지?"에 답한다.
+
+`reading_path`, `self_check_questions`, per-page `key_concepts`, `omitted_context`, `example_or_application`, `common_confusions`는 더 이상 proactive Page Guide에서 생성하지 않는다. 이런 자세한 정보는 나중에 Selection Explanation 또는 optional deep-dive 흐름으로 옮길 영역이다.
 
 Pass1 artifact의 persisted field는 legacy 호환 때문에 아직 `candidate_anchors`지만, 현재 제품 의미와 public page API 이름은 `page_elements`다. 새 코드에서는 `page_elements` / `element_id` / `element_type`을 우선 쓰고, `candidate_anchors` / `anchor_id` / `anchor_type`은 저장 artifact와 legacy/debug 호환용으로만 취급한다.
 `PASS1_MODE=parser_first`에서는 LLM이 bbox/page element를 만들지 않는다. parser가 `page_context.json`과 PageElementMap을 만들고, 기존 API 호환을 위해 `page_analysis_pass1.json`에도 parser-derived page elements를 저장한다.
-`page_guide`는 Semantic Guide가 만든 page-level macro guide로 pass1 호환 artifact에 접혀 저장되며, 오래된 artifact에 없으면 API가 `page_role`과 `page_summary` 기반의 최소 fallback만 제공한다.
+`page_guide`는 Semantic Guide가 만든 top-edge orientation이고, `wrap_up`은 bottom-edge review 정보다. 둘 다 pass1 호환 artifact에 접혀 저장되며, 오래된 artifact에 없으면 API가 안전한 최소 fallback/null을 제공한다.
 
 ## Readiness modes
 
 - `render_only`: PDF page image만 준비됐다. 내부적으로는 읽을 수 있지만, 사용자-facing 기본 flow에서는 viewer 진입 조건으로 보지 않는다.
 - `parser_map_ready`: deterministic PageContext/PageElementMap이 준비됐다. API compatibility상 `page_context_ready`와 함께 노출될 수 있다.
-- `semantic_guide_ready`: DocumentGuide와 모든 rendered page의 PageGuide가 준비됐다.
-- `viewer_ready`: render + parser map + DocumentGuide + 전체 PageGuide + compatibility `document_summary.json`이 모두 준비됐다. 사용자가 worklist/processing에서 viewer에 들어갈 수 있는 기준이다.
+- `semantic_guide_ready`: DocumentGuide와 모든 rendered page의 Page Guide/Wrap-up이 준비됐다.
+- `viewer_ready`: render + parser map + DocumentGuide + 전체 Page Guide/Wrap-up + compatibility `document_summary.json`이 모두 준비됐다. 사용자가 worklist/processing에서 viewer에 들어갈 수 있는 기준이다.
 - `page_context_ready`: 기존 API 호환 이름. 현재는 parser map/page context ready와 같은 의미로 유지한다.
 - `on_demand`: page context와 document/Semantic Guide context가 모두 준비됐다. 기본 selected-region MVP 모드다.
 - `legacy_pass2`: precomputed anchor-click debug path다. 기본값에서는 쓰지 않는다.
@@ -164,8 +167,8 @@ Pass1 artifact의 persisted field는 legacy 호환 때문에 아직 `candidate_a
 - `PASS1_MODE=parser_first`: 기본값. page-by-page LLM Pass1을 호출하지 않고 parser-first PageContext/PageElementMap만 만든다.
 - `PASS1_MODE=legacy_llm`: old text-first/multimodal Pass1Analyzer 동작. debug/rollback용이다.
 - `PASS1_MODE=hybrid`: 현재는 parser-first를 기본으로 쓰며, 자동 LLM fallback/enrichment는 아직 켜지지 않았다.
-- Semantic Guide는 compact parser-generated digest를 입력으로 Codex CLI에서 chunked full required pipeline으로 생성한다. DocumentGuide를 먼저 만들고, PageGuide는 page range chunk 단위로 전부 생성한 뒤 merge한다.
-- 기본값 `SEMANTIC_GUIDE_MODE=chunked_full_required`에서는 전체 PageGuide가 빠진 문서를 viewer-ready로 보지 않는다. `legacy_single_call`은 debug/rollback용이다.
+- Semantic Guide는 compact parser-generated digest를 입력으로 Codex CLI에서 chunked required pipeline으로 생성한다. DocumentGuide를 먼저 만들고, Page Guide/Wrap-up은 page range chunk 단위로 전부 생성한 뒤 merge한다.
+- 기본값 `SEMANTIC_GUIDE_MODE=chunked_full_required`에서는 전체 Page Guide/Wrap-up이 빠진 문서를 viewer-ready로 보지 않는다. `legacy_single_call`은 debug/rollback용이다.
 - OpenAI/Claude/Gemini native PDF input, Files API, prompt caching은 future optional cloud provider path이며 현재 core path가 아니다.
 
 ## Codex CLI provider 제한
@@ -224,4 +227,4 @@ cd backend
   --output /tmp/scholium_pass1_mode_comparison.json
 ```
 
-`parser_first` 성공 기준은 `codex_cli_pass1_call_count=0`, 빠른 `upload_to_parser_map_ready_seconds`, PageGuide chunk 수만큼의 `codex_cli_page_guide_call_count`, `page_guide_count == rendered_pages`, 그리고 selected-region smoke 성공이다.
+`parser_first` 성공 기준은 `codex_cli_pass1_call_count=0`, 빠른 `upload_to_parser_map_ready_seconds`, Page Guide/Wrap-up chunk 수만큼의 `codex_cli_page_guide_call_count`, `page_guide_count == rendered_pages`, 그리고 selected-region smoke 성공이다.

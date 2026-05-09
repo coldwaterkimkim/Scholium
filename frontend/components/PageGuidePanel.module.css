@@ -1,20 +1,24 @@
 .panel {
   width: 100%;
-  max-height: min(52vh, 520px);
-  overflow: auto;
-  padding: 14px;
-  border: 1px solid rgba(101, 121, 64, 0.28);
-  border-radius: 10px;
+  overflow: hidden;
+  padding: 12px 14px;
+  border: 1px solid rgba(101, 121, 64, 0.24);
+  border-radius: 8px;
   background:
     linear-gradient(180deg, rgba(255, 255, 250, 0.98), rgba(250, 248, 238, 0.98)),
     #fffdf3;
   box-shadow:
-    0 10px 28px rgba(39, 44, 28, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.78);
+    0 8px 22px rgba(39, 44, 28, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.76);
   color: #20241f;
   line-height: 1.35;
-  scrollbar-width: thin;
   user-select: text;
+}
+
+.wrapPanel {
+  background:
+    linear-gradient(180deg, rgba(250, 248, 238, 0.98), rgba(246, 244, 234, 0.98)),
+    #faf8ee;
 }
 
 .panelPreparing {
@@ -28,24 +32,25 @@
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
   align-items: start;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .eyebrow {
   display: block;
   margin-bottom: 3px;
   color: #6f7d58;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0;
   text-transform: uppercase;
 }
 
-.header h2 {
+.header h2,
+.wrapDetails strong {
   margin: 0;
   color: #2b3326;
-  font-size: 1rem;
-  font-weight: 760;
+  font-size: 0.98rem;
+  font-weight: 780;
   line-height: 1.25;
 }
 
@@ -63,35 +68,40 @@
   white-space: nowrap;
 }
 
-.primaryGrid {
+.guideGrid,
+.wrapGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
-.primaryCard,
-.detailSection {
-  min-width: 0;
-  padding: 10px 11px;
-  border: 1px solid rgba(101, 121, 64, 0.16);
-  border-radius: 8px;
-  background: rgba(255, 255, 250, 0.72);
+.guideGrid {
+  grid-template-columns: 0.95fr 1.1fr 1.25fr;
 }
 
-.primaryCard h3,
-.detailSection h3 {
-  margin: 0 0 6px;
+.wrapGrid {
+  grid-template-columns: 1.1fr 1fr 1fr 1.05fr;
+  margin-top: 10px;
+}
+
+.guideRow {
+  min-width: 0;
+  padding: 9px 10px;
+  border-left: 2px solid rgba(101, 121, 64, 0.32);
+  background: rgba(255, 255, 250, 0.56);
+}
+
+.guideRow h3 {
+  margin: 0 0 5px;
   color: #5a673f;
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   font-weight: 820;
   letter-spacing: 0;
 }
 
 .bodyText,
-.emptyText,
-.legacyNote {
+.emptyText {
   margin: 0;
-  font-size: 0.84rem;
+  font-size: 0.83rem;
   line-height: 1.45;
 }
 
@@ -99,8 +109,7 @@
   color: #2c3128;
 }
 
-.emptyText,
-.legacyNote {
+.emptyText {
   color: #858a7c;
 }
 
@@ -109,7 +118,7 @@
   margin: 0;
   padding-left: 17px;
   color: #2c3128;
-  font-size: 0.84rem;
+  font-size: 0.83rem;
   line-height: 1.45;
 }
 
@@ -118,96 +127,42 @@
   margin-top: 4px;
 }
 
-.moreDetails {
-  margin-top: 10px;
-  border-top: 1px solid rgba(101, 121, 64, 0.18);
-  padding-top: 8px;
+.wrapDetails {
+  display: block;
 }
 
-.moreDetails summary {
-  width: max-content;
-  max-width: 100%;
-  color: #56693d;
+.wrapDetails summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
   cursor: pointer;
-  font-size: 0.78rem;
-  font-weight: 800;
-  line-height: 1.3;
+  list-style: none;
 }
 
-.detailGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 8px;
+.wrapDetails summary::-webkit-details-marker {
+  display: none;
 }
 
-.keyConceptSection {
-  grid-column: span 2;
-}
-
-.conceptList {
-  display: grid;
-  gap: 7px;
-}
-
-.conceptItem {
-  min-width: 0;
-  padding: 8px 9px;
-  border-radius: 7px;
-  background: #f5f4ea;
-}
-
-.conceptItem strong {
-  display: block;
-  color: #2d3726;
-  font-size: 0.84rem;
-  line-height: 1.25;
-}
-
-.conceptItem p {
-  margin: 4px 0 0;
-  color: #3c4238;
-  font-size: 0.8rem;
-  line-height: 1.38;
-}
-
-.conceptItem span {
-  display: block;
-  margin-top: 4px;
-  color: #6d735f;
-  font-size: 0.74rem;
-  line-height: 1.35;
-}
-
-.legacyNote {
-  margin-top: 10px;
+.wrapDetails summary::before {
+  content: "";
+  display: none;
 }
 
 @media (max-width: 1180px) {
-  .primaryGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .detailGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .guideGrid,
+  .wrapGrid {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 760px) {
-  .header {
+  .header,
+  .wrapDetails summary {
     grid-template-columns: 1fr;
   }
 
   .statusPill {
     width: max-content;
-  }
-
-  .primaryGrid,
-  .detailGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .keyConceptSection {
-    grid-column: auto;
   }
 }

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, conlist, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, conlist, field_validator, model_validator
 
 
 NormalizedFloat = Annotated[float, Field(ge=0.0, le=1.0)]
@@ -30,57 +30,46 @@ class PageResultBase(StrictModel):
     page_summary: str = Field(min_length=1)
 
 
-class PageGuideKeyConcept(StrictModel):
-    concept: str = Field(min_length=1)
-    brief_description: str | None = Field(default=None, min_length=1)
-    role_on_page: str | None = Field(default=None, min_length=1)
-
-    @field_validator("brief_description", "role_on_page", mode="before")
-    @classmethod
-    def normalize_optional_text(cls, value: object) -> object:
-        if value is None:
-            return None
-        if isinstance(value, str):
-            normalized = value.strip()
-            return normalized or None
-        return value
-
-
-class PageGuideConnection(StrictModel):
-    previous: str | None = Field(default=None, min_length=1)
-    next: str | None = Field(default=None, min_length=1)
-
-    @field_validator("previous", "next", mode="before")
-    @classmethod
-    def normalize_optional_text(cls, value: object) -> object:
-        if value is None:
-            return None
-        if isinstance(value, str):
-            normalized = value.strip()
-            return normalized or None
-        return value
-
-
 class PageGuide(StrictModel):
     page_role: str | None = Field(default=None, min_length=1)
+    previous_slide_connection: str | None = Field(default=None, min_length=1)
     one_line_thesis: str | None = Field(default=None, min_length=1)
-    key_question: str | None = Field(default=None, min_length=1)
-    reading_path: list[str] = Field(default_factory=list, max_length=5)
-    logic_flow: list[str] = Field(default_factory=list, max_length=6)
-    key_concepts: list[PageGuideKeyConcept] = Field(default_factory=list, max_length=8)
-    omitted_context: list[str] = Field(default_factory=list, max_length=5)
-    study_focus: list[str] = Field(default_factory=list, max_length=5)
-    common_confusions: list[str] = Field(default_factory=list, max_length=5)
-    example_or_application: str | None = Field(default=None, min_length=1)
-    must_remember: list[str] = Field(default_factory=list, max_length=4)
-    self_check_questions: list[str] = Field(default_factory=list, max_length=3)
-    before_next_connection: PageGuideConnection = Field(default_factory=PageGuideConnection)
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_legacy_page_guide(cls, data: object) -> object:
+        if not isinstance(data, dict):
+            return data
+
+        normalized = dict(data)
+        connection = normalized.get("before_next_connection")
+        if isinstance(connection, dict) and not normalized.get("previous_slide_connection"):
+            normalized["previous_slide_connection"] = connection.get("previous")
+
+        for legacy_key in (
+            "document_id",
+            "page_number",
+            "key_question",
+            "reading_path",
+            "logic_flow",
+            "key_concepts",
+            "omitted_context",
+            "study_focus",
+            "common_confusions",
+            "example_or_application",
+            "must_remember",
+            "self_check_questions",
+            "before_next_connection",
+            "next_slide_connection",
+            "wrap_up",
+        ):
+            normalized.pop(legacy_key, None)
+        return normalized
 
     @field_validator(
         "page_role",
+        "previous_slide_connection",
         "one_line_thesis",
-        "key_question",
-        "example_or_application",
         mode="before",
     )
     @classmethod
@@ -92,18 +81,60 @@ class PageGuide(StrictModel):
             return normalized or None
         return value
 
-    @field_validator(
-        "reading_path",
-        "logic_flow",
-        "omitted_context",
-        "study_focus",
-        "common_confusions",
-        "must_remember",
-        "self_check_questions",
-        mode="before",
-    )
+
+class PageWrapUp(StrictModel):
+    logic_flow: list[str] = Field(default_factory=list, max_length=4)
+    study_focus: str | None = Field(default=None, min_length=1)
+    must_remember: list[str] = Field(default_factory=list, max_length=3)
+    next_slide_connection: str | None = Field(default=None, min_length=1)
+
+    @model_validator(mode="before")
     @classmethod
-    def normalize_text_list(cls, value: object) -> object:
+    def normalize_legacy_wrap_up(cls, data: object) -> object:
+        if not isinstance(data, dict):
+            return data
+
+        normalized = dict(data)
+        connection = normalized.get("before_next_connection")
+        if isinstance(connection, dict) and not normalized.get("next_slide_connection"):
+            normalized["next_slide_connection"] = connection.get("next")
+
+        for legacy_key in (
+            "document_id",
+            "page_number",
+            "page_role",
+            "previous_slide_connection",
+            "one_line_thesis",
+            "key_question",
+            "reading_path",
+            "key_concepts",
+            "omitted_context",
+            "common_confusions",
+            "example_or_application",
+            "self_check_questions",
+            "before_next_connection",
+            "page_guide",
+        ):
+            normalized.pop(legacy_key, None)
+        return normalized
+
+    @field_validator("study_focus", "next_slide_connection", mode="before")
+    @classmethod
+    def normalize_optional_text(cls, value: object) -> object:
+        if value is None:
+            return None
+        if isinstance(value, list):
+            joined = " ".join(str(item).strip() for item in value if str(item).strip())
+            return joined or None
+        if isinstance(value, str):
+            normalized = value.strip()
+            return normalized or None
+        return value
+
+    @field_validator("logic_flow", "must_remember", mode="before")
+    @classmethod
+    def normalize_text_list(cls, value: object, info: ValidationInfo) -> object:
+        max_items = 3 if info.field_name == "must_remember" else 4
         if value is None:
             return []
         if isinstance(value, str):
@@ -118,7 +149,7 @@ class PageGuide(StrictModel):
                 normalized = item.strip()
                 if normalized:
                     normalized_items.append(normalized)
-            return normalized_items
+            return normalized_items[:max_items]
         return value
 
 
