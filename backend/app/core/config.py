@@ -9,6 +9,8 @@ from typing import Literal
 
 StageName = Literal[
     "pass1",
+    "document_guide",
+    "page_guide_chunk",
     "semantic_guide",
     "document_synthesis",
     "pass2",
@@ -23,6 +25,7 @@ PipelineMode = Literal["legacy", "hybrid", "v2_spine"]
 V2SpineMode = Literal["off", "shadow", "active"]
 Pass2ExecutionMode = Literal["all_pages", "hard_pages_only"]
 LLMProvider = Literal["codex_cli", "openai_api", "mock"]
+SemanticGuideMode = Literal["chunked_full_required", "legacy_single_call"]
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 ENV_FILE_PATH = PROJECT_ROOT / ".env"
@@ -60,6 +63,10 @@ class AppSettings:
     pipeline_mode: PipelineMode
     v2_spine_mode: V2SpineMode
     pass2_execution_mode: Pass2ExecutionMode
+    semantic_guide_mode: SemanticGuideMode
+    semantic_guide_page_chunk_size: int
+    semantic_guide_page_chunk_max_workers: int
+    semantic_guide_retry_attempts: int
     frontend_port: int
     backend_port: int
     document_db_path: str
@@ -97,6 +104,26 @@ STAGE_DEFAULTS = {
         "default_prompt_version": "synthesis_v0_1",
         "schema_name": "document_synthesis_result",
         "prompt_file": "document_synthesis_prompt.md",
+    },
+    "document_guide": {
+        "model_env": "DOCUMENT_GUIDE_MODEL",
+        "default_model": "gpt-5.5",
+        "reasoning_effort": "medium",
+        "timeout_seconds": 180,
+        "prompt_env": "PROMPT_VERSION_DOCUMENT_GUIDE",
+        "default_prompt_version": "document_guide_v0_1",
+        "schema_name": "document_guide_result",
+        "prompt_file": "document_guide_prompt.md",
+    },
+    "page_guide_chunk": {
+        "model_env": "PAGE_GUIDE_CHUNK_MODEL",
+        "default_model": "gpt-5.5",
+        "reasoning_effort": "medium",
+        "timeout_seconds": 180,
+        "prompt_env": "PROMPT_VERSION_PAGE_GUIDE_CHUNK",
+        "default_prompt_version": "page_guide_chunk_v0_1",
+        "schema_name": "page_guide_chunk_result",
+        "prompt_file": "page_guide_chunk_prompt.md",
     },
     "semantic_guide": {
         "model_env": "SEMANTIC_GUIDE_MODEL",
@@ -187,6 +214,13 @@ def _load_pass2_execution_mode() -> Pass2ExecutionMode:
     if execution_mode in {"all_pages", "hard_pages_only"}:
         return execution_mode  # type: ignore[return-value]
     return "all_pages"
+
+
+def _load_semantic_guide_mode() -> SemanticGuideMode:
+    guide_mode = os.getenv("SEMANTIC_GUIDE_MODE", "chunked_full_required").strip().lower()
+    if guide_mode in {"chunked_full_required", "legacy_single_call"}:
+        return guide_mode  # type: ignore[return-value]
+    return "chunked_full_required"
 
 
 def _load_llm_provider() -> LLMProvider:
@@ -287,6 +321,13 @@ def _build_settings() -> AppSettings:
         pipeline_mode=_load_pipeline_mode(),
         v2_spine_mode=_load_v2_spine_mode(),
         pass2_execution_mode=_load_pass2_execution_mode(),
+        semantic_guide_mode=_load_semantic_guide_mode(),
+        semantic_guide_page_chunk_size=_load_positive_int_env("SEMANTIC_GUIDE_PAGE_CHUNK_SIZE", 5),
+        semantic_guide_page_chunk_max_workers=_load_positive_int_env(
+            "SEMANTIC_GUIDE_PAGE_CHUNK_MAX_WORKERS",
+            1,
+        ),
+        semantic_guide_retry_attempts=_load_positive_int_env("SEMANTIC_GUIDE_RETRY_ATTEMPTS", 1),
         frontend_port=int(os.getenv("FRONTEND_PORT", "3000")),
         backend_port=int(os.getenv("BACKEND_PORT", "8000")),
         document_db_path=os.getenv("DOCUMENT_DB_PATH", "./data/scholium_dev.sqlite3"),

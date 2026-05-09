@@ -78,13 +78,29 @@ Scholium now separates viewer readiness from full explanation readiness.
 | --- | --- |
 | `render_only` | Page image exists, but this is not the main user-facing viewer destination after upload. |
 | `parser_map_ready` | Deterministic PageContext/PageElementMap exists. |
-| `semantic_guide_ready` | Minimum DocumentGuide/PageGuides exist. |
-| `viewer_ready` | Parser map plus minimum Semantic Guide exist. This is the worklist/processing gate for viewer entry. |
+| `semantic_guide_ready` | DocumentGuide plus PageGuides for every rendered page exist. |
+| `viewer_ready` | Render, parser map, DocumentGuide, full PageGuides, and compatibility `document_summary.json` exist. This is the worklist/processing gate for viewer entry. |
 | `page_context_ready` | Existing API compatibility name for parser map/page context ready. |
 | `on_demand` | Page context and semantic/document context are ready. This is the default selected-region MVP mode. |
 | `legacy_pass2` | Precomputed anchor-click debug path. Used only when `SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=true`. |
 
-The API may still return `render_only` for direct page requests while processing, but worklist/processing viewer entry is gated by `viewer_ready` / `ready_for_viewer`. Old pass1 artifacts without `page_guide` are loaded with a minimal fallback from `page_role` and `page_summary`.
+The API may still return `render_only` for direct page requests while processing, but worklist/processing viewer entry is gated by `viewer_ready` / `ready_for_viewer`. `render_only` alone is not a user-facing viewer destination after upload. Old pass1 artifacts without `page_guide` are loaded with a minimal fallback from `page_role` and `page_summary`, but new documents must complete the full required Semantic Guide before viewer entry.
+
+## Semantic Guide Generation
+
+Default mode is `SEMANTIC_GUIDE_MODE=chunked_full_required`.
+
+The old single-call Semantic Guide path is retained as `legacy_single_call` for debug/rollback only. The default path is:
+
+1. Build compact parser digest from PageContext/PageElementMap artifacts.
+2. Generate one DocumentGuide.
+3. Generate required PageGuides in page chunks, default `SEMANTIC_GUIDE_PAGE_CHUNK_SIZE=5`.
+4. Merge all PageGuide chunks.
+5. Save final `semantic_guide.json`.
+6. Save compatibility `document_summary.json`.
+7. Apply PageGuide back into pass1 compatibility artifacts.
+
+If any required chunk fails after retry attempts, the document remains failed/not viewer-ready and the processing snapshot exposes the failed semantic stage/chunk counters.
 
 ## Runtime Context
 
@@ -114,6 +130,9 @@ The backend should not send full pass1 artifacts, full document summaries, or ev
 | `data/analysis/{document_id}/pages/{page}/page_context.json` | Deterministic parser-first PageContext/PageElementMap. |
 | `data/analysis/{document_id}/pages/{page}/page_analysis_pass1.json` | Compatibility envelope. In parser_first mode it contains parser-derived `candidate_anchors` and loaded `page_elements`. |
 | `data/analysis/{document_id}/semantic_guide.json` | Semantic Guide artifact with DocumentGuide and PageGuides. |
+| `data/analysis/{document_id}/semantic/document_guide.json` | Internal chunked pipeline DocumentGuide artifact. |
+| `data/analysis/{document_id}/semantic/page_guide_chunks/pages_001_005.json` | Internal PageGuide chunk artifact. |
+| `data/analysis/{document_id}/semantic/status.json` | Internal chunk progress/failure diagnostics. |
 | `data/analysis/{document_id}/document_summary.json` | Compatibility summary generated from Semantic Guide for existing APIs/follow-up. |
 
 ## Glossary

@@ -45,9 +45,30 @@ function formatStageValue(stage: string | null | undefined): string {
     case "pass1":
       return "pass1";
     case "synthesis":
-      return "document synthesis";
+      return "semantic guide";
     case "pass2":
       return "pass2";
+    default:
+      return stage;
+  }
+}
+
+function formatSemanticGuideStage(stage: string | null | undefined): string {
+  if (!stage || stage === "not_started") {
+    return "-";
+  }
+
+  switch (stage) {
+    case "document_guide":
+      return "DocumentGuide";
+    case "page_guide_chunks":
+      return "PageGuide chunks";
+    case "merge":
+      return "merge";
+    case "completed":
+      return "completed";
+    case "failed":
+      return "failed";
     default:
       return stage;
   }
@@ -204,9 +225,9 @@ export function ProcessingStatus({ documentId }: ProcessingStatusProps) {
                 <span className={styles.value}>{snapshot.pass1_failed_pages}</span>
               </div>
               <div className={styles.item}>
-                <span className={styles.label}>pass1_processed_pages</span>
+                <span className={styles.label}>parser_map_ready_pages</span>
                 <span className={styles.value}>
-                  {snapshot.pass1_processed_pages} / {snapshot.rendered_pages}
+                  {snapshot.parser_map_ready_pages} / {snapshot.rendered_pages}
                 </span>
               </div>
               <div className={styles.item}>
@@ -236,6 +257,27 @@ export function ProcessingStatus({ documentId }: ProcessingStatusProps) {
               <div className={styles.item}>
                 <span className={styles.label}>semantic_guide_ready</span>
                 <span className={styles.value}>{snapshot.semantic_guide_ready ? "true" : "false"}</span>
+              </div>
+              <div className={styles.item}>
+                <span className={styles.label}>semantic_guide_stage</span>
+                <span className={styles.value}>
+                  {formatSemanticGuideStage(snapshot.semantic_guide_stage)}
+                </span>
+              </div>
+              <div className={styles.item}>
+                <span className={styles.label}>page_guides</span>
+                <span className={styles.value}>
+                  {snapshot.page_guide_count} / {snapshot.rendered_pages}
+                </span>
+              </div>
+              <div className={styles.item}>
+                <span className={styles.label}>page_guide_chunks</span>
+                <span className={styles.value}>
+                  {snapshot.semantic_guide_completed_chunks} / {snapshot.semantic_guide_total_chunks}
+                  {snapshot.semantic_guide_failed_chunks > 0
+                    ? ` · failed ${snapshot.semantic_guide_failed_chunks}`
+                    : ""}
+                </span>
               </div>
               <div className={styles.item}>
                 <span className={styles.label}>viewer_ready</span>

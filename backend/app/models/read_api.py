@@ -138,6 +138,11 @@ class DocumentProcessingResponse(BaseModel):
     document_context_ready: bool
     viewer_ready: bool = False
     ready_for_viewer: bool
+    page_guide_count: int = 0
+    semantic_guide_stage: str = "not_started"
+    semantic_guide_completed_chunks: int = 0
+    semantic_guide_total_chunks: int = 0
+    semantic_guide_failed_chunks: int = 0
     current_page_number: int | None = None
     error_message: str | None = None
     has_errors: bool

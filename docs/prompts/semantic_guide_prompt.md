@@ -1,7 +1,17 @@
-# Scholium MVP v0 - Semantic Guide Prompt
+# Scholium MVP v0 - Legacy Single-Call Semantic Guide Prompt
 
 Prompt version: semantic_guide_v0_2
 Schema version: 0.2
+
+This prompt is retained for `SEMANTIC_GUIDE_MODE=legacy_single_call` only.
+
+The default Scholium path is now `chunked_full_required`:
+
+1. `document_guide_prompt.md` generates DocumentGuide.
+2. `page_guide_chunk_prompt.md` generates required PageGuides in page chunks.
+3. The backend merges the chunks and only then marks the viewer ready.
+
+Use this prompt only for debug/rollback. It is not the current default product path.
 
 You generate a concise Semantic Guide for a PDF/deck from a compact parser-generated document digest.
 

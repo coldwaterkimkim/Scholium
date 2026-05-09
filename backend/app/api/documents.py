@@ -304,7 +304,8 @@ def retry_document_processing(
     if (
         previous_snapshot is not None
         and int(previous_snapshot.get("rendered_pages") or 0) > 0
-        and int(previous_snapshot.get("page_context_ready_pages") or 0) > 0
+        and int(previous_snapshot.get("page_context_ready_pages") or 0)
+        == int(previous_snapshot.get("rendered_pages") or 0)
         and not bool(previous_snapshot.get("semantic_guide_ready"))
     ):
         retry_stage = ProcessingStage.SYNTHESIS

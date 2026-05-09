@@ -50,6 +50,24 @@ class AnalysisClient(Protocol):
     ) -> dict[str, Any]:
         ...
 
+    def run_document_guide(
+        self,
+        document_id: str,
+        document_digest: dict[str, Any],
+    ) -> dict[str, Any]:
+        ...
+
+    def run_page_guide_chunk(
+        self,
+        document_id: str,
+        chunk_index: int,
+        total_chunks: int,
+        page_numbers: list[int],
+        document_guide: dict[str, Any],
+        page_digest: dict[str, Any],
+    ) -> dict[str, Any]:
+        ...
+
     def run_semantic_guide(
         self,
         document_id: str,

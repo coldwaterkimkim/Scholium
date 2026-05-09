@@ -34,6 +34,14 @@ export type DocumentUploadResponse = {
 };
 
 export type ProcessingStage = "render" | "pass1" | "synthesis" | "pass2";
+export type SemanticGuideStage =
+  | "not_started"
+  | "document_guide"
+  | "page_guide_chunks"
+  | "merge"
+  | "completed"
+  | "failed"
+  | string;
 
 export type ProcessingFailureSummary = {
   page_number: number;
@@ -61,6 +69,11 @@ export type DocumentProcessing = {
   document_context_ready: boolean;
   viewer_ready: boolean;
   ready_for_viewer: boolean;
+  page_guide_count: number;
+  semantic_guide_stage: SemanticGuideStage;
+  semantic_guide_completed_chunks: number;
+  semantic_guide_total_chunks: number;
+  semantic_guide_failed_chunks: number;
   current_page_number: number | null;
   error_message: string | null;
   has_errors: boolean;

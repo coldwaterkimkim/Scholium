@@ -97,6 +97,40 @@ class CodexCLIClient:
         }
         return self._run_stage("document_synthesis", payload)
 
+    def run_document_guide(
+        self,
+        document_id: str,
+        document_digest: dict[str, Any],
+    ) -> dict[str, Any]:
+        payload = {
+            "document_id": document_id,
+            "schema_version": self.settings.schema_version,
+            "prompt_version": self.settings.stage_config("document_guide").prompt_version,
+            "document_digest": document_digest,
+        }
+        return self._run_stage("document_guide", payload)
+
+    def run_page_guide_chunk(
+        self,
+        document_id: str,
+        chunk_index: int,
+        total_chunks: int,
+        page_numbers: list[int],
+        document_guide: dict[str, Any],
+        page_digest: dict[str, Any],
+    ) -> dict[str, Any]:
+        payload = {
+            "document_id": document_id,
+            "schema_version": self.settings.schema_version,
+            "prompt_version": self.settings.stage_config("page_guide_chunk").prompt_version,
+            "chunk_index": chunk_index,
+            "total_chunks": total_chunks,
+            "page_numbers": page_numbers,
+            "document_guide": document_guide,
+            "page_digest": page_digest,
+        }
+        return self._run_stage("page_guide_chunk", payload)
+
     def run_semantic_guide(
         self,
         document_id: str,
@@ -408,6 +442,24 @@ class CodexCLIClient:
             normalized_result["document_id"] = stage_payload["document_id"]
         if "page_number" in stage_payload:
             normalized_result["page_number"] = stage_payload["page_number"]
+        if stage == "document_guide" and isinstance(normalized_result.get("document_guide"), dict):
+            document_guide = dict(normalized_result["document_guide"])
+            document_guide["document_id"] = stage_payload["document_id"]
+            normalized_result["document_guide"] = document_guide
+        if stage == "page_guide_chunk":
+            normalized_result["chunk_index"] = int(stage_payload["chunk_index"])
+            normalized_result["page_numbers"] = list(stage_payload["page_numbers"])
+            page_guides = normalized_result.get("page_guides")
+            if isinstance(page_guides, list):
+                normalized_result["page_guides"] = [
+                    {
+                        **dict(page_guide),
+                        "document_id": stage_payload["document_id"],
+                    }
+                    if isinstance(page_guide, dict)
+                    else page_guide
+                    for page_guide in page_guides
+                ]
         if stage == "selection_explanation":
             selection_id = str(stage_payload["selection_id"])
             selected_bbox = list(stage_payload["selected_bbox"])

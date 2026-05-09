@@ -59,6 +59,8 @@ _BENCHMARK_DURATION_FIELDS = {
     "triage_time_seconds",
     "spine_time_seconds",
     "pass1_time_seconds",
+    "document_guide_time_seconds",
+    "page_guide_chunks_time_seconds",
     "semantic_guide_time_seconds",
     "synthesis_time_seconds",
     "pass2_time_seconds",
@@ -82,6 +84,8 @@ _BENCHMARK_COUNT_FIELDS = {
     "openai_synthesis_call_count",
     "openai_pass2_call_count",
     "codex_cli_call_count",
+    "codex_cli_document_guide_call_count",
+    "codex_cli_page_guide_call_count",
     "codex_cli_pass1_call_count",
     "codex_cli_semantic_guide_call_count",
     "codex_cli_synthesis_call_count",
@@ -90,6 +94,9 @@ _BENCHMARK_COUNT_FIELDS = {
     "codex_cli_follow_up_call_count",
     "codex_cli_error_count",
     "codex_cli_repair_count",
+    "semantic_guide_completed_chunks",
+    "semantic_guide_total_chunks",
+    "semantic_guide_failed_chunks",
 }
 _OPENAI_CALL_COUNT_FIELDS_BY_STAGE = {
     "pass1": "openai_pass1_call_count",
@@ -98,6 +105,8 @@ _OPENAI_CALL_COUNT_FIELDS_BY_STAGE = {
 }
 _CODEX_CLI_CALL_COUNT_FIELDS_BY_STAGE = {
     "pass1": "codex_cli_pass1_call_count",
+    "document_guide": "codex_cli_document_guide_call_count",
+    "page_guide_chunk": "codex_cli_page_guide_call_count",
     "semantic_guide": "codex_cli_semantic_guide_call_count",
     "document_synthesis": "codex_cli_synthesis_call_count",
     "pass2": "codex_cli_pass2_call_count",
@@ -917,6 +926,99 @@ class StorageService:
         payload = json.loads(target_path.read_text(encoding="utf-8"))
         return self._normalize_semantic_guide_artifact(document_id, payload)
 
+    def get_semantic_work_dir(self, document_id: str) -> Path:
+        return self.analysis_dir / document_id / "semantic"
+
+    def get_semantic_status_path(self, document_id: str) -> Path:
+        return self.get_semantic_work_dir(document_id) / "status.json"
+
+    def save_semantic_status(self, document_id: str, payload: dict[str, object]) -> str:
+        target_path = self.get_semantic_status_path(document_id)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        normalized_payload = {
+            "document_id": document_id,
+            "semantic_guide_stage": str(payload.get("semantic_guide_stage") or "unknown"),
+            "semantic_guide_completed_chunks": int(payload.get("semantic_guide_completed_chunks") or 0),
+            "semantic_guide_total_chunks": int(payload.get("semantic_guide_total_chunks") or 0),
+            "semantic_guide_failed_chunks": int(payload.get("semantic_guide_failed_chunks") or 0),
+            "failed_chunk_ranges": list(payload.get("failed_chunk_ranges") or []),
+            "updated_at": str(payload.get("updated_at") or datetime.now(timezone.utc).isoformat()),
+        }
+        self._write_validated_json_artifact(
+            target_path,
+            normalized_payload,
+            lambda loaded_payload: dict(loaded_payload),
+        )
+        return target_path.relative_to(PROJECT_ROOT).as_posix()
+
+    def load_semantic_status(self, document_id: str) -> dict[str, object] | None:
+        target_path = self.get_semantic_status_path(document_id)
+        if not target_path.exists():
+            return None
+        payload = json.loads(target_path.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            return None
+        return dict(payload)
+
+    def get_document_guide_path(self, document_id: str) -> Path:
+        return self.get_semantic_work_dir(document_id) / "document_guide.json"
+
+    def save_document_guide(self, document_id: str, payload: dict[str, object]) -> str:
+        target_path = self.get_document_guide_path(document_id)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        normalized_payload = self._normalize_document_guide_artifact(document_id, payload)
+        self._write_validated_json_artifact(
+            target_path,
+            normalized_payload,
+            lambda loaded_payload: self._normalize_document_guide_artifact(document_id, loaded_payload),
+        )
+        return target_path.relative_to(PROJECT_ROOT).as_posix()
+
+    def load_document_guide(self, document_id: str) -> dict[str, object] | None:
+        target_path = self.get_document_guide_path(document_id)
+        if not target_path.exists():
+            return None
+        payload = json.loads(target_path.read_text(encoding="utf-8"))
+        return self._normalize_document_guide_artifact(document_id, payload)
+
+    def get_page_guide_chunk_path(
+        self,
+        document_id: str,
+        page_numbers: Sequence[int],
+    ) -> Path:
+        normalized_pages = sorted({int(page) for page in page_numbers})
+        if not normalized_pages:
+            raise ValueError("Page guide chunk path requires at least one page number.")
+        filename = f"pages_{normalized_pages[0]:03d}_{normalized_pages[-1]:03d}.json"
+        return self.get_semantic_work_dir(document_id) / "page_guide_chunks" / filename
+
+    def save_page_guide_chunk(
+        self,
+        document_id: str,
+        page_numbers: Sequence[int],
+        payload: dict[str, object],
+    ) -> str:
+        target_path = self.get_page_guide_chunk_path(document_id, page_numbers)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        normalized_payload = self._normalize_page_guide_chunk_artifact(document_id, payload)
+        self._write_validated_json_artifact(
+            target_path,
+            normalized_payload,
+            lambda loaded_payload: self._normalize_page_guide_chunk_artifact(document_id, loaded_payload),
+        )
+        return target_path.relative_to(PROJECT_ROOT).as_posix()
+
+    def load_page_guide_chunk(
+        self,
+        document_id: str,
+        page_numbers: Sequence[int],
+    ) -> dict[str, object] | None:
+        target_path = self.get_page_guide_chunk_path(document_id, page_numbers)
+        if not target_path.exists():
+            return None
+        payload = json.loads(target_path.read_text(encoding="utf-8"))
+        return self._normalize_page_guide_chunk_artifact(document_id, payload)
+
     def get_page_context_path(self, document_id: str, page_number: int) -> Path:
         return self.analysis_dir / document_id / "pages" / str(page_number) / "page_context.json"
 
@@ -1347,6 +1449,16 @@ class StorageService:
 
         synthesis_ready, summary_error_message = self._get_document_summary_health(document_id)
         semantic_guide_ready, semantic_guide_error_message = self._get_semantic_guide_health(document_id)
+        semantic_status = self.load_semantic_status(document_id) or {}
+        page_guide_count = 0
+        try:
+            semantic_artifact = self.load_semantic_guide(document_id)
+            if semantic_artifact is not None and isinstance(semantic_artifact.get("result"), dict):
+                page_guides = semantic_artifact["result"].get("page_guides", [])
+                if isinstance(page_guides, list):
+                    page_guide_count = len(page_guides)
+        except ValueError:
+            page_guide_count = 0
         error_message = document.error_message
         if (
             not error_message
@@ -1362,13 +1474,15 @@ class StorageService:
             error_message = semantic_guide_error_message
 
         has_errors = failed_page_count > 0 or bool(error_message)
-        render_ready_for_viewer = rendered_pages > 0
+        render_ready_for_viewer = bool(total_pages and total_pages > 0 and rendered_pages == total_pages)
         page_context_ready_pages = pass1_completed_pages
         document_context_ready = synthesis_ready
         ready_for_viewer = (
             render_ready_for_viewer
-            and page_context_ready_pages > 0
-            and (semantic_guide_ready or document_context_ready)
+            and page_context_ready_pages == rendered_pages
+            and document_context_ready
+            and semantic_guide_ready
+            and page_guide_count == rendered_pages
         )
         resolved_stage = current_stage or self._derive_processing_stage(
             status=document.status,
@@ -1407,6 +1521,17 @@ class StorageService:
             "document_context_ready": document_context_ready,
             "viewer_ready": ready_for_viewer,
             "ready_for_viewer": ready_for_viewer,
+            "page_guide_count": page_guide_count,
+            "semantic_guide_stage": str(semantic_status.get("semantic_guide_stage") or "not_started"),
+            "semantic_guide_completed_chunks": int(
+                semantic_status.get("semantic_guide_completed_chunks") or 0
+            ),
+            "semantic_guide_total_chunks": int(
+                semantic_status.get("semantic_guide_total_chunks") or 0
+            ),
+            "semantic_guide_failed_chunks": int(
+                semantic_status.get("semantic_guide_failed_chunks") or 0
+            ),
             "current_page_number": current_page_number,
             "error_message": error_message,
             "has_errors": has_errors,
@@ -1845,7 +1970,9 @@ class StorageService:
             + int(normalized_payload["openai_pass2_call_count"])
         )
         normalized_payload["codex_cli_call_count"] = (
-            int(normalized_payload["codex_cli_pass1_call_count"])
+            int(normalized_payload["codex_cli_document_guide_call_count"])
+            + int(normalized_payload["codex_cli_page_guide_call_count"])
+            + int(normalized_payload["codex_cli_pass1_call_count"])
             + int(normalized_payload["codex_cli_semantic_guide_call_count"])
             + int(normalized_payload["codex_cli_synthesis_call_count"])
             + int(normalized_payload["codex_cli_pass2_call_count"])
@@ -2076,6 +2203,101 @@ class StorageService:
             "result": validated_result,
         }
 
+    def _normalize_document_guide_artifact(
+        self,
+        document_id: str,
+        payload: dict[str, object],
+    ) -> dict[str, object]:
+        if not isinstance(payload, dict):
+            raise ValueError("Document guide artifact must be a JSON object.")
+
+        meta = payload.get("meta")
+        result = payload.get("result")
+        if not isinstance(meta, dict):
+            raise ValueError("Document guide artifact must include a meta object.")
+        if not isinstance(result, dict):
+            raise ValueError("Document guide artifact must include a result object.")
+
+        required_meta_keys = {"schema_version", "prompt_version", "model_name", "generated_at"}
+        missing_meta_keys = [key for key in required_meta_keys if not meta.get(key)]
+        if missing_meta_keys:
+            raise ValueError(
+                "Document guide artifact meta is missing required fields: "
+                + ", ".join(missing_meta_keys)
+            )
+
+        normalized_result = dict(result)
+        normalized_result["document_id"] = document_id
+        if isinstance(normalized_result.get("document_guide"), dict):
+            normalized_document_guide = dict(normalized_result["document_guide"])
+            normalized_document_guide["document_id"] = document_id
+            normalized_result["document_guide"] = normalized_document_guide
+
+        validated_result = validate_payload("document_guide", normalized_result)
+        return {
+            "meta": {
+                "schema_version": str(meta["schema_version"]),
+                "prompt_version": str(meta["prompt_version"]),
+                "model_name": str(meta["model_name"]),
+                "generated_at": str(meta["generated_at"]),
+                "total_rendered_pages": int(meta.get("total_rendered_pages", 0)),
+                "page_context_completed_pages": int(meta.get("page_context_completed_pages", 0)),
+                "digest_size_chars": int(meta.get("digest_size_chars", 0)),
+                "response_language": str(meta.get("response_language", "ko")),
+            },
+            "result": validated_result,
+        }
+
+    def _normalize_page_guide_chunk_artifact(
+        self,
+        document_id: str,
+        payload: dict[str, object],
+    ) -> dict[str, object]:
+        if not isinstance(payload, dict):
+            raise ValueError("Page guide chunk artifact must be a JSON object.")
+
+        meta = payload.get("meta")
+        result = payload.get("result")
+        if not isinstance(meta, dict):
+            raise ValueError("Page guide chunk artifact must include a meta object.")
+        if not isinstance(result, dict):
+            raise ValueError("Page guide chunk artifact must include a result object.")
+
+        required_meta_keys = {"schema_version", "prompt_version", "model_name", "generated_at"}
+        missing_meta_keys = [key for key in required_meta_keys if not meta.get(key)]
+        if missing_meta_keys:
+            raise ValueError(
+                "Page guide chunk artifact meta is missing required fields: "
+                + ", ".join(missing_meta_keys)
+            )
+
+        normalized_result = dict(result)
+        normalized_result["document_id"] = document_id
+        normalized_result["page_numbers"] = self._normalize_sorted_unique_int_list(
+            normalized_result.get("page_numbers")
+        )
+        for page_guide in normalized_result.get("page_guides", []):
+            if isinstance(page_guide, dict):
+                page_guide["document_id"] = document_id
+
+        validated_result = validate_payload("page_guide_chunk", normalized_result)
+        return {
+            "meta": {
+                "schema_version": str(meta["schema_version"]),
+                "prompt_version": str(meta["prompt_version"]),
+                "model_name": str(meta["model_name"]),
+                "generated_at": str(meta["generated_at"]),
+                "chunk_index": int(meta.get("chunk_index", validated_result["chunk_index"])),
+                "total_chunks": int(meta.get("total_chunks", 0)),
+                "page_numbers": self._normalize_sorted_unique_int_list(
+                    meta.get("page_numbers", validated_result["page_numbers"])
+                ),
+                "digest_size_chars": int(meta.get("digest_size_chars", 0)),
+                "response_language": str(meta.get("response_language", "ko")),
+            },
+            "result": validated_result,
+        }
+
     def _normalize_semantic_guide_artifact(
         self,
         document_id: str,
@@ -2117,6 +2339,12 @@ class StorageService:
                 "page_context_completed_pages": int(meta.get("page_context_completed_pages", 0)),
                 "semantic_guide_call_count": int(meta.get("semantic_guide_call_count", 1)),
                 "digest_size_chars": int(meta.get("digest_size_chars", 0)),
+                "semantic_guide_mode": str(meta.get("semantic_guide_mode", "legacy_single_call")),
+                "document_guide_call_count": int(meta.get("document_guide_call_count", 0)),
+                "page_guide_chunk_call_count": int(meta.get("page_guide_chunk_call_count", 0)),
+                "page_guide_chunk_size": int(meta.get("page_guide_chunk_size", 0)),
+                "page_guide_chunk_count": int(meta.get("page_guide_chunk_count", 0)),
+                "response_language": str(meta.get("response_language", "ko")),
             },
             "result": validated_result,
         }
@@ -2411,6 +2639,21 @@ class StorageService:
 
         if artifact is None:
             return False, None
+        pages = self.get_pages(document_id)
+        rendered_page_numbers = {
+            int(page.page_number)
+            for page in pages
+            if page.render_status is RenderStatus.RENDERED
+        }
+        result = artifact.get("result")
+        page_guides = result.get("page_guides", []) if isinstance(result, dict) else []
+        page_guide_numbers = {
+            int(page_guide.get("page_number"))
+            for page_guide in page_guides
+            if isinstance(page_guide, dict) and page_guide.get("page_number") is not None
+        }
+        if rendered_page_numbers and page_guide_numbers != rendered_page_numbers:
+            return False, "Stored semantic guide is missing required page guides."
         return True, None
 
     def _derive_processing_stage(
@@ -2555,6 +2798,8 @@ class StorageService:
             "triage_time_seconds": 0.0,
             "spine_time_seconds": 0.0,
             "pass1_time_seconds": 0.0,
+            "document_guide_time_seconds": 0.0,
+            "page_guide_chunks_time_seconds": 0.0,
             "semantic_guide_time_seconds": 0.0,
             "synthesis_time_seconds": 0.0,
             "pass2_time_seconds": 0.0,
@@ -2584,6 +2829,8 @@ class StorageService:
             "openai_synthesis_call_count": 0,
             "openai_pass2_call_count": 0,
             "codex_cli_call_count": 0,
+            "codex_cli_document_guide_call_count": 0,
+            "codex_cli_page_guide_call_count": 0,
             "codex_cli_pass1_call_count": 0,
             "codex_cli_semantic_guide_call_count": 0,
             "codex_cli_synthesis_call_count": 0,
@@ -2592,18 +2839,29 @@ class StorageService:
             "codex_cli_follow_up_call_count": 0,
             "codex_cli_error_count": 0,
             "codex_cli_repair_count": 0,
+            "semantic_guide_completed_chunks": 0,
+            "semantic_guide_total_chunks": 0,
+            "semantic_guide_failed_chunks": 0,
             "document_parser_backend": self.settings.document_parser_backend,
             "pass1_mode": self.settings.pass1_mode,
             "pass1_routing_mode": self.settings.pass1_routing_mode,
+            "semantic_guide_mode": self.settings.semantic_guide_mode,
+            "semantic_guide_page_chunk_size": self.settings.semantic_guide_page_chunk_size,
+            "semantic_guide_page_chunk_max_workers": self.settings.semantic_guide_page_chunk_max_workers,
+            "semantic_guide_retry_attempts": self.settings.semantic_guide_retry_attempts,
             "pass1_max_workers": self.settings.pass1_max_workers,
             "pipeline_mode": self.settings.pipeline_mode,
             "spine_mode": self.settings.v2_spine_mode,
             "openai_model_pass1": self.settings.stage_config("pass1").model_name,
             "semantic_guide_model": self.settings.stage_config("semantic_guide").model_name,
+            "document_guide_model": self.settings.stage_config("document_guide").model_name,
+            "page_guide_chunk_model": self.settings.stage_config("page_guide_chunk").model_name,
             "openai_model_synthesis": self.settings.stage_config("document_synthesis").model_name,
             "openai_model_pass2": self.settings.stage_config("pass2").model_name,
             "reasoning_effort_pass1": self.settings.stage_config("pass1").reasoning_effort,
             "reasoning_effort_semantic_guide": self.settings.stage_config("semantic_guide").reasoning_effort,
+            "reasoning_effort_document_guide": self.settings.stage_config("document_guide").reasoning_effort,
+            "reasoning_effort_page_guide_chunk": self.settings.stage_config("page_guide_chunk").reasoning_effort,
             "reasoning_effort_synthesis": self.settings.stage_config("document_synthesis").reasoning_effort,
             "reasoning_effort_pass2": self.settings.stage_config("pass2").reasoning_effort,
             "openai_timeout_seconds": self.settings.openai_timeout_seconds,

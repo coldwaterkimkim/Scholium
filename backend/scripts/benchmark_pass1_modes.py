@@ -14,7 +14,7 @@ from typing import Any
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 PROJECT_ROOT = BACKEND_ROOT.parent
-RUNNER_VERSION = "pass1_mode_comparison_v0_1"
+RUNNER_VERSION = "pass1_mode_comparison_v0_2"
 DEFAULT_PDF = PROJECT_ROOT / "data" / "raw_pdfs" / "W1.Lecture01-Financial Management and Firm Value.pdf"
 PASS1_MODES = ("parser_first", "legacy_llm", "hybrid")
 
@@ -146,9 +146,18 @@ def _child_main(*, pdf_path: Path, mode: str, real_selection: bool) -> int:
         "upload_to_semantic_guide_ready_seconds": benchmark.get("upload_to_semantic_guide_ready_seconds"),
         "upload_to_viewer_ready_seconds": benchmark.get("upload_to_viewer_ready_seconds"),
         "pass1_time_seconds": benchmark.get("pass1_time_seconds"),
+        "document_guide_time_seconds": benchmark.get("document_guide_time_seconds"),
+        "page_guide_chunks_time_seconds": benchmark.get("page_guide_chunks_time_seconds"),
         "semantic_guide_time_seconds": benchmark.get("semantic_guide_time_seconds"),
         "codex_cli_pass1_call_count": benchmark.get("codex_cli_pass1_call_count"),
+        "codex_cli_document_guide_call_count": benchmark.get("codex_cli_document_guide_call_count"),
+        "codex_cli_page_guide_call_count": benchmark.get("codex_cli_page_guide_call_count"),
         "codex_cli_semantic_guide_call_count": benchmark.get("codex_cli_semantic_guide_call_count"),
+        "semantic_guide_mode": benchmark.get("semantic_guide_mode"),
+        "semantic_guide_page_chunk_size": benchmark.get("semantic_guide_page_chunk_size"),
+        "semantic_guide_completed_chunks": benchmark.get("semantic_guide_completed_chunks"),
+        "semantic_guide_total_chunks": benchmark.get("semantic_guide_total_chunks"),
+        "semantic_guide_failed_chunks": benchmark.get("semantic_guide_failed_chunks"),
         "page_element_count": benchmark.get("page_element_count"),
         "page_guide_count": benchmark.get("page_guide_count"),
         "selection_explanation_success": selection_row.get("status") in {"ready", "completed", "cached"},
@@ -241,6 +250,12 @@ def _summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
         },
         "codex_cli_semantic_guide_call_count_by_mode": {
             row["mode"]: row.get("codex_cli_semantic_guide_call_count") for row in rows
+        },
+        "codex_cli_document_guide_call_count_by_mode": {
+            row["mode"]: row.get("codex_cli_document_guide_call_count") for row in rows
+        },
+        "codex_cli_page_guide_call_count_by_mode": {
+            row["mode"]: row.get("codex_cli_page_guide_call_count") for row in rows
         },
         "pass1_time_seconds_by_mode": {
             row["mode"]: row.get("pass1_time_seconds") for row in rows

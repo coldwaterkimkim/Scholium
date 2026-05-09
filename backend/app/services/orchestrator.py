@@ -180,16 +180,10 @@ class DocumentOrchestrator:
                 )
                 if snapshot is None:
                     raise ValueError(f"Document not found during on-demand finalization: {document_id}")
-                if not snapshot["synthesis_ready"]:
+                if not snapshot["viewer_ready"]:
                     self._mark_failed(
                         document_id,
-                        "Document summary is unavailable.",
-                    )
-                    return
-                if int(snapshot["pass1_completed_pages"]) <= 0:
-                    self._mark_failed(
-                        document_id,
-                        "Pass1 preprocessing produced no viewer-ready pages.",
+                        "Required viewer context is incomplete after Semantic Guide generation.",
                     )
                     return
 
@@ -222,10 +216,10 @@ class DocumentOrchestrator:
             if snapshot is None:
                 raise ValueError(f"Document not found during finalization: {document_id}")
 
-            if not snapshot["synthesis_ready"]:
+            if not snapshot["viewer_ready"]:
                 self._mark_failed(
                     document_id,
-                    "Document summary is unavailable.",
+                    "Required viewer context is incomplete after Semantic Guide generation.",
                 )
                 return
 
@@ -266,7 +260,8 @@ class DocumentOrchestrator:
     def _can_retry_synthesis_only(self, snapshot: dict[str, object]) -> bool:
         return (
             int(snapshot.get("rendered_pages") or 0) > 0
-            and int(snapshot.get("page_context_ready_pages") or 0) > 0
+            and int(snapshot.get("page_context_ready_pages") or 0)
+            == int(snapshot.get("rendered_pages") or 0)
             and not bool(snapshot.get("semantic_guide_ready"))
         )
 
@@ -318,16 +313,10 @@ class DocumentOrchestrator:
             )
             if snapshot is None:
                 raise ValueError(f"Document not found during synthesis retry finalization: {document_id}")
-            if not snapshot["synthesis_ready"]:
+            if not snapshot["viewer_ready"]:
                 self._mark_failed(
                     document_id,
-                    "Document summary is unavailable after retry.",
-                )
-                return
-            if int(snapshot["pass1_completed_pages"]) <= 0:
-                self._mark_failed(
-                    document_id,
-                    "Parser map is unavailable after retry.",
+                    "Required viewer context is incomplete after Semantic Guide retry.",
                 )
                 return
 
@@ -586,11 +575,38 @@ class DocumentOrchestrator:
         try:
             payload = {
                 "page_guide_count": int(synthesis_result.get("page_guide_count") or 0),
+                "semantic_guide_completed_chunks": int(
+                    synthesis_result.get("semantic_guide_completed_chunks") or 0
+                ),
+                "semantic_guide_total_chunks": int(
+                    synthesis_result.get("semantic_guide_total_chunks") or 0
+                ),
+                "semantic_guide_failed_chunks": int(
+                    synthesis_result.get("semantic_guide_failed_chunks") or 0
+                ),
+                "document_guide_time_seconds": round(
+                    float(synthesis_result.get("document_guide_time_seconds") or 0.0),
+                    4,
+                ),
+                "page_guide_chunks_time_seconds": round(
+                    float(synthesis_result.get("page_guide_chunks_time_seconds") or 0.0),
+                    4,
+                ),
             }
             semantic_call_count = synthesis_result.get("semantic_guide_call_count")
+            semantic_guide_mode = str(synthesis_result.get("semantic_guide_mode") or "")
             if self.storage.settings.llm_provider == "codex_cli" and semantic_call_count is not None:
-                payload["codex_cli_semantic_guide_call_count"] = int(
-                    semantic_call_count or 0
+                if semantic_guide_mode == "legacy_single_call":
+                    payload["codex_cli_semantic_guide_call_count"] = int(
+                        semantic_call_count or 0
+                    )
+                else:
+                    payload["codex_cli_semantic_guide_call_count"] = 0
+                payload["codex_cli_document_guide_call_count"] = int(
+                    synthesis_result.get("document_guide_call_count") or 0
+                )
+                payload["codex_cli_page_guide_call_count"] = int(
+                    synthesis_result.get("page_guide_chunk_call_count") or 0
                 )
             self.storage.update_processing_benchmark_state(document_id, payload)
         except Exception as exc:

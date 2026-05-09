@@ -24,8 +24,10 @@ Raw generated benchmark runs belong in ignored local `docs/perf_runs/` outputs, 
 ## Prompts
 
 - `docs/prompts/pass1_prompt.md`
+- `docs/prompts/document_guide_prompt.md`
+- `docs/prompts/page_guide_chunk_prompt.md`
 - `docs/prompts/semantic_guide_prompt.md`
-- `docs/prompts/document_synthesis_prompt.md`
+- `docs/prompts/document_synthesis_prompt.md` only for legacy compatibility/debug
 - `docs/prompts/selection_explanation_prompt.md`
 - `docs/prompts/selection_follow_up_prompt.md`
 - `docs/prompts/pass2_prompt.md` only for legacy/debug precomputed anchor-click mode
