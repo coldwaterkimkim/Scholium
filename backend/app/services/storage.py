@@ -136,6 +136,7 @@ class StorageService:
                     original_path TEXT NOT NULL,
                     status TEXT NOT NULL CHECK (status IN ({document_status_values})),
                     total_pages INTEGER NULL,
+                    response_language TEXT NOT NULL DEFAULT 'ko',
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL,
                     error_message TEXT NULL
@@ -158,11 +159,13 @@ class StorageService:
                 );
                 """
             )
+            self._ensure_document_columns(connection)
             self._ensure_pages_columns(connection)
 
-    def save_uploaded_document(self, filename: str, file_bytes: bytes) -> DocumentRecord:
+    def save_uploaded_document(self, filename: str, file_bytes: bytes, response_language: str = "ko") -> DocumentRecord:
         if not filename:
             raise ValueError("PDF filename is required.")
+        normalized_response_language = self._normalize_response_language(response_language)
 
         self.init_storage()
 
@@ -187,6 +190,7 @@ class StorageService:
             original_path=original_relative_path,
             status=DocumentStatus.UPLOADED,
             total_pages=None,
+            response_language=normalized_response_language,
             created_at=timestamp,
             updated_at=timestamp,
             error_message=None,
@@ -203,6 +207,7 @@ class StorageService:
                             original_path = ?,
                             status = ?,
                             total_pages = ?,
+                            response_language = ?,
                             created_at = ?,
                             updated_at = ?,
                             error_message = ?
@@ -213,6 +218,7 @@ class StorageService:
                             document.original_path,
                             document.status.value,
                             document.total_pages,
+                            document.response_language,
                             document.created_at.isoformat(),
                             document.updated_at.isoformat(),
                             document.error_message,
@@ -228,11 +234,12 @@ class StorageService:
                             original_path,
                             status,
                             total_pages,
+                            response_language,
                             created_at,
                             updated_at,
                             error_message
                         )
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
                             document.document_id,
@@ -240,6 +247,7 @@ class StorageService:
                             document.original_path,
                             document.status.value,
                             document.total_pages,
+                            document.response_language,
                             document.created_at.isoformat(),
                             document.updated_at.isoformat(),
                             document.error_message,
@@ -264,6 +272,7 @@ class StorageService:
                     original_path,
                     status,
                     total_pages,
+                    response_language,
                     created_at,
                     updated_at,
                     error_message
@@ -292,6 +301,7 @@ class StorageService:
                     original_path,
                     status,
                     total_pages,
+                    response_language,
                     created_at,
                     updated_at,
                     error_message
@@ -319,6 +329,7 @@ class StorageService:
                     original_path,
                     status,
                     total_pages,
+                    response_language,
                     created_at,
                     updated_at,
                     error_message
@@ -1563,6 +1574,9 @@ class StorageService:
     def _enum_value_list(self, enum_type: type[DocumentStatus] | type[RenderStatus] | type[StageStatus]) -> str:
         return ", ".join(f"'{member.value}'" for member in enum_type)
 
+    def _normalize_response_language(self, value: object) -> str:
+        return "en" if str(value or "").strip().lower() == "en" else "ko"
+
     def _row_to_document(self, row: tuple[object, ...]) -> DocumentRecord:
         return DocumentRecord(
             document_id=str(row[0]),
@@ -1570,9 +1584,10 @@ class StorageService:
             original_path=str(row[2]),
             status=DocumentStatus(str(row[3])),
             total_pages=int(row[4]) if row[4] is not None else None,
-            created_at=datetime.fromisoformat(str(row[5])),
-            updated_at=datetime.fromisoformat(str(row[6])),
-            error_message=str(row[7]) if row[7] is not None else None,
+            response_language=self._normalize_response_language(row[5]),
+            created_at=datetime.fromisoformat(str(row[6])),
+            updated_at=datetime.fromisoformat(str(row[7])),
+            error_message=str(row[8]) if row[8] is not None else None,
         )
 
     def _row_to_page(self, row: tuple[object, ...]) -> PageRecord:
@@ -2639,6 +2654,13 @@ class StorageService:
             return None
 
         return None
+
+    def _ensure_document_columns(self, connection: sqlite3.Connection) -> None:
+        existing_columns = {
+            str(row[1]) for row in connection.execute("PRAGMA table_info(documents)").fetchall()
+        }
+        if "response_language" not in existing_columns:
+            connection.execute("ALTER TABLE documents ADD COLUMN response_language TEXT NOT NULL DEFAULT 'ko'")
 
     def _ensure_pages_columns(self, connection: sqlite3.Connection) -> None:
         existing_columns = {

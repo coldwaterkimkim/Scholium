@@ -30,6 +30,11 @@ import {
   updateSelectionExplanationState,
 } from "@/lib/api";
 import {
+  DEFAULT_RESPONSE_LANGUAGE,
+  getStoredResponseLanguage,
+  type ResponseLanguage,
+} from "@/lib/language";
+import {
   normalizedBboxToPixelRect,
   type ImageDisplayMetrics,
   type NormalizedBBox,
@@ -927,6 +932,7 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
   const [documentSummary, setDocumentSummary] = useState<DocumentSummary | null>(null);
   const [currentPageData, setCurrentPageData] = useState<PageData | null>(null);
   const [selectionJobs, setSelectionJobs] = useState<SelectionJob[]>([]);
+  const [responseLanguage, setResponseLanguage] = useState<ResponseLanguage>(DEFAULT_RESPONSE_LANGUAGE);
   const [activeSelectionJobId, setActiveSelectionJobId] = useState<string | null>(null);
   const [imageDisplayMetrics, setImageDisplayMetrics] = useState<ImageDisplayMetrics | null>(null);
   const [dragSelection, setDragSelection] = useState<DragSelection | null>(null);
@@ -1069,6 +1075,21 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
   }, [activeSelectionJobId]);
 
   useEffect(() => {
+    function syncResponseLanguage() {
+      setResponseLanguage(getStoredResponseLanguage());
+    }
+
+    syncResponseLanguage();
+    window.addEventListener("focus", syncResponseLanguage);
+    window.addEventListener("storage", syncResponseLanguage);
+
+    return () => {
+      window.removeEventListener("focus", syncResponseLanguage);
+      window.removeEventListener("storage", syncResponseLanguage);
+    };
+  }, []);
+
+  useEffect(() => {
     return () => {
       selectionJobControllersRef.current.forEach((controller) => controller.abort());
       selectionJobControllersRef.current.clear();
@@ -1200,6 +1221,7 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
           documentIdForJob,
           job.pageNumber,
           job.bbox,
+          responseLanguage,
           controller.signal,
         );
         if (controller.signal.aborted) {
@@ -1253,7 +1275,7 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
         });
       }
     },
-    [dispatchInteractionLog],
+    [dispatchInteractionLog, responseLanguage],
   );
 
   const enqueueSelectionJob = useCallback(
@@ -1969,6 +1991,7 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
                     viewerMode={currentPageData.viewer_mode}
                     pageRole={currentPageData.page_role}
                     pageSummary={currentPageData.page_summary}
+                    responseLanguage={responseLanguage}
                   />
                   <div
                     ref={viewerCanvasRef}
@@ -2186,6 +2209,7 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
                         selectedRect={selectedRegionRect}
                         canvasWidth={panelPlacement.canvasWidth}
                         canvasHeight={panelPlacement.canvasHeight}
+                        responseLanguage={responseLanguage}
                         onNavigateToRelatedPage={handleRelatedPageNavigate}
                         onClose={handleCloseSelectedExplanation}
                       />

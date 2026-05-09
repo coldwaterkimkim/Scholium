@@ -108,6 +108,7 @@ class MockAnalysisClient:
         document_id: str,
         document_digest: dict[str, Any],
     ) -> dict[str, Any]:
+        response_language = "en" if document_digest.get("response_language") == "en" else "ko"
         pages = [
             int(page.get("page_number"))
             for page in document_digest.get("pages", [])
@@ -121,8 +122,16 @@ class MockAnalysisClient:
                 "document_id": document_id,
                 "document_guide": {
                     "document_id": document_id,
-                    "overall_topic": "Scholium mock semantic guide",
-                    "overall_summary": "Parser digest를 바탕으로 만든 mock semantic guide다.",
+                    "overall_topic": (
+                        "Scholium mock semantic guide"
+                        if response_language == "en"
+                        else "Scholium mock semantic guide"
+                    ),
+                    "overall_summary": (
+                        "A mock semantic guide generated from the parser digest."
+                        if response_language == "en"
+                        else "Parser digest를 바탕으로 만든 mock semantic guide다."
+                    ),
                     "section_structure": [
                         {
                             "section_id": "mock-section-1",
@@ -137,7 +146,11 @@ class MockAnalysisClient:
                             "pages": pages[:3],
                         }
                     ],
-                    "page_sequence_overview": ["Parser digest page order를 따라 읽는다."],
+                    "page_sequence_overview": [
+                        "Read in parser digest page order."
+                        if response_language == "en"
+                        else "Parser digest page order를 따라 읽는다."
+                    ],
                     "prerequisite_links": [
                         {
                             "from_page": pages[index],
@@ -147,15 +160,27 @@ class MockAnalysisClient:
                         for index in range(1, min(len(pages), 3))
                     ],
                     "difficult_pages": pages[:1],
-                    "study_strategy_notes": ["Page Guide로 큰 흐름을 잡고, 막히는 부분만 드래그한다."],
+                    "study_strategy_notes": [
+                        "Use the Page Guide for the macro flow and drag only confusing regions."
+                        if response_language == "en"
+                        else "Page Guide로 큰 흐름을 잡고, 막히는 부분만 드래그한다."
+                    ],
                 },
                 "page_guides": [
                     {
                         "document_id": document_id,
                         "page_number": page_number,
                         **self._page_guide(
-                            page_role="Mock semantic page role",
-                            one_line_thesis="이 페이지는 mock semantic guide로 보강된 page guide다.",
+                            page_role=(
+                                "Mock semantic page role"
+                                if response_language == "en"
+                                else "Mock semantic page role"
+                            ),
+                            one_line_thesis=(
+                                "This page guide is enriched by the mock semantic guide."
+                                if response_language == "en"
+                                else "이 페이지는 mock semantic guide로 보강된 page guide다."
+                            ),
                         ),
                     }
                     for page_number in pages
@@ -238,6 +263,7 @@ class MockAnalysisClient:
             if matched_preprocessed_elements
             else "Selected region"
         )
+        response_language = "en" if selection_context.get("response_language") == "en" else "ko"
         related_page = None
         for concept in document_context.get("key_concepts", []):
             for page in concept.get("pages", []):
@@ -259,19 +285,43 @@ class MockAnalysisClient:
                 "anchor_type": "text",
                 "bbox": selected_bbox,
                 "selected_bbox": selected_bbox,
-                "question": "이 선택 영역은 문서 안에서 무슨 의미야?",
-                "short_explanation": "Mock provider가 선택 영역을 문서 맥락에 맞춰 설명한 결과다.",
-                "long_explanation": "전처리된 page summary와 document summary를 바탕으로 선택 영역의 역할을 설명한다.",
+                "question": (
+                    "What does this selected region mean in the document?"
+                    if response_language == "en"
+                    else "이 선택 영역은 문서 안에서 무슨 의미야?"
+                ),
+                "short_explanation": (
+                    "The mock provider explains the selected region in document context."
+                    if response_language == "en"
+                    else "Mock provider가 선택 영역을 문서 맥락에 맞춰 설명한 결과다."
+                ),
+                "long_explanation": (
+                    "It uses the preprocessed page summary and document summary to explain the selected region's role."
+                    if response_language == "en"
+                    else "전처리된 page summary와 document summary를 바탕으로 선택 영역의 역할을 설명한다."
+                ),
                 "prerequisite": "",
                 "related_pages": [related_page] if related_page else [],
                 "confidence": 0.72,
                 "study_importance": {
                     "level": "medium",
                     "score": 3,
-                    "reason": "선택된 영역이 현재 페이지의 전처리 요소와 일부 겹친다.",
+                    "reason": (
+                        "The selected region overlaps with a preprocessed element on the current page."
+                        if response_language == "en"
+                        else "선택된 영역이 현재 페이지의 전처리 요소와 일부 겹친다."
+                    ),
                 },
-                "meaning_in_context": "이 영역은 사용자가 직접 지정한 막힘 지점이며, 현재 페이지 요약과 연결해 해석된다.",
-                "why_it_matters_here": "Scholium은 이 지점을 먼저 정하지 않고, 사용자가 선택한 순간에만 설명을 만든다.",
+                "meaning_in_context": (
+                    "This region is the user's chosen point of confusion, interpreted through the current page summary."
+                    if response_language == "en"
+                    else "이 영역은 사용자가 직접 지정한 막힘 지점이며, 현재 페이지 요약과 연결해 해석된다."
+                ),
+                "why_it_matters_here": (
+                    "Scholium does not preselect this point; it explains it only after the user selects it."
+                    if response_language == "en"
+                    else "Scholium은 이 지점을 먼저 정하지 않고, 사용자가 선택한 순간에만 설명을 만든다."
+                ),
                 "related_concepts_and_pages": [
                     {
                         "concept": "Mock concept",
@@ -298,18 +348,24 @@ class MockAnalysisClient:
         page_number: int,
         selection_id: str,
         question: str,
+        response_language: str,
         selection_explanation: dict[str, Any],
         pass1_result: dict[str, Any],
         document_summary: dict[str, Any],
     ) -> dict[str, Any]:
+        answer = (
+            "### Mock follow-up\n"
+            "- This short answer continues from the selected explanation and current page context.\n"
+            "- A real provider should state limitations when grounding is weak."
+            if response_language == "en"
+            else "### Mock follow-up\n"
+            "- 선택 설명과 현재 페이지 맥락을 바탕으로 짧게 이어서 설명한 응답이다.\n"
+            "- 실제 provider에서는 근거가 부족하면 그 한계를 함께 말한다."
+        )
         return self._wrap(
             "selection_follow_up",
             {
-                "answer": (
-                    "### Mock follow-up\n"
-                    "- 선택 설명과 현재 페이지 맥락을 바탕으로 짧게 이어서 설명한 응답이다.\n"
-                    "- 실제 provider에서는 근거가 부족하면 그 한계를 함께 말한다."
-                ),
+                "answer": answer,
                 "source_cues": [
                     {
                         "source_type": "this_slide",

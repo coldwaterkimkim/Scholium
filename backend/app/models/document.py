@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -41,6 +42,7 @@ class DocumentRecord(BaseModel):
     original_path: str
     status: DocumentStatus
     total_pages: int | None = None
+    response_language: Literal["ko", "en"] = "ko"
     created_at: datetime
     updated_at: datetime
     error_message: str | None = None

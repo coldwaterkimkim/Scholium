@@ -156,6 +156,7 @@ class OpenAIResponsesClient:
             "bbox": selected_bbox,
             "schema_version": self.settings.schema_version,
             "prompt_version": self.settings.stage_config("selection_explanation").prompt_version,
+            "response_language": selection_context.get("response_language", "ko"),
             "selection_context": selection_context,
         }
         payload["prompt_payload_size_chars"] = len(
@@ -170,6 +171,7 @@ class OpenAIResponsesClient:
         page_number: int,
         selection_id: str,
         question: str,
+        response_language: str,
         selection_explanation: dict[str, Any],
         pass1_result: dict[str, Any],
         document_summary: dict[str, Any],
@@ -179,6 +181,7 @@ class OpenAIResponsesClient:
             "page_number": page_number,
             "selection_id": selection_id,
             "question": question,
+            "response_language": response_language,
             "schema_version": self.settings.schema_version,
             "prompt_version": self.settings.stage_config("selection_follow_up").prompt_version,
             "selection_explanation": selection_explanation,

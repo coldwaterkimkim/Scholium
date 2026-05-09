@@ -31,6 +31,7 @@ class SelectionContextBuilder:
         selected_bbox: list[float],
         pass1_artifact: dict[str, Any],
         document_summary_artifact: dict[str, Any] | None,
+        response_language: str = "ko",
     ) -> dict[str, Any]:
         pass1_result = dict(pass1_artifact.get("result") or {})
         pass1_meta = dict(pass1_artifact.get("meta") or {})
@@ -92,6 +93,7 @@ class SelectionContextBuilder:
             "context_version": _CONTEXT_VERSION,
             "document_id": document_id,
             "page_number": page_number,
+            "response_language": "en" if response_language == "en" else "ko",
             "selected_bbox": rounded_bbox,
             "readiness": {
                 "page_context_ready": True,

@@ -39,6 +39,7 @@ class SelectionExplanationService:
         document_id: str,
         page_number: int,
         selected_bbox: list[float],
+        response_language: str | None = None,
     ) -> dict[str, Any]:
         started_at = perf_counter()
         self._validate_selected_bbox(selected_bbox)
@@ -67,6 +68,7 @@ class SelectionExplanationService:
             document_summary_artifact=(
                 dict(document_summary_artifact) if document_summary_artifact is not None else None
             ),
+            response_language=self._response_language(document_id, response_language),
         )
         selection_id = self._build_selection_id(
             document_id=document_id,
@@ -111,6 +113,7 @@ class SelectionExplanationService:
         page_number: int,
         selection_id: str,
         question: str,
+        response_language: str | None = None,
     ) -> dict[str, Any]:
         clean_question = " ".join(question.split())
         if not clean_question:
@@ -158,6 +161,7 @@ class SelectionExplanationService:
                 page_number=page_number,
                 selection_id=selection_id,
                 question=clean_question,
+                response_language=self._response_language(document_id, response_language),
                 selection_explanation=dict(selection_artifact["result"]),
                 pass1_result=dict(pass1_artifact["result"]),
                 document_summary=document_summary,
@@ -281,6 +285,14 @@ class SelectionExplanationService:
         if self.settings.llm_provider == "openai_api":
             return self.settings.stage_config("selection_explanation").reasoning_effort
         return "none"
+
+    def _response_language(self, document_id: str, requested_language: str | None) -> str:
+        if requested_language == "en":
+            return "en"
+        if requested_language == "ko":
+            return "ko"
+        document = self.storage.get_document(document_id)
+        return document.response_language if document is not None else "ko"
 
     def _attach_selection_cache_meta(
         self,

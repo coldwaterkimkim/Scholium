@@ -86,6 +86,7 @@ class AnalysisClient(Protocol):
         page_number: int,
         selection_id: str,
         question: str,
+        response_language: str,
         selection_explanation: dict[str, Any],
         pass1_result: dict[str, Any],
         document_summary: dict[str, Any],

@@ -30,6 +30,8 @@ class SemanticGuideGenerator:
         self.page_context_builder = page_context_builder or PageContextBuilder(settings=self.storage.settings)
 
     def generate_document(self, document_id: str) -> dict[str, Any]:
+        document = self.storage.get_document(document_id)
+        response_language = document.response_language if document is not None else "ko"
         page_records = self.storage.get_pages(document_id)
         rendered_pages = [
             page for page in page_records if page.render_status is RenderStatus.RENDERED
@@ -59,6 +61,12 @@ class SemanticGuideGenerator:
             document_id=document_id,
             page_contexts=page_contexts,
         )
+        digest["response_language"] = response_language
+        digest["response_language_instruction"] = (
+            "Write all student-facing DocumentGuide and PageGuide fields in English."
+            if response_language == "en"
+            else "Write all student-facing DocumentGuide and PageGuide fields in Korean."
+        )
         digest_size_chars = len(json.dumps(digest, ensure_ascii=False, separators=(",", ":")))
 
         try:
@@ -71,6 +79,7 @@ class SemanticGuideGenerator:
                 total_rendered_pages=len(rendered_pages),
                 page_context_completed_pages=len(page_contexts),
                 digest_size_chars=digest_size_chars,
+                response_language=response_language,
             )
             semantic_saved_path = self.storage.save_semantic_guide(document_id, semantic_envelope)
             normalized_semantic = self.storage.load_semantic_guide(document_id)
@@ -121,6 +130,7 @@ class SemanticGuideGenerator:
         total_rendered_pages: int,
         page_context_completed_pages: int,
         digest_size_chars: int,
+        response_language: str,
     ) -> dict[str, Any]:
         meta = dict(envelope.get("meta") or {})
         meta.update(
@@ -129,6 +139,7 @@ class SemanticGuideGenerator:
                 "page_context_completed_pages": page_context_completed_pages,
                 "semantic_guide_call_count": 1,
                 "digest_size_chars": digest_size_chars,
+                "response_language": response_language,
             }
         )
         return {
@@ -201,6 +212,7 @@ class SemanticGuideGenerator:
                 "coverage_ratio": round(page_context_completed_pages / max(1, total_rendered_pages), 4),
                 "partial_input_used": bool(missing_pages),
                 "coverage_threshold": 1,
+                "response_language": semantic_meta.get("response_language", "ko"),
             },
             "result": {
                 "document_id": document_id,

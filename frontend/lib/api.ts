@@ -15,6 +15,7 @@ export type DocumentMeta = {
   filename: string;
   status: string;
   total_pages: number | null;
+  response_language?: "ko" | "en";
 };
 
 export type DocumentListItem = DocumentMeta & {
@@ -469,6 +470,7 @@ export async function createSelectionExplanation(
   documentId: string,
   pageNumber: number,
   selectedBbox: [number, number, number, number],
+  responseLanguage: "ko" | "en",
   signal?: AbortSignal,
 ): Promise<SelectionExplanation> {
   const path = `/api/documents/${encodeURIComponent(documentId)}/pages/${pageNumber}/selection-explanation`;
@@ -478,7 +480,7 @@ export async function createSelectionExplanation(
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ selected_bbox: selectedBbox }),
+    body: JSON.stringify({ selected_bbox: selectedBbox, response_language: responseLanguage }),
     signal,
   };
 
@@ -501,7 +503,7 @@ export async function createSelectionExplanation(
       undefined,
       {
         ...requestInit,
-        body: JSON.stringify({ selected_bbox: selectedBbox }),
+        body: JSON.stringify({ selected_bbox: selectedBbox, response_language: responseLanguage }),
       },
     );
   }
@@ -512,6 +514,7 @@ export async function createSelectionFollowUp(
   pageNumber: number,
   selectionId: string,
   question: string,
+  responseLanguage: "ko" | "en",
   signal?: AbortSignal,
 ): Promise<SelectionFollowUp> {
   return fetchJson<SelectionFollowUp>(
@@ -525,7 +528,7 @@ export async function createSelectionFollowUp(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({ question, response_language: responseLanguage }),
       signal,
     },
   );
@@ -551,10 +554,12 @@ export async function postInteractionLog(
 
 export async function uploadDocument(
   file: File,
+  responseLanguage: "ko" | "en",
   signal?: AbortSignal,
 ): Promise<DocumentUploadResponse> {
   const formData = new FormData();
   formData.append("file", file, file.name);
+  formData.append("response_language", responseLanguage);
 
   const response = await fetch(buildApiUrl("/api/documents"), {
     method: "POST",

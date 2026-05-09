@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Request, UploadFile, status
 
 from app.models.document import DocumentRecord, DocumentStatus, DocumentUploadResponse
 from app.models.read_api import (
@@ -139,6 +139,7 @@ def _document_guide_summary(
 async def upload_document(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
+    response_language: str = Form("ko"),
     storage: StorageService = Depends(get_storage_service),
     orchestrator: DocumentOrchestrator = Depends(get_document_orchestrator),
 ) -> DocumentUploadResponse:
@@ -177,6 +178,7 @@ async def upload_document(
         document_record = storage.save_uploaded_document(
             filename=sanitized_filename,
             file_bytes=file_bytes,
+            response_language=response_language,
         )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
@@ -206,6 +208,7 @@ def list_documents(
                 filename=document.filename,
                 status=document.status,
                 total_pages=document.total_pages,
+                response_language=document.response_language,
                 created_at=document.created_at,
                 updated_at=document.updated_at,
                 error_message=document.error_message,
@@ -226,6 +229,7 @@ def get_document(
         filename=document.filename,
         status=document.status,
         total_pages=document.total_pages,
+        response_language=document.response_language,
     )
 
 
@@ -432,6 +436,7 @@ def create_selection_explanation(
             document_id=document_id,
             page_number=page_number,
             selected_bbox=list(payload.selected_bbox),
+            response_language=payload.response_language,
         )
     except SelectionExplanationError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
@@ -579,6 +584,7 @@ def create_selection_follow_up(
             page_number=page_number,
             selection_id=selection_id,
             question=payload.question,
+            response_language=payload.response_language,
         )
     except SelectionExplanationError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc

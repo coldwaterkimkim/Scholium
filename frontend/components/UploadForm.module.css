@@ -52,6 +52,52 @@
   line-height: 1.55;
 }
 
+.languageSetting {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  align-items: center;
+  padding: 10px 11px;
+  border: 1px solid rgba(101, 121, 64, 0.2);
+  border-radius: 10px;
+  background: #f8faf4;
+}
+
+.languageLabel {
+  color: #60704d;
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.languageToggle {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: #eef2e7;
+}
+
+.languageButton {
+  min-width: 74px;
+  min-height: 28px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #5f6c56;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.languageButtonActive {
+  background: #18212b;
+  color: white;
+}
+
 .form {
   display: grid;
   gap: 16px;

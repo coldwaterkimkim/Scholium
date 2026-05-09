@@ -10,6 +10,13 @@ import {
   listDocuments,
   uploadDocument,
 } from "@/lib/api";
+import {
+  DEFAULT_RESPONSE_LANGUAGE,
+  RESPONSE_LANGUAGE_OPTIONS,
+  getStoredResponseLanguage,
+  setStoredResponseLanguage,
+  type ResponseLanguage,
+} from "@/lib/language";
 
 import styles from "./UploadForm.module.css";
 
@@ -146,6 +153,7 @@ export function UploadForm() {
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<Set<string>>(() => new Set());
   const [deletingDocumentIds, setDeletingDocumentIds] = useState<Set<string>>(() => new Set());
   const [now, setNow] = useState(() => new Date());
+  const [responseLanguage, setResponseLanguage] = useState<ResponseLanguage>(DEFAULT_RESPONSE_LANGUAGE);
 
   const hasDocuments = documents.length > 0;
   const selectedCount = selectedDocumentIds.size;
@@ -190,6 +198,7 @@ export function UploadForm() {
   useEffect(() => {
     const controller = new AbortController();
     void refreshDocuments({ signal: controller.signal });
+    setResponseLanguage(getStoredResponseLanguage());
 
     return () => {
       controller.abort();
@@ -240,10 +249,14 @@ export function UploadForm() {
 
     try {
       const uploadedFileName = selectedFile.name;
-      await uploadDocument(selectedFile);
+      await uploadDocument(selectedFile, responseLanguage);
       setSelectedFile(null);
       setFileInputKey((currentKey) => currentKey + 1);
-      setNotice(`${uploadedFileName} 작업을 목록에 추가했어. 같은 파일명이 있으면 기존 작업을 덮어써.`);
+      setNotice(
+        `${uploadedFileName} 작업을 목록에 추가했어. 생성 언어는 ${
+          responseLanguage === "ko" ? "한국어" : "English"
+        }로 저장됐어.`,
+      );
       await refreshDocuments({ showLoading: false });
     } catch (uploadError: unknown) {
       setError(getUploadErrorMessage(uploadError));
@@ -257,6 +270,16 @@ export function UploadForm() {
     setSelectedFile(nextFile);
     setError(null);
     setNotice(null);
+  }
+
+  function handleLanguageChange(nextLanguage: ResponseLanguage) {
+    setResponseLanguage(nextLanguage);
+    setStoredResponseLanguage(nextLanguage);
+    setNotice(
+      nextLanguage === "ko"
+        ? "새 Page Guide와 선택 설명은 한국어로 생성돼."
+        : "New Page Guides and selection explanations will be generated in English.",
+    );
   }
 
   function toggleDocumentSelection(documentId: string, checked: boolean) {
@@ -365,6 +388,24 @@ export function UploadForm() {
             <p className={styles.description}>
               PDF를 올리면 작업 목록에 추가되고, 준비가 끝난 문서는 viewer에서 드래그 선택 설명을 볼 수 있어.
             </p>
+            <div className={styles.languageSetting} aria-label="설명 생성 언어">
+              <span className={styles.languageLabel}>설명 언어</span>
+              <div className={styles.languageToggle}>
+                {RESPONSE_LANGUAGE_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`${styles.languageButton} ${
+                      responseLanguage === option.value ? styles.languageButtonActive : ""
+                    }`}
+                    aria-pressed={responseLanguage === option.value}
+                    onClick={() => handleLanguageChange(option.value)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <form className={styles.form} onSubmit={handleSubmit}>

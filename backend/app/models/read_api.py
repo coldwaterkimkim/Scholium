@@ -20,6 +20,7 @@ class DocumentPublicResponse(BaseModel):
     filename: str
     status: DocumentStatus
     total_pages: int | None = None
+    response_language: Literal["ko", "en"] = "ko"
 
 
 class DocumentListItem(BaseModel):
@@ -29,6 +30,7 @@ class DocumentListItem(BaseModel):
     filename: str
     status: DocumentStatus
     total_pages: int | None = None
+    response_language: Literal["ko", "en"] = "ko"
     created_at: datetime
     updated_at: datetime
     error_message: str | None = None
@@ -58,6 +60,7 @@ class SelectionExplanationRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     selected_bbox: NormalizedBBox
+    response_language: Literal["ko", "en"] | None = None
 
 
 class SelectionExplanationPublicResponse(SelectionExplanationResult):
@@ -94,6 +97,7 @@ class SelectionFollowUpRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     question: str = Field(min_length=1, max_length=600)
+    response_language: Literal["ko", "en"] | None = None
 
 
 class SelectionFollowUpPublicResponse(SelectionFollowUpResult):

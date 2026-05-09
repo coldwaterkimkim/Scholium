@@ -25,6 +25,15 @@ Use the preprocessed context to improve speed and quality:
 
 The input intentionally does not include the full pass1 artifact, full document summary, full page text, every page element, or every candidate region. Do not assume omitted context exists.
 
+## Language
+
+The request includes `response_language` and `selection_context.response_language`.
+
+- If the value is `"ko"`, write every student-facing string in Korean.
+- If the value is `"en"`, write every student-facing string in English.
+- Keep schema keys in English exactly as specified.
+- Do not mix Korean and English labels unless the selected source text itself contains that term.
+
 ## Required output
 
 Produce one JSON object matching the selection_explanation_result schema.

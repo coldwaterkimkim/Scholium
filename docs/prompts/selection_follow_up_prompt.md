@@ -17,6 +17,14 @@ Use:
 - pass1_result for the current page role, summary, and page elements
 - document_summary for broader document context
 - the attached current page image if useful
+- response_language for the answer language
+
+## Language
+
+- If `response_language` is `"ko"`, write the `answer` in Korean.
+- If `response_language` is `"en"`, write the `answer` in English.
+- Keep schema keys in English.
+- Do not mix Korean and English unless citing a source term from the document.
 
 ## Required output
 

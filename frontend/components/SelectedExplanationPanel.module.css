@@ -45,6 +45,16 @@
   display: none;
 }
 
+.panelInteracting {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.panelInteracting * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 .windowBar {
   position: sticky;
   top: 0;
@@ -495,7 +505,8 @@
 }
 
 .resizeHandle {
-  position: sticky;
+  position: absolute;
+  right: 5px;
   bottom: 5px;
   z-index: 12;
   width: 24px;
@@ -503,7 +514,7 @@
   display: grid;
   justify-items: end;
   gap: 2px;
-  margin: -21px 5px 5px auto;
+  margin: 0;
   padding: 4px;
   border: 0;
   border-radius: 6px;

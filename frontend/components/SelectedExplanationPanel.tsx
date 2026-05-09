@@ -4,6 +4,7 @@ import {
   useState,
   type CSSProperties,
   type FormEvent,
+  type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
@@ -16,6 +17,7 @@ import {
   type SelectionFollowUp,
   type SourceCue,
 } from "@/lib/api";
+import type { ResponseLanguage } from "@/lib/language";
 
 import styles from "./SelectedExplanationPanel.module.css";
 
@@ -41,6 +43,7 @@ type SelectedExplanationPanelProps = {
   selectedRect: SelectedRegionRect;
   canvasWidth: number;
   canvasHeight: number;
+  responseLanguage: ResponseLanguage;
   onNavigateToRelatedPage: (item: RelatedConceptPage, sourceId: string) => void;
   onClose: () => void;
 };
@@ -75,8 +78,97 @@ type PanelAction =
       startRect: PanelRect;
     };
 
+const PANEL_COPY = {
+  ko: {
+    ariaLabel: "선택 설명",
+    eyebrow: "선택 설명",
+    studyImportance: "학습 중요도",
+    studyImportanceTitle:
+      "학습 중요도는 문서 핵심 주제와의 관련성, 이후 개념의 선행 지식 여부, 반복 출현 가능성, 시험/복습 가치 기준이야.",
+    criteriaText: "중심성, 선행 지식, 반복 가능성, 복습 가치를 함께 본 값이야.",
+    meaning: "문맥 속 의미",
+    why: "여기서 중요한 이유",
+    related: "관련 개념과 페이지",
+    source: "근거",
+    sourceFallback: "이 결과에는 근거 단서가 없어.",
+    confidence: "신뢰도",
+    confidenceTitle:
+      "신뢰도는 정답 보증률이 아니라 선택 영역, 페이지 맥락, 근거 단서가 설명을 얼마나 잘 지지하는지에 대한 근거 강도야.",
+    confidenceCriteria: "선택 영역과 근거 단서가 설명을 지지하는 정도.",
+    followUpPlaceholder: "더 깊게 물어보기",
+    followUpError: "추가 질문에 답할 수 없어.",
+    followUp: "추가 질문",
+    pendingTitle: "답변 생성 중...",
+    pendingText: "질문을 Codex CLI로 보내고 있어.",
+    resizeLabel: "패널 크기 조절",
+    dragTitle: "드래그해서 패널 이동",
+    closeLabel: "설명 패널 닫기",
+    scoreLabel: "점수",
+  },
+  en: {
+    ariaLabel: "Selected explanation",
+    eyebrow: "Selected explanation",
+    studyImportance: "Study Importance",
+    studyImportanceTitle:
+      "Study importance combines centrality, prerequisite value, recurrence, and review value.",
+    criteriaText: "Centrality, prerequisite value, recurrence, and review value are considered together.",
+    meaning: "Meaning in context",
+    why: "Why it matters here",
+    related: "Related concepts and pages",
+    source: "Source",
+    sourceFallback: "Source cues unavailable for this artifact.",
+    confidence: "Confidence",
+    confidenceTitle: "Confidence is grounding strength, not a guarantee of correctness.",
+    confidenceCriteria: "How strongly the selected bbox and source cues support this explanation.",
+    followUpPlaceholder: "Ask a deeper question",
+    followUpError: "Could not answer the follow-up.",
+    followUp: "Follow-up",
+    pendingTitle: "Generating answer...",
+    pendingText: "Sending the question to Codex CLI.",
+    resizeLabel: "Resize panel",
+    dragTitle: "Drag to move panel",
+    closeLabel: "Close explanation panel",
+    scoreLabel: "score",
+  },
+} satisfies Record<ResponseLanguage, Record<string, string>>;
+
 function scoreDots(score: number) {
   return Array.from({ length: 5 }, (_, index) => index < score);
+}
+
+function localizedImportanceLevel(level: string, responseLanguage: ResponseLanguage): string {
+  const normalized = level.trim().toLowerCase();
+  if (responseLanguage === "ko") {
+    if (normalized === "high") {
+      return "높음";
+    }
+    if (normalized === "medium" || normalized === "moderate") {
+      return "보통";
+    }
+    if (normalized === "low") {
+      return "낮음";
+    }
+  }
+  return level;
+}
+
+function localizedSourceType(sourceType: string, responseLanguage: ResponseLanguage): string {
+  const normalized = sourceType.trim().toLowerCase();
+  if (responseLanguage === "ko") {
+    const labels: Record<string, string> = {
+      document_context: "문서 맥락",
+      document_guide: "문서 가이드",
+      page_context: "페이지 맥락",
+      page_guide: "페이지 가이드",
+      parser_context: "파서 맥락",
+      parser_map: "파서 맵",
+      selected_region: "선택 영역",
+      this_slide: "현재 슬라이드",
+      this_page: "현재 페이지",
+    };
+    return labels[normalized] ?? sourceType.replaceAll("_", " ");
+  }
+  return sourceType.replaceAll("_", " ");
 }
 
 function normalizeRelatedConcepts(
@@ -314,9 +406,11 @@ export function SelectedExplanationPanel({
   selectedRect,
   canvasWidth,
   canvasHeight,
+  responseLanguage,
   onNavigateToRelatedPage,
   onClose,
 }: SelectedExplanationPanelProps) {
+  const copy = PANEL_COPY[responseLanguage];
   const conceptTitle = "concept_title" in explanation ? explanation.concept_title : explanation.label;
   const sourceId = "selection_id" in explanation ? explanation.selection_id : explanation.anchor_id;
   const isSelectionExplanation = "selection_id" in explanation && "document_id" in explanation;
@@ -330,6 +424,7 @@ export function SelectedExplanationPanel({
   const panelRef = useRef<HTMLElement | null>(null);
   const panelActionRef = useRef<PanelAction | null>(null);
   const followUpAbortRef = useRef<AbortController | null>(null);
+  const [panelActionMode, setPanelActionMode] = useState<PanelAction["mode"] | null>(null);
   const [panelRect, setPanelRect] = useState<PanelRect>(() =>
     clampPanelRect(
       {
@@ -391,18 +486,21 @@ export function SelectedExplanationPanel({
     isSelectionExplanation && (followUps.length > 0 || isFollowUpPending || Boolean(followUpError));
 
   useEffect(() => {
-    setPanelRect(
-      clampPanelRect(
-        {
-          left: parsePixelValue(panelStyle.left, 12),
-          top: parsePixelValue(panelStyle.top, 12),
-          width: parsePixelValue(panelStyle.width, 420),
-          height: null,
-        },
-        canvasWidth,
-        canvasHeight,
-      ),
+    setPanelRect((current) => clampPanelRect(current, canvasWidth, canvasHeight));
+  }, [canvasHeight, canvasWidth]);
+
+  useEffect(() => {
+    const initialRect = clampPanelRect(
+      {
+        left: parsePixelValue(panelStyle.left, 12),
+        top: parsePixelValue(panelStyle.top, 12),
+        width: parsePixelValue(panelStyle.width, 420),
+        height: null,
+      },
+      canvasWidth,
+      canvasHeight,
     );
+    setPanelRect(initialRect);
     setFollowUps([]);
     setFollowUpInput("");
     setIsFollowUpPending(false);
@@ -410,7 +508,7 @@ export function SelectedExplanationPanel({
     setFollowUpError(null);
     followUpAbortRef.current?.abort();
     followUpAbortRef.current = null;
-  }, [canvasHeight, canvasWidth, panelStyle.left, panelStyle.top, panelStyle.width, sourceId]);
+  }, [sourceId]);
 
   useEffect(() => {
     return () => {
@@ -428,17 +526,14 @@ export function SelectedExplanationPanel({
     };
   }
 
-  function handlePanelActionMove(event: ReactPointerEvent<HTMLElement>) {
+  function applyPanelActionMove(clientX: number, clientY: number) {
     const action = panelActionRef.current;
     if (!action) {
       return;
     }
 
-    event.preventDefault();
-    event.stopPropagation();
-
-    const deltaX = event.clientX - action.startClientX;
-    const deltaY = event.clientY - action.startClientY;
+    const deltaX = clientX - action.startClientX;
+    const deltaY = clientY - action.startClientY;
 
     if (action.mode === "drag") {
       setPanelRect(
@@ -468,6 +563,37 @@ export function SelectedExplanationPanel({
     );
   }
 
+  function handlePanelActionMove(event: ReactPointerEvent<HTMLElement>) {
+    if (!panelActionRef.current) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    applyPanelActionMove(event.clientX, event.clientY);
+  }
+
+  function handleNativePanelActionMove(event: MouseEvent) {
+    if (!panelActionRef.current) {
+      return;
+    }
+
+    event.preventDefault();
+    applyPanelActionMove(event.clientX, event.clientY);
+  }
+
+  function finishNativePanelAction(event?: MouseEvent) {
+    if (!panelActionRef.current) {
+      return;
+    }
+
+    event?.preventDefault();
+    panelActionRef.current = null;
+    setPanelActionMode(null);
+    window.removeEventListener("mousemove", handleNativePanelActionMove);
+    window.removeEventListener("mouseup", finishNativePanelAction);
+  }
+
   function finishPanelAction(event: ReactPointerEvent<HTMLElement>) {
     const action = panelActionRef.current;
     if (!action) {
@@ -477,11 +603,30 @@ export function SelectedExplanationPanel({
     event.preventDefault();
     event.stopPropagation();
     try {
-      event.currentTarget.releasePointerCapture(action.pointerId);
+      panelRef.current?.releasePointerCapture(action.pointerId);
     } catch {
       // Browser may already have released capture.
     }
     panelActionRef.current = null;
+    setPanelActionMode(null);
+    window.removeEventListener("mousemove", handleNativePanelActionMove);
+    window.removeEventListener("mouseup", finishNativePanelAction);
+  }
+
+  function startPanelAction(
+    mode: PanelAction["mode"],
+    startClientX: number,
+    startClientY: number,
+    pointerId: number,
+  ) {
+    panelActionRef.current = {
+      mode,
+      pointerId,
+      startClientX,
+      startClientY,
+      startRect: getCurrentPanelRect(),
+    };
+    setPanelActionMode(mode);
   }
 
   function startPanelDrag(event: ReactPointerEvent<HTMLDivElement>) {
@@ -490,14 +635,8 @@ export function SelectedExplanationPanel({
     }
     event.preventDefault();
     event.stopPropagation();
-    event.currentTarget.setPointerCapture(event.pointerId);
-    panelActionRef.current = {
-      mode: "drag",
-      pointerId: event.pointerId,
-      startClientX: event.clientX,
-      startClientY: event.clientY,
-      startRect: getCurrentPanelRect(),
-    };
+    panelRef.current?.setPointerCapture(event.pointerId);
+    startPanelAction("drag", event.clientX, event.clientY, event.pointerId);
   }
 
   function startPanelResize(event: ReactPointerEvent<HTMLButtonElement>) {
@@ -506,14 +645,30 @@ export function SelectedExplanationPanel({
     }
     event.preventDefault();
     event.stopPropagation();
-    event.currentTarget.setPointerCapture(event.pointerId);
-    panelActionRef.current = {
-      mode: "resize",
-      pointerId: event.pointerId,
-      startClientX: event.clientX,
-      startClientY: event.clientY,
-      startRect: getCurrentPanelRect(),
-    };
+    panelRef.current?.setPointerCapture(event.pointerId);
+    startPanelAction("resize", event.clientX, event.clientY, event.pointerId);
+  }
+
+  function startPanelDragMouse(event: ReactMouseEvent<HTMLDivElement>) {
+    if (event.button !== 0 || panelActionRef.current) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    startPanelAction("drag", event.clientX, event.clientY, -1);
+    window.addEventListener("mousemove", handleNativePanelActionMove);
+    window.addEventListener("mouseup", finishNativePanelAction);
+  }
+
+  function startPanelResizeMouse(event: ReactMouseEvent<HTMLButtonElement>) {
+    if (event.button !== 0 || panelActionRef.current) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    startPanelAction("resize", event.clientX, event.clientY, -1);
+    window.addEventListener("mousemove", handleNativePanelActionMove);
+    window.addEventListener("mouseup", finishNativePanelAction);
   }
 
   async function handleFollowUpSubmit(event: FormEvent<HTMLFormElement>) {
@@ -536,13 +691,14 @@ export function SelectedExplanationPanel({
         explanation.page_number,
         explanation.selection_id,
         question,
+        responseLanguage,
         controller.signal,
       );
       setFollowUps((previous) => [...previous, answer].slice(-3));
       setFollowUpInput("");
     } catch (error) {
       if (!controller.signal.aborted) {
-        setFollowUpError(error instanceof Error ? error.message : "추가 질문에 답할 수 없어.");
+        setFollowUpError(error instanceof Error ? error.message : copy.followUpError);
       }
     } finally {
       if (!controller.signal.aborted) {
@@ -576,24 +732,25 @@ export function SelectedExplanationPanel({
 
       <aside
         ref={panelRef}
-        className={styles.panel}
+        className={`${styles.panel} ${panelActionMode ? styles.panelInteracting : ""}`}
         style={computedPanelStyle}
-        aria-label={`Selected explanation: ${conceptTitle}`}
+        aria-label={`${copy.ariaLabel}: ${conceptTitle}`}
         onPointerDown={(event) => event.stopPropagation()}
+        onPointerMove={handlePanelActionMove}
+        onPointerUp={finishPanelAction}
+        onPointerCancel={finishPanelAction}
       >
         <div
           className={styles.windowBar}
           onPointerDown={startPanelDrag}
-          onPointerMove={handlePanelActionMove}
-          onPointerUp={finishPanelAction}
-          onPointerCancel={finishPanelAction}
-          title="드래그해서 패널 이동"
+          onMouseDown={startPanelDragMouse}
+          title={copy.dragTitle}
         >
           <span className={styles.windowBarHandle} />
           <button
             type="button"
             className={styles.closeButton}
-            aria-label="설명 패널 닫기"
+            aria-label={copy.closeLabel}
             onPointerDown={(event) => event.stopPropagation()}
             onClick={onClose}
           >
@@ -603,21 +760,26 @@ export function SelectedExplanationPanel({
 
         <div className={styles.panelContent}>
           <div className={styles.header}>
-            <span className={styles.eyebrow}>Selected explanation</span>
+            <span className={styles.eyebrow}>{copy.eyebrow}</span>
             <h2 className={styles.title}>{conceptTitle}</h2>
           </div>
 
           {explanation.study_importance ? (
-            <section className={styles.importanceRow} aria-label="Study importance">
+            <section className={styles.importanceRow} aria-label={copy.studyImportance}>
               <div
                 className={styles.importanceLabel}
-                title="학습 중요도는 문서 핵심 주제와의 관련성, 이후 개념의 prerequisite 여부, 반복 출현 가능성, 시험/복습 가치 기준이야."
+                title={copy.studyImportanceTitle}
               >
-                Study Importance
+                {copy.studyImportance}
               </div>
               <div className={styles.importanceValue}>
-                <span className={styles.importanceLevel}>{explanation.study_importance.level}</span>
-                <span className={styles.dots} aria-label={`score ${explanation.study_importance.score} of 5`}>
+                <span className={styles.importanceLevel}>
+                  {localizedImportanceLevel(explanation.study_importance.level, responseLanguage)}
+                </span>
+                <span
+                  className={styles.dots}
+                  aria-label={`${copy.scoreLabel} ${explanation.study_importance.score} / 5`}
+                >
                   {scoreDots(explanation.study_importance.score).map((isActive, index) => (
                     <span
                       key={index}
@@ -629,23 +791,23 @@ export function SelectedExplanationPanel({
               {explanation.study_importance.reason ? (
                 <p className={styles.importanceReason}>{explanation.study_importance.reason}</p>
               ) : null}
-              <p className={styles.criteriaText}>중심성, prerequisite, 반복 가능성, 복습 가치를 함께 본 값이야.</p>
+              <p className={styles.criteriaText}>{copy.criteriaText}</p>
             </section>
           ) : null}
 
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Meaning in context</h3>
+            <h3 className={styles.sectionTitle}>{copy.meaning}</h3>
             <p className={styles.bodyText}>{meaningInContext}</p>
           </section>
 
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Why it matters here</h3>
+            <h3 className={styles.sectionTitle}>{copy.why}</h3>
             <p className={styles.bodyText}>{whyItMattersHere}</p>
           </section>
 
           {relatedConcepts.length > 0 ? (
             <section className={styles.section}>
-              <h3 className={styles.sectionTitle}>Related concepts and pages</h3>
+              <h3 className={styles.sectionTitle}>{copy.related}</h3>
               <div className={styles.relatedList}>
                 {relatedConcepts.map((item, index) => {
                   const canNavigate =
@@ -685,12 +847,14 @@ export function SelectedExplanationPanel({
           ) : null}
 
           <section className={`${styles.section} ${styles.sourceSection}`}>
-            <h3 className={styles.sourceTitle}>Source</h3>
+            <h3 className={styles.sourceTitle}>{copy.source}</h3>
             {sourceCues.length > 0 ? (
               <div className={styles.sourceList}>
                 {sourceCues.map((cue, index) => (
                   <div key={`${cue.source_type}-${cue.label}-${index}`} className={styles.sourceCue}>
-                    <span className={styles.sourceChip}>{cue.source_type.replace("_", " ")}</span>
+                    <span className={styles.sourceChip}>
+                      {localizedSourceType(cue.source_type, responseLanguage)}
+                    </span>
                     <div>
                       <div className={styles.sourceLabel}>{sourceCueLabel(cue)}</div>
                       {cue.snippet ? <div className={styles.sourceSnippet}>{cue.snippet}</div> : null}
@@ -699,18 +863,18 @@ export function SelectedExplanationPanel({
                 ))}
               </div>
             ) : (
-              <p className={styles.sourceFallback}>Source cues unavailable for this artifact.</p>
+              <p className={styles.sourceFallback}>{copy.sourceFallback}</p>
             )}
           </section>
 
           {confidencePercent ? (
             <div
               className={styles.footerMeta}
-              title="Confidence는 정답 보증률이 아니라 선택 영역, page context, source cues가 설명을 얼마나 잘 지지하는지에 대한 grounding 강도야."
+              title={copy.confidenceTitle}
             >
-              <span>Confidence</span>
+              <span>{copy.confidence}</span>
               <strong>{confidencePercent}</strong>
-              <p className={styles.confidenceCriteria}>선택 bbox와 source cues가 설명을 지지하는 정도.</p>
+              <p className={styles.confidenceCriteria}>{copy.confidenceCriteria}</p>
             </div>
           ) : null}
 
@@ -720,7 +884,7 @@ export function SelectedExplanationPanel({
                 className={styles.followUpInput}
                 value={followUpInput}
                 onChange={(event) => setFollowUpInput(event.target.value)}
-                placeholder="더 깊게 물어보기"
+                placeholder={copy.followUpPlaceholder}
                 disabled={!isSelectionExplanation || isFollowUpPending}
               />
               <button
@@ -738,11 +902,9 @@ export function SelectedExplanationPanel({
         <button
           type="button"
           className={styles.resizeHandle}
-          aria-label="패널 크기 조절"
+          aria-label={copy.resizeLabel}
           onPointerDown={startPanelResize}
-          onPointerMove={handlePanelActionMove}
-          onPointerUp={finishPanelAction}
-          onPointerCancel={finishPanelAction}
+          onMouseDown={startPanelResizeMouse}
         >
           <svg className={styles.resizeIcon} viewBox="0 0 20 20" aria-hidden="true">
             <path d="M7 17L17 7" />
@@ -760,7 +922,7 @@ export function SelectedExplanationPanel({
           onPointerDown={(event) => event.stopPropagation()}
         >
           <div className={styles.followUpPanelHeader}>
-            <span>Follow-up</span>
+            <span>{copy.followUp}</span>
             <span className={styles.followUpPanelCount}>{followUps.length + (isFollowUpPending ? 1 : 0)}</span>
           </div>
           <div className={styles.followUpPanelBody}>
@@ -771,9 +933,9 @@ export function SelectedExplanationPanel({
             ))}
             {isFollowUpPending ? (
               <article className={`${styles.followUpAnswer} ${styles.followUpPending}`}>
-                <div className={styles.followUpQuestion}>답변 생성 중...</div>
+                <div className={styles.followUpQuestion}>{copy.pendingTitle}</div>
                 <p className={styles.followUpPendingText}>
-                  {pendingFollowUpQuestion ?? "질문을 Codex CLI로 보내고 있어."}
+                  {pendingFollowUpQuestion ?? copy.pendingText}
                 </p>
                 <div className={styles.followUpSkeleton} aria-hidden="true">
                   <span />
