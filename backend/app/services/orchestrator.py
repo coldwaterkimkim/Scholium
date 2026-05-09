@@ -17,6 +17,7 @@ from app.services.pass2_compat_builder import Pass2CompatBuilder
 from app.services.pass2_refiner import Pass2Refiner
 from app.services.pdf_triage import PdfTriageService, get_pdf_triage_service
 from app.services.pdf_render import RENDER_LONG_EDGE_PIXELS
+from app.services.semantic_guide_generator import SemanticGuideGenerator
 from app.services.storage import StorageService, get_storage_service
 from app.workers.render_worker import RenderWorker
 
@@ -34,6 +35,7 @@ class DocumentOrchestrator:
         document_spine_builder: DocumentSpineBuilder | None = None,
         pass1_analyzer: Pass1Analyzer | None = None,
         document_synthesizer: DocumentSynthesizer | None = None,
+        semantic_guide_generator: SemanticGuideGenerator | None = None,
         pass2_refiner: Pass2Refiner | None = None,
         pass2_compat_builder: Pass2CompatBuilder | None = None,
     ) -> None:
@@ -44,6 +46,7 @@ class DocumentOrchestrator:
         self.document_spine_builder = document_spine_builder or DocumentSpineBuilder()
         self.pass1_analyzer = pass1_analyzer or Pass1Analyzer(storage=self.storage)
         self.document_synthesizer = document_synthesizer or DocumentSynthesizer(storage=self.storage)
+        self.semantic_guide_generator = semantic_guide_generator or SemanticGuideGenerator(storage=self.storage)
         self.pass2_refiner = pass2_refiner or Pass2Refiner(storage=self.storage)
         self.pass2_compat_builder = pass2_compat_builder or Pass2CompatBuilder(storage=self.storage)
         self._stage_lock = Lock()
@@ -75,6 +78,11 @@ class DocumentOrchestrator:
                 "render_time_seconds",
                 perf_counter() - render_started_at,
             )
+            self._record_benchmark_duration(
+                document_id,
+                "upload_to_render_seconds",
+                perf_counter() - pipeline_started_at,
+            )
             if render_result.status is DocumentStatus.FAILED or not render_result.rendered_pages:
                 self._mark_failed(
                     document_id,
@@ -105,6 +113,11 @@ class DocumentOrchestrator:
                 "pass1_time_seconds",
                 perf_counter() - pass1_started_at,
             )
+            self._record_benchmark_duration(
+                document_id,
+                "upload_to_parser_map_ready_seconds",
+                perf_counter() - pipeline_started_at,
+            )
             self.storage.record_pass1_path_counts(document_id, pass1_summary)
             self.storage.update_document(
                 document_id,
@@ -114,12 +127,23 @@ class DocumentOrchestrator:
 
             self._set_stage(document_id, ProcessingStage.SYNTHESIS)
             synthesis_started_at = perf_counter()
-            synthesis_result = self.document_synthesizer.synthesize_document(document_id)
+            synthesis_result = self._run_semantic_or_legacy_synthesis(document_id)
             self._record_benchmark_duration(
                 document_id,
                 "synthesis_time_seconds",
                 perf_counter() - synthesis_started_at,
             )
+            self._record_benchmark_duration(
+                document_id,
+                "semantic_guide_time_seconds",
+                perf_counter() - synthesis_started_at,
+            )
+            self._record_benchmark_duration(
+                document_id,
+                "upload_to_semantic_guide_ready_seconds",
+                perf_counter() - pipeline_started_at,
+            )
+            self._record_semantic_context(document_id, synthesis_result)
             if synthesis_result.get("synthesis_status") != StageStatus.COMPLETED.value:
                 self._mark_failed(
                     document_id,
@@ -160,6 +184,11 @@ class DocumentOrchestrator:
                     document_id,
                     status=DocumentStatus.COMPLETED,
                     error_message=self._build_completion_summary(snapshot),
+                )
+                self._record_benchmark_duration(
+                    document_id,
+                    "upload_to_viewer_ready_seconds",
+                    perf_counter() - pipeline_started_at,
                 )
                 return
 
@@ -347,7 +376,11 @@ class DocumentOrchestrator:
         )
 
     def _should_prepare_parse_precondition(self) -> bool:
-        return self.storage.settings.pass1_routing_mode == "hybrid" or self._should_run_spine_shadow()
+        return (
+            self.storage.settings.pass1_mode in {"parser_first", "hybrid"}
+            or self.storage.settings.pass1_routing_mode == "hybrid"
+            or self._should_run_spine_shadow()
+        )
 
     def _start_processing_benchmark(self, document_id: str) -> None:
         try:
@@ -357,6 +390,7 @@ class DocumentOrchestrator:
                     "analysis_image_long_edge": RENDER_LONG_EDGE_PIXELS,
                     "pipeline_mode": self.storage.settings.pipeline_mode,
                     "spine_mode": self.storage.settings.v2_spine_mode,
+                    "pass1_mode": self.storage.settings.pass1_mode,
                     "pass1_max_workers": self.storage.settings.pass1_max_workers,
                 },
             )
@@ -430,6 +464,25 @@ class DocumentOrchestrator:
         except Exception as exc:
             logger.warning("Processing benchmark spine context record failed for %s: %s", document_id, exc)
 
+    def _record_semantic_context(
+        self,
+        document_id: str,
+        synthesis_result: dict[str, object] | None,
+    ) -> None:
+        if synthesis_result is None:
+            return
+        try:
+            payload = {
+                "page_guide_count": int(synthesis_result.get("page_guide_count") or 0),
+            }
+            if self.storage.settings.llm_provider == "codex_cli":
+                payload["codex_cli_semantic_guide_call_count"] = int(
+                    synthesis_result.get("semantic_guide_call_count") or 0
+                )
+            self.storage.update_processing_benchmark_state(document_id, payload)
+        except Exception as exc:
+            logger.warning("Processing benchmark semantic context record failed for %s: %s", document_id, exc)
+
     def _finalize_processing_benchmark(
         self,
         *,
@@ -467,6 +520,7 @@ class DocumentOrchestrator:
                     "analysis_image_long_edge": RENDER_LONG_EDGE_PIXELS,
                     "pipeline_mode": self.storage.settings.pipeline_mode,
                     "spine_mode": self.storage.settings.v2_spine_mode,
+                    "pass1_mode": self.storage.settings.pass1_mode,
                     "pass1_max_workers": self.storage.settings.pass1_max_workers,
                     "rendered_pages": rendered_pages,
                     "parse_artifact_reused": bool(parse_context["parse_artifact_reused"]),
@@ -585,6 +639,11 @@ class DocumentOrchestrator:
             return context
         finally:
             context["spine_time_seconds"] = round(perf_counter() - started_at, 4)
+
+    def _run_semantic_or_legacy_synthesis(self, document_id: str) -> dict[str, object]:
+        if self.storage.settings.pass1_mode == "legacy_llm":
+            return self.document_synthesizer.synthesize_document(document_id)
+        return self.semantic_guide_generator.generate_document(document_id)
 
     def _run_pass2_stage(self, document_id: str) -> dict[str, object]:
         execution_plan = self._build_pass2_execution_plan(document_id)

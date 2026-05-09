@@ -103,6 +103,66 @@ class MockAnalysisClient:
             },
         )
 
+    def run_semantic_guide(
+        self,
+        document_id: str,
+        document_digest: dict[str, Any],
+    ) -> dict[str, Any]:
+        pages = [
+            int(page.get("page_number"))
+            for page in document_digest.get("pages", [])
+            if isinstance(page, dict) and page.get("page_number")
+        ]
+        if not pages:
+            pages = [1]
+        return self._wrap(
+            "semantic_guide",
+            {
+                "document_id": document_id,
+                "document_guide": {
+                    "document_id": document_id,
+                    "overall_topic": "Scholium mock semantic guide",
+                    "overall_summary": "Parser digest를 바탕으로 만든 mock semantic guide다.",
+                    "section_structure": [
+                        {
+                            "section_id": "mock-section-1",
+                            "title": "Mock semantic section",
+                            "pages": pages,
+                        }
+                    ],
+                    "key_concepts": [
+                        {
+                            "concept": "Mock semantic concept",
+                            "description": "Semantic Guide wiring을 확인하기 위한 개념이다.",
+                            "pages": pages[:3],
+                        }
+                    ],
+                    "page_sequence_overview": ["Parser digest page order를 따라 읽는다."],
+                    "prerequisite_links": [
+                        {
+                            "from_page": pages[index],
+                            "to_page": pages[index - 1],
+                            "reason": "앞 페이지의 mock semantic context가 이어진다.",
+                        }
+                        for index in range(1, min(len(pages), 3))
+                    ],
+                    "difficult_pages": pages[:1],
+                    "study_strategy_notes": ["Page Guide로 큰 흐름을 잡고, 막히는 부분만 드래그한다."],
+                },
+                "page_guides": [
+                    {
+                        "document_id": document_id,
+                        "page_number": page_number,
+                        **self._page_guide(
+                            page_role="Mock semantic page role",
+                            one_line_thesis="이 페이지는 mock semantic guide로 보강된 page guide다.",
+                        ),
+                    }
+                    for page_number in pages
+                ],
+            },
+        )
+
     def run_pass2(
         self,
         page_image_path: str | Path,

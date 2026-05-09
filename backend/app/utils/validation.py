@@ -9,10 +9,12 @@ from app.schemas.pass1_schema import Pass1Result
 from app.schemas.pass2_schema import Pass2Result
 from app.schemas.selection_explanation_schema import SelectionExplanationResult
 from app.schemas.selection_follow_up_schema import SelectionFollowUpResult
+from app.schemas.semantic_guide_schema import SemanticGuideResult
 
 
 STAGE_MODEL_REGISTRY = {
     "pass1": Pass1Result,
+    "semantic_guide": SemanticGuideResult,
     "document_synthesis": DocumentSummaryResult,
     "pass2": Pass2Result,
     "selection_explanation": SelectionExplanationResult,

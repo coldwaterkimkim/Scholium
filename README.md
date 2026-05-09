@@ -62,11 +62,12 @@ OpenAI API 키는 기본 실행에 필요하지 않다. 로컬 MVP 분석 provid
    SCHOLIUM_LLM_PROVIDER=codex_cli
    CODEX_CLI_BIN=codex
    CODEX_CLI_MODEL=gpt-5.5
-   CODEX_CLI_REASONING=medium
-   CODEX_CLI_TIMEOUT_SECONDS=300
-   SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=false
-   PASS1_MAX_WORKERS=3
-   ```
+  CODEX_CLI_REASONING=medium
+  CODEX_CLI_TIMEOUT_SECONDS=300
+  SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=false
+  PASS1_MODE=parser_first
+  PASS1_MAX_WORKERS=3
+  ```
 
 3. `data/raw_pdfs`에 테스트용 PDF를 넣거나 업로드 화면에서 PDF를 올린다.
    업로드한 PDF는 바로 viewer로 이동하지 않고 작업 목록에 추가된다. 같은 파일명을 다시 올리면 기존 작업을 덮어쓰고 새로 준비한다.
@@ -84,7 +85,7 @@ OpenAI API 키는 기본 실행에 필요하지 않다. 로컬 MVP 분석 provid
    npm run dev
    ```
 
-5. worker를 수동 실행할 때는 아래 순서로 돌린다. 기본 MVP에서는 pass2/final anchor 생성을 선제 실행하지 않는다.
+5. worker를 수동 실행할 때는 아래 순서로 돌린다. 기본 MVP에서는 pass2/final anchor 생성을 선제 실행하지 않는다. `document_synthesis_worker`는 `PASS1_MODE=parser_first`에서 Semantic Guide를 만들고, `PASS1_MODE=legacy_llm`에서만 기존 document synthesis를 사용한다.
 
    ```bash
    cd backend
@@ -131,9 +132,9 @@ OpenAI API 키는 기본 실행에 필요하지 않다. 로컬 MVP 분석 provid
 1. viewer는 PDF 페이지 이미지를 깨끗하게 보여준다.
 2. 홈의 작업 목록은 저장된 문서, 준비 상태, 준비 시간, 삭제/처리상태/viewer 진입 버튼을 보여준다.
 3. page image만 준비된 상태면 viewer는 `render_only`로 먼저 열린다.
-4. pass1 page context가 준비되면 top-edge `Page Guide`가 페이지 역할, 핵심 질문, 읽는 순서, 논리 흐름, study focus를 보여준다.
+4. parser-first PageContext/PageElementMap과 Semantic Guide가 준비되면 viewer 진입이 가능해지고, top-edge `Page Guide`가 페이지 역할, 핵심 질문, 읽는 순서, 논리 흐름, study focus를 보여준다.
 5. 사용자가 헷갈리는 영역을 드래그하면 frontend가 normalized bbox `[x, y, w, h]`를 보낸다.
-6. document synthesis까지 준비되면 `on_demand`가 되고, 문서 전체 맥락이 포함된 full selected-region explanation을 만든다.
+6. Semantic Guide/document summary compatibility artifact까지 준비되면 `on_demand`가 되고, 문서 전체 맥락이 포함된 full selected-region explanation을 만든다.
 7. backend가 full pass1/document artifact를 그대로 보내지 않고 compact `SelectionContext`를 만든다.
 8. Codex CLI가 선택 영역 전용 JSON 설명을 생성한다.
 9. schema validation을 통과한 결과만 `data/analysis/<document_id>/pages/<page>/selection_explanations/`에 저장된다.
@@ -145,21 +146,34 @@ Scholium의 설명 UI는 두 레이어로 나뉜다.
 - `Selected Explanation Panel`: 선택 영역 단위, reactive, micro explanation. "내가 드래그한 이 부분은 무슨 뜻이지?"에 답한다.
 
 Pass1 artifact의 persisted field는 legacy 호환 때문에 아직 `candidate_anchors`지만, 현재 제품 의미와 public page API 이름은 `page_elements`다. 새 코드에서는 `page_elements` / `element_id` / `element_type`을 우선 쓰고, `candidate_anchors` / `anchor_id` / `anchor_type`은 저장 artifact와 legacy/debug 호환용으로만 취급한다.
-`page_guide`는 pass1의 page-level artifact로 저장되며, 오래된 artifact에 없으면 API가 `page_role`과 `page_summary` 기반의 최소 fallback만 제공한다.
+`PASS1_MODE=parser_first`에서는 LLM이 bbox/page element를 만들지 않는다. parser가 `page_context.json`과 PageElementMap을 만들고, 기존 API 호환을 위해 `page_analysis_pass1.json`에도 parser-derived page elements를 저장한다.
+`page_guide`는 Semantic Guide가 만든 page-level macro guide로 pass1 호환 artifact에 접혀 저장되며, 오래된 artifact에 없으면 API가 `page_role`과 `page_summary` 기반의 최소 fallback만 제공한다.
 
 ## Readiness modes
 
-- `render_only`: PDF page image만 준비됐다. 사용자는 읽을 수 있지만 selection explanation은 막힌다.
-- `page_context_ready`: pass1 page context가 준비됐다. selection explanation을 만들 수 있고, document context가 아직 없으면 page 중심으로 제한된다.
-- `on_demand`: page context와 document context가 모두 준비됐다. 기본 selected-region MVP 모드다.
+- `render_only`: PDF page image만 준비됐다. 내부적으로는 읽을 수 있지만, 사용자-facing 기본 flow에서는 viewer 진입 조건으로 보지 않는다.
+- `parser_map_ready`: deterministic PageContext/PageElementMap이 준비됐다. API compatibility상 `page_context_ready`와 함께 노출될 수 있다.
+- `semantic_guide_ready`: DocumentGuide/PageGuides가 준비됐다.
+- `viewer_ready`: parser map과 최소 Semantic Guide가 모두 준비됐다. 사용자가 worklist/processing에서 viewer에 들어갈 수 있는 기준이다.
+- `page_context_ready`: 기존 API 호환 이름. 현재는 parser map/page context ready와 같은 의미로 유지한다.
+- `on_demand`: page context와 document/Semantic Guide context가 모두 준비됐다. 기본 selected-region MVP 모드다.
 - `legacy_pass2`: precomputed anchor-click debug path다. 기본값에서는 쓰지 않는다.
+
+## Pass1 / Semantic Guide
+
+- `PASS1_MODE=parser_first`: 기본값. page-by-page LLM Pass1을 호출하지 않고 parser-first PageContext/PageElementMap만 만든다.
+- `PASS1_MODE=legacy_llm`: old text-first/multimodal Pass1Analyzer 동작. debug/rollback용이다.
+- `PASS1_MODE=hybrid`: 현재는 parser-first를 기본으로 쓰며, 자동 LLM fallback/enrichment는 아직 켜지지 않았다.
+- Semantic Guide는 compact parser-generated document digest를 입력으로 Codex CLI 한 번에 생성한다. 큰 문서는 이후 page range/section chunking으로 확장한다.
+- OpenAI/Claude/Gemini native PDF input, Files API, prompt caching은 future optional cloud provider path이며 현재 core path가 아니다.
 
 ## Codex CLI provider 제한
 
 - 이 구조는 로컬 MVP 개발용이다. production용 model serving 구조가 아니다.
 - Codex CLI는 subprocess로 실행되며 stage별 JSON schema 검증을 통과해야 artifact가 저장된다.
 - malformed JSON은 한 번만 repair 요청을 시도하고, 그래도 실패하면 해당 stage를 실패 처리한다.
-- pass1과 selection explanation은 페이지 이미지가 Codex CLI image attachment로 전달된다.
+- parser_first Pass1은 Codex CLI를 호출하지 않는다. legacy LLM Pass1과 selection explanation은 페이지 이미지가 Codex CLI image attachment로 전달될 수 있다.
+- Semantic Guide는 page image나 native PDF가 아니라 compact parser-generated document digest를 Codex CLI에 전달한다.
 - selection explanation은 기본적으로 `CODEX_CLI_MODEL=gpt-5.5`, `CODEX_CLI_REASONING=medium`을 사용한다. 설치된 CLI가 지원하지 않으면 가장 가까운 지원 설정으로 바꾸고 이 파일에 기록해야 한다.
 - 기존 OpenAI provider 코드는 남아 있지만 기본값이 아니며, `SCHOLIUM_LLM_PROVIDER=openai_api`일 때만 사용된다.
 
@@ -198,3 +212,15 @@ full-product parser benchmark는 모든 parser output을 `PageElementMap` 형태
 gold selection starter는 `benchmarks/parser_selection_goldset.yaml`에 있다. 사람이 아직 확정 검수하지 않은 좌표는 proxy/gold seed로만 보고, 최종 parser 선택 전 viewer에서 직접 확인해야 한다.
 
 `PASS1_MAX_WORKERS=1|2|3`을 붙여 pass1 병렬도도 비교할 수 있다. 기본값은 `3`이고, Codex CLI subprocess 병렬도는 실제 PDF 묶음에서 측정한 뒤 조정한다.
+
+PASS1_MODE 비교:
+
+```bash
+cd backend
+./.venv/bin/python scripts/benchmark_pass1_modes.py \
+  --pdf "../data/raw_pdfs/W1.Lecture01-Financial Management and Firm Value.pdf" \
+  --modes parser_first legacy_llm hybrid \
+  --output /tmp/scholium_pass1_mode_comparison.json
+```
+
+`parser_first` 성공 기준은 `codex_cli_pass1_call_count=0`, 빠른 `upload_to_parser_map_ready_seconds`, page count보다 훨씬 적은 `codex_cli_semantic_guide_call_count`, 그리고 selected-region smoke 성공이다.

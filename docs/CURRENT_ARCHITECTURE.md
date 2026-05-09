@@ -5,7 +5,7 @@ Scholium's current MVP is a selected-region explanation viewer.
 The default product flow is:
 
 ```text
-PDF upload / render / preprocess
+PDF upload / render / parser-first preprocess / semantic guide
 -> document worklist with status, elapsed time, delete, and processing entry
 -> clean PDF viewer
 -> top-edge Page Guide gives page-level reading orientation
@@ -17,8 +17,9 @@ PDF upload / render / preprocess
 
 ## Current Default UX
 
-- The viewer shows a clean rendered PDF page first.
 - The home screen is the document worklist. Uploads stay in the list while they prepare, and duplicate filenames overwrite the existing document job.
+- The user-facing flow is not upload -> empty viewer. Viewer entry is enabled after the document is usable.
+- The viewer shows a clean rendered PDF page after parser map and minimum semantic guide readiness.
 - When pass1 page context exists, the viewer shows a top-edge Page Guide attached to the learning material area. This is a proactive page-level reading guide, not a chatbot and not a side rail.
 - The user chooses what is confusing by dragging a region on the page.
 - Scholium explains that selected region on demand, using page/document context that was prepared earlier.
@@ -42,6 +43,8 @@ Precomputed anchor-click is legacy/debug only. It can still be useful for intern
 - Local default provider: Codex CLI (`SCHOLIUM_LLM_PROVIDER=codex_cli`)
 - Optional fallback provider: OpenAI API (`SCHOLIUM_LLM_PROVIDER=openai_api`)
 - Mock provider: local smoke/testing only
+- Current core path does not use native PDF provider APIs, Files API, or prompt caching.
+- OpenAI/Claude/Gemini native PDF input and caching are future optional cloud-provider paths, not current MVP infrastructure.
 
 Do not change provider selection logic as part of repo hygiene or naming cleanup.
 
@@ -49,11 +52,23 @@ Do not change provider selection logic as part of repo hygiene or naming cleanup
 
 - Runtime default parser backend remains `DOCUMENT_PARSER_BACKEND=pymupdf4llm`.
 - The current default path is enhanced PyMuPDF4LLM plus fitz geometry, reported as `pymupdf4llm_enhanced+fitz`.
+- Parser owns bbox and page elements. LLM output must not be the source of truth for bbox in the default path.
+- `PASS1_MODE=parser_first` builds deterministic `page_context.json` / PageElementMap without page-by-page LLM calls.
+- Existing `page_analysis_pass1.json` remains as a compatibility envelope for page API and SelectionContextBuilder; its persisted `candidate_anchors` are parser-derived in parser_first mode.
 - Heavy parsers such as Docling, Marker, MinerU, and MarkItDown are not production dependencies.
 - Docling remains a possible future optional heavy-parser candidate.
 - Marker/MinerU are deferred.
 - MarkItDown is not suitable as a bbox-grounded selected-region parser backend.
 - OCR/scanned-PDF handling is deferred and should become an explicit optional lane after cheap scan-like page detection.
+
+## Semantic Guide Strategy
+
+- Semantic Guide is the document/page meaning layer.
+- It consumes compact parser-generated document digest, not full raw artifacts for every page.
+- It is generated through local Codex CLI using one document-level call in the current implementation.
+- `DocumentGuide` captures overall topic, summary, section structure, key concepts, page sequence, prerequisite links, difficult pages, and study strategy notes.
+- `PageGuide` remains proactive macro information. It does not replace selected-region explanations and does not pre-explain every visual element.
+- A compatibility `document_summary.json` is still saved so existing summary APIs, follow-up, and old artifact loaders keep working.
 
 ## Readiness Modes
 
@@ -61,12 +76,15 @@ Scholium now separates viewer readiness from full explanation readiness.
 
 | Mode | Meaning |
 | --- | --- |
-| `render_only` | Page image exists. The PDF is readable, but explanation context is not ready. |
-| `page_context_ready` | Pass1 page context exists. The user can request a selected-region explanation, but document-wide context may be limited. |
-| `on_demand` | Page context and document synthesis are ready. This is the default selected-region MVP mode. |
+| `render_only` | Page image exists, but this is not the main user-facing viewer destination after upload. |
+| `parser_map_ready` | Deterministic PageContext/PageElementMap exists. |
+| `semantic_guide_ready` | Minimum DocumentGuide/PageGuides exist. |
+| `viewer_ready` | Parser map plus minimum Semantic Guide exist. This is the worklist/processing gate for viewer entry. |
+| `page_context_ready` | Existing API compatibility name for parser map/page context ready. |
+| `on_demand` | Page context and semantic/document context are ready. This is the default selected-region MVP mode. |
 | `legacy_pass2` | Precomputed anchor-click debug path. Used only when `SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=true`. |
 
-`render_only` can show the PDF with a Page Guide preparing state. `page_context_ready`, `on_demand`, and `legacy_pass2` can show `page_guide` when available. Old pass1 artifacts without `page_guide` are loaded with a minimal fallback from `page_role` and `page_summary`.
+The API may still return `render_only` for direct page requests while processing, but worklist/processing viewer entry is gated by `viewer_ready` / `ready_for_viewer`. Old pass1 artifacts without `page_guide` are loaded with a minimal fallback from `page_role` and `page_summary`.
 
 ## Runtime Context
 
@@ -78,12 +96,25 @@ It is built for one selected bbox and should stay compact. It includes:
 - matched page elements
 - nearby text blocks
 - page role and page summary
+- compact PageGuide subset when available
 - brief document context when available
+- Semantic Guide DocumentGuide brief when available
 - related page candidates
 - source candidates
 - a context hash for caching and reproducibility
 
 The backend should not send full pass1 artifacts, full document summaries, or every page element by default when a compact `SelectionContext` is enough.
+
+## Key Artifacts
+
+| Artifact | Role |
+| --- | --- |
+| `data/parsed/{document_id}/document_parse.json` | Parser-owned blocks with bbox, text, type, and reading order. |
+| `data/parsed/{document_id}/page_manifest.json` | Parser/triage signal for text-rich, visual-rich, and scan-like pages. |
+| `data/analysis/{document_id}/pages/{page}/page_context.json` | Deterministic parser-first PageContext/PageElementMap. |
+| `data/analysis/{document_id}/pages/{page}/page_analysis_pass1.json` | Compatibility envelope. In parser_first mode it contains parser-derived `candidate_anchors` and loaded `page_elements`. |
+| `data/analysis/{document_id}/semantic_guide.json` | Semantic Guide artifact with DocumentGuide and PageGuides. |
+| `data/analysis/{document_id}/document_summary.json` | Compatibility summary generated from Semantic Guide for existing APIs/follow-up. |
 
 ## Glossary
 

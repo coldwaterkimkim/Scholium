@@ -7,9 +7,17 @@ from pathlib import Path
 from typing import Literal
 
 
-StageName = Literal["pass1", "document_synthesis", "pass2", "selection_explanation", "selection_follow_up"]
+StageName = Literal[
+    "pass1",
+    "semantic_guide",
+    "document_synthesis",
+    "pass2",
+    "selection_explanation",
+    "selection_follow_up",
+]
 ReasoningEffort = Literal["minimal", "low", "medium", "high", "xhigh"]
 DocumentParserBackend = Literal["stub", "pymupdf4llm"]
+Pass1Mode = Literal["parser_first", "legacy_llm", "hybrid"]
 Pass1RoutingMode = Literal["legacy", "hybrid"]
 PipelineMode = Literal["legacy", "hybrid", "v2_spine"]
 V2SpineMode = Literal["off", "shadow", "active"]
@@ -46,6 +54,7 @@ class AppSettings:
     schema_version: str
     parser_schema_version: str
     document_parser_backend: DocumentParserBackend
+    pass1_mode: Pass1Mode
     pass1_routing_mode: Pass1RoutingMode
     pass1_max_workers: int
     pipeline_mode: PipelineMode
@@ -88,6 +97,16 @@ STAGE_DEFAULTS = {
         "default_prompt_version": "synthesis_v0_1",
         "schema_name": "document_synthesis_result",
         "prompt_file": "document_synthesis_prompt.md",
+    },
+    "semantic_guide": {
+        "model_env": "SEMANTIC_GUIDE_MODEL",
+        "default_model": "gpt-5.5",
+        "reasoning_effort": "medium",
+        "timeout_seconds": 180,
+        "prompt_env": "PROMPT_VERSION_SEMANTIC_GUIDE",
+        "default_prompt_version": "semantic_guide_v0_1",
+        "schema_name": "semantic_guide_result",
+        "prompt_file": "semantic_guide_prompt.md",
     },
     "pass2": {
         "model_env": "OPENAI_MODEL_PASS2",
@@ -133,6 +152,13 @@ def _load_document_parser_backend() -> DocumentParserBackend:
     if backend in {"stub", "pymupdf4llm"}:
         return backend  # type: ignore[return-value]
     return "pymupdf4llm"
+
+
+def _load_pass1_mode() -> Pass1Mode:
+    pass1_mode = os.getenv("PASS1_MODE", "parser_first").strip().lower()
+    if pass1_mode in {"parser_first", "legacy_llm", "hybrid"}:
+        return pass1_mode  # type: ignore[return-value]
+    return "parser_first"
 
 
 def _load_pass1_routing_mode() -> Pass1RoutingMode:
@@ -255,6 +281,7 @@ def _build_settings() -> AppSettings:
         schema_version=os.getenv("SCHEMA_VERSION", "0.2"),
         parser_schema_version=os.getenv("PARSER_SCHEMA_VERSION", "parser_v0_2"),
         document_parser_backend=_load_document_parser_backend(),
+        pass1_mode=_load_pass1_mode(),
         pass1_routing_mode=_load_pass1_routing_mode(),
         pass1_max_workers=_load_positive_int_env("PASS1_MAX_WORKERS", 3),
         pipeline_mode=_load_pipeline_mode(),

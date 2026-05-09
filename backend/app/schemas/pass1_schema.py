@@ -26,7 +26,7 @@ class Pass1CandidateAnchor(CandidateAnchor):
 
 class Pass1Result(PageResultBase):
     page_guide: PageGuide
-    candidate_anchors: list[Pass1CandidateAnchor] = Field(max_length=15)
+    candidate_anchors: list[Pass1CandidateAnchor] = Field(max_length=80)
 
     @field_validator("candidate_anchors")
     @classmethod

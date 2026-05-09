@@ -14,7 +14,7 @@
 - Codex CLI 기준 모델: `gpt-5.5`
 - Codex CLI reasoning: `medium`
 - OpenAI fallback 기준 모델: `gpt-5.4`
-- 입력 전략: direct PDF input 미사용, page image 기반 입력
+- 입력 전략: 기본 전처리는 parser-generated digest 기반. selection explanation과 legacy LLM Pass1만 page image를 쓸 수 있다. direct/native PDF input은 미사용.
 - 출력 전략: JSON only + local schema validation 필수
 - 저장 메타: `model_name`, `schema_version`, `prompt_version`, `generated_at`
 - 응답 구조: `meta` / `result` 분리
@@ -24,32 +24,38 @@
 
 | stage | model | reasoning.effort | prompt_version |
 | --- | --- | --- | --- |
-| pass1 | `gpt-5.4` | `medium` | `pass1_v0_1` |
-| document_synthesis | `gpt-5.4` | `medium` | `synthesis_v0_1` |
+| pass1 parser_first | model call 없음 | n/a | `parser_first_page_context_v0_1` |
+| semantic_guide | `gpt-5.5` via Codex CLI | `medium` | `semantic_guide_v0_1` |
+| pass1 legacy_llm | `gpt-5.4` | `medium` | `pass1_v0_1` |
+| document_synthesis legacy | `gpt-5.4` | `medium` | `synthesis_v0_1` |
 | pass2 legacy | `gpt-5.4` | `medium` | `pass2_v0_2` |
 | selection_explanation | `gpt-5.5` | `medium` | `selection_explanation_v0_1` |
 
 ## 2026-05 selected-region pivot
 
 - 기본 MVP product model은 precomputed final anchors가 아니다.
-- 기본 처리 흐름은 `render -> pass1 preprocessing -> document synthesis -> viewer-ready`다.
+- 기본 처리 흐름은 `render -> parser-first PageContext/PageElementMap -> Semantic Guide -> viewer-ready`다.
 - `pass1.candidate_anchors`는 legacy persisted field name을 유지하지만, 제품 의미는 visible anchor가 아니라 selected-region explanation을 위한 internal page-element map이다. Loader와 public page API에서는 `page_elements` alias를 우선 사용한다.
+- `PASS1_MODE=parser_first`에서 `candidate_anchors`는 LLM output이 아니라 parser-derived page elements의 compatibility alias다.
 - `pass2`는 legacy/debug path로 내려간다. `SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=true`일 때만 선제 final anchor artifact를 만든다.
 - 사용자가 viewer에서 drag-select한 bbox는 `POST /api/documents/{document_id}/pages/{page_number}/selection-explanation`로 전달된다.
 - selection explanation은 page image와 compact `SelectionContext`를 입력으로 Codex CLI가 생성한다. full pass1 artifact, full document summary, full page text, 모든 page element는 기본 payload에 넣지 않는다.
-- `SelectionContext`에는 선택 bbox, matched page elements 최대 5개, nearby text blocks 최대 5개, page role/summary, 짧은 document context, related page candidates 최대 3개, source candidates가 들어간다.
+- `SelectionContext`에는 선택 bbox, matched page elements 최대 5개, nearby text blocks 최대 5개, page role/summary, compact PageGuide subset, 짧은 DocumentGuide/document context, related page candidates 최대 3개, source candidates가 들어간다.
 - cache key는 document/page, 3자리 반올림 bbox, prompt/schema/provider/model/reasoning, context hash를 포함한다.
 - selection explanation artifact는 `data/analysis/{document_id}/pages/{page_number}/selection_explanations/{selection_id}.json`에 저장한다.
 - invalid JSON 또는 schema validation 실패 결과는 저장하지 않는다.
 
 ## 2026-05 readiness split
 
-- viewer readiness는 `render_only`, `page_context_ready`, `on_demand`, `legacy_pass2`로 분리한다.
-- `render_only`: page image만 준비되어 PDF 읽기는 가능하지만, explanation은 막는다.
-- `page_context_ready`: pass1 page context가 준비되어 선택 설명을 만들 수 있다. document synthesis가 없으면 page 중심의 제한된 설명만 만든다.
-- `on_demand`: document synthesis까지 준비되어 full selected-region explanation을 만든다.
+- viewer readiness는 `render_only`, `parser_map_ready`, `semantic_guide_ready`, `viewer_ready`, 기존 API 호환용 `page_context_ready`, `on_demand`, `legacy_pass2`로 분리한다.
+- `render_only`: page image만 준비된 내부 상태다. 사용자-facing 기본 flow에서는 viewer 진입 기준이 아니다.
+- `parser_map_ready`: deterministic PageContext/PageElementMap이 준비됐다.
+- `semantic_guide_ready`: DocumentGuide/PageGuides가 준비됐다.
+- `viewer_ready`: parser map + Semantic Guide가 준비되어 사용자가 viewer에 들어갈 수 있다.
+- `page_context_ready`: 기존 API 호환 이름. 현재는 parser map ready와 같은 의미다.
+- `on_demand`: Semantic Guide/document summary compatibility artifact까지 준비되어 full selected-region explanation을 만든다.
 - `legacy_pass2`: `SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=true`에서만 쓰는 precomputed anchor-click debug path다.
-- `/processing` 응답은 `render_ready_for_viewer`, `page_context_ready_pages`, `document_context_ready`를 함께 제공한다.
+- `/processing` 응답은 `render_ready_for_viewer`, `parser_map_ready_pages`, `semantic_guide_ready`, `viewer_ready`, `page_context_ready_pages`, `document_context_ready`를 함께 제공한다.
 
 ## 2026-05 page guide layer
 

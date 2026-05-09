@@ -16,9 +16,10 @@ Scholium may also show a separate Page Guide above the PDF. That guide is page-l
 Use the preprocessed context to improve speed and quality:
 - selection_context is a compact, ranked context packet built for this exact bbox.
 - selection_context.page_role and selection_context.page_summary describe the current page.
+- selection_context.page_guide_brief may contain a compact Page Guide subset. Use it only to orient the selected region; do not restate it wholesale.
 - selection_context.matched_page_elements lists the page elements that overlap or best match the selected bbox.
 - selection_context.nearby_text_blocks lists the closest parsed text blocks, capped for latency.
-- selection_context.document_context_brief describes the document topic, sections, and key concepts when document synthesis is ready.
+- selection_context.document_context_brief describes the document topic, sections, and key concepts when Semantic Guide/document synthesis is ready.
 - selection_context.related_page_candidates and selection_context.source_candidates are the preferred grounding sources.
 - the attached image is the current page.
 

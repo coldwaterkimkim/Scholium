@@ -39,8 +39,8 @@ curl -F "file=@../data/raw_pdfs/W1.Lecture01-Financial Management and Firm Value
 
 - render
 - parse / page_manifest precondition
-- pass1
-- document synthesis
+- parser-first pass1 compatibility artifact / PageContext
+- Semantic Guide / document summary compatibility artifact
 
 기본 MVP에서는 여기서 viewer가 selected-region `on_demand` 모드로 준비된다. `pass2`는 precomputed anchor-click legacy/debug artifact가 필요할 때만 `SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=true`로 켠다.
 
@@ -51,7 +51,7 @@ curl http://127.0.0.1:8000/api/documents/doc_xxx/processing
 watch -n 2 "curl -s http://127.0.0.1:8000/api/documents/doc_xxx/processing"
 ```
 
-processing 응답에는 coarse status, `stage/current_stage(render/pass1/synthesis/pass2)`, page-level 진행 카운트, `pass1_failed_pages`, `pass1_processed_pages`, `current_page_number`, `recent_failures`가 같이 들어간다. 현재 기본 viewer readiness는 `render_ready_for_viewer`, `page_context_ready_pages`, `document_context_ready`를 함께 봐야 한다. 기본 selected-region 실행에서는 `pass2_*` 값이 0 또는 미실행 상태여도 정상이다.
+processing 응답에는 coarse status, `stage/current_stage(render/pass1/synthesis/pass2)`, page-level 진행 카운트, `pass1_failed_pages`, `pass1_processed_pages`, `current_page_number`, `recent_failures`가 같이 들어간다. 현재 기본 viewer readiness는 `viewer_ready` / `ready_for_viewer`를 기준으로 보고, 내부적으로 `parser_map_ready_pages`, `semantic_guide_ready`, `page_context_ready_pages`, `document_context_ready`를 함께 확인한다. 기본 selected-region 실행에서는 `pass2_*` 값이 0 또는 미실행 상태여도 정상이다.
 
 ## 자동 생성 artifact 확인
 
@@ -70,10 +70,13 @@ find ../data/parsed/doc_xxx -maxdepth 2 -type f | sort
 - `pymupdf4llm`: 실제 parser adapter 사용
 - `stub`: fallback / smoke test용
 
-pass1 routing mode도 env flag로 제어할 수 있다.
+pass1 mode와 legacy routing mode도 env flag로 제어할 수 있다.
 
-- `PASS1_ROUTING_MODE=hybrid`: parse/page_manifest 기반 text-first + selective multimodal
-- `PASS1_ROUTING_MODE=legacy`: 기존 full-page multimodal pass1 rollback
+- `PASS1_MODE=parser_first`: 기본값. parser가 bbox/PageElementMap을 만들고 page-by-page LLM Pass1은 호출하지 않는다.
+- `PASS1_MODE=legacy_llm`: 기존 full-page/text-first LLM Pass1 rollback/debug.
+- `PASS1_MODE=hybrid`: 현재는 parser-first를 기본으로 쓰며 자동 LLM fallback은 아직 켜지지 않았다.
+- `PASS1_ROUTING_MODE=hybrid`: legacy_llm에서 parse/page_manifest 기반 text-first + selective multimodal.
+- `PASS1_ROUTING_MODE=legacy`: legacy_llm에서 기존 full-page multimodal pass1 rollback.
 
 작은 PDF로 canonical parse artifact를 만들려면:
 

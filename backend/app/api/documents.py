@@ -108,6 +108,33 @@ def _page_guide_with_document_connections(
     return enriched_page_guide
 
 
+def _document_guide_summary(
+    semantic_guide_artifact: dict[str, object] | None,
+    document_summary_artifact: dict[str, object] | None,
+) -> dict[str, Any] | None:
+    if semantic_guide_artifact is not None and isinstance(semantic_guide_artifact.get("result"), dict):
+        semantic_result = semantic_guide_artifact["result"]
+        if isinstance(semantic_result, dict) and isinstance(semantic_result.get("document_guide"), dict):
+            document_guide = semantic_result["document_guide"]
+            return {
+                "overall_topic": document_guide.get("overall_topic"),
+                "overall_summary": document_guide.get("overall_summary"),
+                "difficult_pages": document_guide.get("difficult_pages", []),
+                "key_concepts": document_guide.get("key_concepts", [])[:6],
+            }
+
+    if document_summary_artifact is not None and isinstance(document_summary_artifact.get("result"), dict):
+        summary_result = document_summary_artifact["result"]
+        return {
+            "overall_topic": summary_result.get("overall_topic"),
+            "overall_summary": summary_result.get("overall_summary"),
+            "difficult_pages": summary_result.get("difficult_pages", []),
+            "key_concepts": summary_result.get("key_concepts", [])[:6],
+        }
+
+    return None
+
+
 @router.post("", response_model=DocumentUploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_document(
     background_tasks: BackgroundTasks,
@@ -305,6 +332,7 @@ def get_page_result(
     try:
         pass1_artifact = storage.load_pass1_result(document_id, page_number)
         document_summary_artifact = storage.load_document_summary(document_id)
+        semantic_guide_artifact = storage.load_semantic_guide(document_id)
         pass2_artifact = (
             storage.load_pass2_result(document_id, page_number)
             if storage.settings.precompute_anchored_explanations
@@ -326,6 +354,10 @@ def get_page_result(
                 document_summary_artifact=document_summary_artifact,
                 page_number=page_number,
             ),
+            "document_guide_summary": _document_guide_summary(
+                semantic_guide_artifact,
+                document_summary_artifact,
+            ),
             "viewer_mode": "legacy_pass2",
         }
     elif pass1_artifact is not None:
@@ -343,6 +375,10 @@ def get_page_result(
                 document_summary_artifact=document_summary_artifact,
                 page_number=page_number,
             ),
+            "document_guide_summary": _document_guide_summary(
+                semantic_guide_artifact,
+                document_summary_artifact,
+            ),
             "page_risk_note": (
                 "On-demand mode: this page is ready for drag-based selection explanations."
                 if document_context_ready
@@ -359,6 +395,10 @@ def get_page_result(
             "final_anchors": [],
             "page_elements": [],
             "page_guide": None,
+            "document_guide_summary": _document_guide_summary(
+                semantic_guide_artifact,
+                document_summary_artifact,
+            ),
             "page_risk_note": "Preparing explanations for this page...",
             "viewer_mode": "render_only",
         }

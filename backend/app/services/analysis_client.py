@@ -50,6 +50,13 @@ class AnalysisClient(Protocol):
     ) -> dict[str, Any]:
         ...
 
+    def run_semantic_guide(
+        self,
+        document_id: str,
+        document_digest: dict[str, Any],
+    ) -> dict[str, Any]:
+        ...
+
     def run_pass2(
         self,
         page_image_path: str | Path,

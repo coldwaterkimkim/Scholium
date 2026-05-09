@@ -126,7 +126,7 @@ export function ProcessingStatus({ documentId }: ProcessingStatusProps) {
   }, [documentId, router]);
 
   const isFailed = snapshot?.status === "failed";
-  const canOpenViewer = Boolean(snapshot?.render_ready_for_viewer || snapshot?.ready_for_viewer);
+  const canOpenViewer = Boolean(snapshot?.ready_for_viewer || snapshot?.viewer_ready);
   const showInlineWarning = Boolean(snapshot?.has_errors && snapshot.status !== "failed");
 
   return (
@@ -214,6 +214,14 @@ export function ProcessingStatus({ documentId }: ProcessingStatusProps) {
               <div className={styles.item}>
                 <span className={styles.label}>document_context_ready</span>
                 <span className={styles.value}>{snapshot.document_context_ready ? "true" : "false"}</span>
+              </div>
+              <div className={styles.item}>
+                <span className={styles.label}>semantic_guide_ready</span>
+                <span className={styles.value}>{snapshot.semantic_guide_ready ? "true" : "false"}</span>
+              </div>
+              <div className={styles.item}>
+                <span className={styles.label}>viewer_ready</span>
+                <span className={styles.value}>{snapshot.viewer_ready ? "true" : "false"}</span>
               </div>
               <div className={styles.item}>
                 <span className={styles.label}>current_page_number</span>

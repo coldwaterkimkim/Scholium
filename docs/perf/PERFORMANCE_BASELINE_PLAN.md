@@ -12,14 +12,17 @@
 
 ## Readiness Model
 
-viewer readiness는 한 덩어리가 아니라 세 단계로 본다.
+viewer readiness는 한 덩어리가 아니라 parser map과 semantic guide를 분리해서 본다.
 
-- `render_only`: page image가 있어서 PDF를 읽을 수 있다. selection explanation은 아직 막는다.
-- `page_context_ready`: pass1 page context가 있어서 선택 영역 설명을 만들 수 있다. document synthesis가 아직 없으면 답변은 page 중심으로 제한된다.
-- `on_demand`: page context와 document context가 모두 준비되어 full selected-region explanation을 만들 수 있다.
+- `render_only`: page image가 있다. 내부 상태로는 유용하지만, 사용자-facing 기본 flow에서는 이 상태만으로 viewer에 보내지 않는다.
+- `parser_map_ready`: deterministic PageContext/PageElementMap이 준비됐다.
+- `semantic_guide_ready`: compact parser digest 기반 DocumentGuide/PageGuides가 준비됐다.
+- `viewer_ready`: parser map + minimum Semantic Guide가 준비됐다. worklist/processing에서 viewer 진입 기준이다.
+- `page_context_ready`: 기존 API 호환 이름. 현재는 parser map ready와 같은 의미다.
+- `on_demand`: page context와 semantic/document context가 모두 준비되어 full selected-region explanation을 만들 수 있다.
 - `legacy_pass2`: `SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=true`일 때만 쓰는 debug/legacy mode다.
 
-`GET /api/documents/{document_id}/processing`에서는 기존 호환용 `ready_for_viewer`와 함께 `render_ready_for_viewer`, `page_context_ready_pages`, `document_context_ready`를 본다.
+`GET /api/documents/{document_id}/processing`에서는 기존 호환용 `ready_for_viewer`와 함께 `parser_map_ready_pages`, `semantic_guide_ready`, `viewer_ready`, `page_context_ready_pages`, `document_context_ready`를 본다.
 
 `GET /api/documents/{document_id}/pages/{page_number}`는 rendered image가 있으면 pass1이 없어도 `render_only` page response를 반환한다.
 
@@ -130,6 +133,39 @@ PASS1_MAX_WORKERS=3 ./.venv/bin/python scripts/run_benchmark_corpus.py --pdf-dir
 ```
 
 실제 corpus 실행 명령은 기존 benchmark runner 옵션에 맞춰 붙인다. `PASS1_MAX_WORKERS`는 기본 `3`이고, Codex CLI subprocess가 병렬로 늘어난다고 항상 빨라지는 건 아니므로 1/2/3을 같은 PDF 묶음으로 비교한다.
+
+PASS1_MODE 비교:
+
+```bash
+cd backend
+./.venv/bin/python scripts/benchmark_pass1_modes.py \
+  --pdf "../data/raw_pdfs/W1.Lecture01-Financial Management and Firm Value.pdf" \
+  --modes parser_first legacy_llm hybrid \
+  --output /tmp/scholium_pass1_mode_comparison.json
+```
+
+핵심 비교 필드:
+
+- `upload_to_render_seconds`
+- `upload_to_parser_map_ready_seconds`
+- `upload_to_semantic_guide_ready_seconds`
+- `upload_to_viewer_ready_seconds`
+- `pass1_time_seconds`
+- `semantic_guide_time_seconds`
+- `codex_cli_pass1_call_count`
+- `codex_cli_semantic_guide_call_count`
+- `page_element_count`
+- `page_guide_count`
+- `selection_explanation_success`
+- `first_selection_latency_seconds`
+- `cached_selection_latency_seconds`
+
+Acceptance 기준:
+
+- `parser_first`는 `codex_cli_pass1_call_count == 0`이어야 한다.
+- `parser_map_ready`는 기존 page-by-page LLM Pass1보다 훨씬 빨라야 한다.
+- Semantic Guide 호출 수는 page count보다 훨씬 작아야 한다. 현재 기본 구현은 document-level 1 call이다.
+- selected-region dry-run 또는 real-run이 계속 성공해야 한다.
 
 ## Parser Metrics
 

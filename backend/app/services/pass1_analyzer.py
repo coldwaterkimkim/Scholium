@@ -6,6 +6,7 @@ from typing import Any
 from app.models.document import RenderStatus, StageStatus
 from app.services.analysis_client import AnalysisClient
 from app.services.llm_provider import get_analysis_client
+from app.services.page_context_builder import PageContextBuilder
 from app.services.storage import StorageService, get_storage_service
 
 
@@ -29,9 +30,11 @@ class Pass1Analyzer:
         storage: StorageService | None = None,
         analysis_client: AnalysisClient | None = None,
         max_workers: int | None = None,
+        page_context_builder: PageContextBuilder | None = None,
     ) -> None:
         self.storage = storage or get_storage_service()
         self.analysis_client = analysis_client or get_analysis_client(storage=self.storage)
+        self.page_context_builder = page_context_builder or PageContextBuilder(settings=self.storage.settings)
         resolved_max_workers = max_workers if max_workers is not None else self.storage.settings.pass1_max_workers
         self.max_workers = max(1, int(resolved_max_workers))
 
@@ -90,7 +93,17 @@ class Pass1Analyzer:
         extracted_text = self._build_page_text(parsed_page) or optional_extracted_text
 
         try:
-            if self._should_use_text_first(page_manifest_entry, parsed_page):
+            if self.storage.settings.pass1_mode in {"parser_first", "hybrid"}:
+                envelope, page_context = self._run_parser_first_pass1(
+                    document_id=document_id,
+                    page_record=page_record,
+                    page_manifest_entry=page_manifest_entry,
+                    parsed_page=parsed_page,
+                    parser_source=parser_source,
+                )
+                self.storage.save_page_context(document_id, page_number, page_context)
+                pass1_path = "parser_first"
+            elif self._should_use_text_first(page_manifest_entry, parsed_page):
                 try:
                     envelope = self._run_text_first_pass1(
                         document_id=document_id,
@@ -175,6 +188,36 @@ class Pass1Analyzer:
             "pass1_path": pass1_path,
         }
 
+    def _run_parser_first_pass1(
+        self,
+        *,
+        document_id: str,
+        page_record: Any,
+        page_manifest_entry: dict[str, Any] | None,
+        parsed_page: dict[str, Any] | None,
+        parser_source: str | None,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        if parsed_page is None:
+            parsed_page = {
+                "page_number": page_record.page_number,
+                "width": page_record.width or 1,
+                "height": page_record.height or 1,
+                "ocr_used": False,
+                "blocks": [],
+            }
+
+        page_context = self.page_context_builder.build_page_context(
+            document_id=document_id,
+            page_record=page_record,
+            parsed_page=parsed_page,
+            page_manifest_entry=page_manifest_entry,
+            parser_source=parser_source,
+        )
+        envelope = self.page_context_builder.build_pass1_envelope(page_context)
+        if not envelope["result"]["candidate_anchors"]:
+            raise ValueError("Parser-first pass1 produced no bbox-grounded page elements.")
+        return envelope, page_context
+
     def analyze_document(
         self,
         document_id: str,
@@ -254,6 +297,11 @@ class Pass1Analyzer:
             for page_result in page_results
             if page_result["pass1_path"] == _TEXT_FIRST_PATH
         ]
+        parser_first_pages = [
+            page_result["page_number"]
+            for page_result in page_results
+            if page_result["pass1_path"] == "parser_first"
+        ]
         multimodal_pages = [
             page_result["page_number"]
             for page_result in page_results
@@ -294,6 +342,12 @@ class Pass1Analyzer:
                 for page_result in page_results
                 if page_result["qa_warnings"]
             ],
+            "page_element_count": sum(
+                int(page_result["page_element_count"] or 0)
+                for page_result in page_results
+                if page_result["pass1_status"] == StageStatus.COMPLETED.value
+            ),
+            "parser_first_pages": parser_first_pages,
             "text_first_pages": text_first_pages,
             "multimodal_pages": multimodal_pages,
             "escalated_pages": escalated_pages,
@@ -303,7 +357,10 @@ class Pass1Analyzer:
         self,
         document_id: str,
     ) -> tuple[dict[int, dict[str, Any]], dict[int, dict[str, Any]], str | None]:
-        if self.storage.settings.pass1_routing_mode != "hybrid":
+        if (
+            self.storage.settings.pass1_mode == "legacy_llm"
+            and self.storage.settings.pass1_routing_mode != "hybrid"
+        ):
             return {}, {}, None
 
         manifest_payload: dict[str, object] | None = None

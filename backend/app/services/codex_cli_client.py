@@ -97,6 +97,19 @@ class CodexCLIClient:
         }
         return self._run_stage("document_synthesis", payload)
 
+    def run_semantic_guide(
+        self,
+        document_id: str,
+        document_digest: dict[str, Any],
+    ) -> dict[str, Any]:
+        payload = {
+            "document_id": document_id,
+            "schema_version": self.settings.schema_version,
+            "prompt_version": self.settings.stage_config("semantic_guide").prompt_version,
+            "document_digest": document_digest,
+        }
+        return self._run_stage("semantic_guide", payload)
+
     def run_pass2(
         self,
         page_image_path: str | Path,

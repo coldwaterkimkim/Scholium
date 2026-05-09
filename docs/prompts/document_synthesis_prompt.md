@@ -1,4 +1,8 @@
-# Scholium MVP v0 — Document Synthesis Prompt
+# Scholium MVP v0 - Legacy Document Synthesis Prompt
+
+> Current default architecture note: the main path is now Semantic Guide generation from parser-first document digest.
+> This prompt remains for `PASS1_MODE=legacy_llm` rollback/debug compatibility.
+> Do not treat page-by-page LLM Pass1 summaries as the required default input for document-level context.
 
 ## Purpose
 페이지 단위 1차 분석 결과를 바탕으로, 문서 전체의 구조와 흐름을 합성한다.

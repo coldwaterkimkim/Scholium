@@ -26,7 +26,7 @@ from app.utils.validation import validate_payload
 
 _UNSET = object()
 _OPTIONAL_PASS1_META_KEYS = {"pass1_path", "route_label", "route_reason", "parser_source"}
-_ALLOWED_PASS1_PATHS = {"text-first", "multimodal", "escalated"}
+_ALLOWED_PASS1_PATHS = {"parser_first", "hybrid_parser_first", "text-first", "multimodal", "escalated"}
 _ALLOWED_ROUTE_LABELS = {"text-rich", "scan-like", "visual-rich"}
 _ALLOWED_PIPELINE_MODES = {"legacy", "hybrid", "v2_spine"}
 _ALLOWED_SPINE_MODES = {"off", "shadow", "active"}
@@ -50,20 +50,28 @@ _ALLOWED_PASS2_PLANNER_REASONS = {
 }
 _BENCHMARK_DURATION_FIELDS = {
     "total_processing_time_seconds",
+    "upload_to_render_seconds",
+    "upload_to_parser_map_ready_seconds",
+    "upload_to_semantic_guide_ready_seconds",
+    "upload_to_viewer_ready_seconds",
     "render_time_seconds",
     "parse_time_seconds",
     "triage_time_seconds",
     "spine_time_seconds",
     "pass1_time_seconds",
+    "semantic_guide_time_seconds",
     "synthesis_time_seconds",
     "pass2_time_seconds",
 }
 _BENCHMARK_COUNT_FIELDS = {
     "rendered_pages",
     "hard_page_count",
+    "page_element_count",
+    "page_guide_count",
     "pass1_text_first_pages",
     "pass1_multimodal_pages",
     "pass1_escalated_pages",
+    "pass1_parser_first_pages",
     "pass2_completed_pages",
     "pass2_failed_pages",
     "pass2_llm_count",
@@ -75,6 +83,7 @@ _BENCHMARK_COUNT_FIELDS = {
     "openai_pass2_call_count",
     "codex_cli_call_count",
     "codex_cli_pass1_call_count",
+    "codex_cli_semantic_guide_call_count",
     "codex_cli_synthesis_call_count",
     "codex_cli_pass2_call_count",
     "codex_cli_selection_call_count",
@@ -89,6 +98,7 @@ _OPENAI_CALL_COUNT_FIELDS_BY_STAGE = {
 }
 _CODEX_CLI_CALL_COUNT_FIELDS_BY_STAGE = {
     "pass1": "codex_cli_pass1_call_count",
+    "semantic_guide": "codex_cli_semantic_guide_call_count",
     "document_synthesis": "codex_cli_synthesis_call_count",
     "pass2": "codex_cli_pass2_call_count",
     "selection_explanation": "codex_cli_selection_call_count",
@@ -869,6 +879,65 @@ class StorageService:
         payload = json.loads(target_path.read_text(encoding="utf-8"))
         return self._normalize_document_summary_artifact(document_id, payload)
 
+    def get_semantic_guide_path(self, document_id: str) -> Path:
+        return self.analysis_dir / document_id / "semantic_guide.json"
+
+    def save_semantic_guide(
+        self,
+        document_id: str,
+        payload: dict[str, object],
+    ) -> str:
+        target_path = self.get_semantic_guide_path(document_id)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+
+        normalized_payload = self._normalize_semantic_guide_artifact(document_id, payload)
+        self._write_validated_json_artifact(
+            target_path,
+            normalized_payload,
+            lambda loaded_payload: self._normalize_semantic_guide_artifact(document_id, loaded_payload),
+        )
+        return target_path.relative_to(PROJECT_ROOT).as_posix()
+
+    def load_semantic_guide(self, document_id: str) -> dict[str, object] | None:
+        target_path = self.get_semantic_guide_path(document_id)
+        if not target_path.exists():
+            return None
+
+        payload = json.loads(target_path.read_text(encoding="utf-8"))
+        return self._normalize_semantic_guide_artifact(document_id, payload)
+
+    def get_page_context_path(self, document_id: str, page_number: int) -> Path:
+        return self.analysis_dir / document_id / "pages" / str(page_number) / "page_context.json"
+
+    def save_page_context(
+        self,
+        document_id: str,
+        page_number: int,
+        payload: dict[str, object],
+    ) -> str:
+        target_path = self.get_page_context_path(document_id, page_number)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+
+        normalized_payload = self._normalize_page_context_artifact(document_id, page_number, payload)
+        self._write_validated_json_artifact(
+            target_path,
+            normalized_payload,
+            lambda loaded_payload: self._normalize_page_context_artifact(
+                document_id,
+                page_number,
+                loaded_payload,
+            ),
+        )
+        return target_path.relative_to(PROJECT_ROOT).as_posix()
+
+    def load_page_context(self, document_id: str, page_number: int) -> dict[str, object] | None:
+        target_path = self.get_page_context_path(document_id, page_number)
+        if not target_path.exists():
+            return None
+
+        payload = json.loads(target_path.read_text(encoding="utf-8"))
+        return self._normalize_page_context_artifact(document_id, page_number, payload)
+
     def get_parse_artifact_path(self, document_id: str) -> Path:
         return self.parsed_dir / document_id / "document_parse.json"
 
@@ -1111,9 +1180,12 @@ class StorageService:
             state = self._benchmark_states.get(document_id)
             if state is None:
                 return
+            state["pass1_parser_first_pages"] = len(pass1_summary.get("parser_first_pages", []))
             state["pass1_text_first_pages"] = len(pass1_summary.get("text_first_pages", []))
             state["pass1_multimodal_pages"] = len(pass1_summary.get("multimodal_pages", []))
             state["pass1_escalated_pages"] = len(pass1_summary.get("escalated_pages", []))
+            if pass1_summary.get("page_element_count") is not None:
+                state["page_element_count"] = int(pass1_summary.get("page_element_count") or 0)
 
     def record_pass2_counts(
         self,
@@ -1263,6 +1335,7 @@ class StorageService:
         )
 
         synthesis_ready, summary_error_message = self._get_document_summary_health(document_id)
+        semantic_guide_ready, semantic_guide_error_message = self._get_semantic_guide_health(document_id)
         error_message = document.error_message
         if (
             not error_message
@@ -1270,12 +1343,22 @@ class StorageService:
             and summary_error_message is not None
         ):
             error_message = summary_error_message
+        if (
+            not error_message
+            and document.status in {DocumentStatus.COMPLETED, DocumentStatus.FAILED}
+            and semantic_guide_error_message is not None
+        ):
+            error_message = semantic_guide_error_message
 
         has_errors = failed_page_count > 0 or bool(error_message)
         render_ready_for_viewer = rendered_pages > 0
         page_context_ready_pages = pass1_completed_pages
         document_context_ready = synthesis_ready
-        ready_for_viewer = render_ready_for_viewer
+        ready_for_viewer = (
+            render_ready_for_viewer
+            and page_context_ready_pages > 0
+            and (semantic_guide_ready or document_context_ready)
+        )
         resolved_stage = current_stage or self._derive_processing_stage(
             status=document.status,
             rendered_pages=rendered_pages,
@@ -1304,11 +1387,14 @@ class StorageService:
             "pass1_failed_pages": pass1_failed_pages,
             "pass1_processed_pages": pass1_processed_pages,
             "synthesis_ready": synthesis_ready,
+            "semantic_guide_ready": semantic_guide_ready,
             "pass2_completed_pages": pass2_completed_pages,
             "pass2_failed_pages": len(pass2_failed_page_numbers),
             "render_ready_for_viewer": render_ready_for_viewer,
             "page_context_ready_pages": page_context_ready_pages,
+            "parser_map_ready_pages": page_context_ready_pages,
             "document_context_ready": document_context_ready,
+            "viewer_ready": ready_for_viewer,
             "ready_for_viewer": ready_for_viewer,
             "current_page_number": current_page_number,
             "error_message": error_message,
@@ -1745,6 +1831,7 @@ class StorageService:
         )
         normalized_payload["codex_cli_call_count"] = (
             int(normalized_payload["codex_cli_pass1_call_count"])
+            + int(normalized_payload["codex_cli_semantic_guide_call_count"])
             + int(normalized_payload["codex_cli_synthesis_call_count"])
             + int(normalized_payload["codex_cli_pass2_call_count"])
             + int(normalized_payload["codex_cli_selection_call_count"])
@@ -1760,6 +1847,11 @@ class StorageService:
         if document_parser_backend not in {"stub", "pymupdf4llm"}:
             raise ValueError("document_parser_backend must be 'stub' or 'pymupdf4llm'.")
         normalized_payload["document_parser_backend"] = document_parser_backend
+
+        pass1_mode = str(normalized_payload["pass1_mode"]).strip()
+        if pass1_mode not in {"parser_first", "legacy_llm", "hybrid"}:
+            raise ValueError("pass1_mode must be 'parser_first', 'legacy_llm', or 'hybrid'.")
+        normalized_payload["pass1_mode"] = pass1_mode
 
         pass1_routing_mode = str(normalized_payload["pass1_routing_mode"]).strip()
         if pass1_routing_mode not in {"legacy", "hybrid"}:
@@ -1778,9 +1870,11 @@ class StorageService:
 
         for field_name in (
             "openai_model_pass1",
+            "semantic_guide_model",
             "openai_model_synthesis",
             "openai_model_pass2",
             "reasoning_effort_pass1",
+            "reasoning_effort_semantic_guide",
             "reasoning_effort_synthesis",
             "reasoning_effort_pass2",
             "generated_at",
@@ -1966,6 +2060,101 @@ class StorageService:
             },
             "result": validated_result,
         }
+
+    def _normalize_semantic_guide_artifact(
+        self,
+        document_id: str,
+        payload: dict[str, object],
+    ) -> dict[str, object]:
+        if not isinstance(payload, dict):
+            raise ValueError("Semantic guide artifact must be a JSON object.")
+
+        meta = payload.get("meta")
+        result = payload.get("result")
+        if not isinstance(meta, dict):
+            raise ValueError("Semantic guide artifact must include a meta object.")
+        if not isinstance(result, dict):
+            raise ValueError("Semantic guide artifact must include a result object.")
+
+        required_meta_keys = {"schema_version", "prompt_version", "model_name", "generated_at"}
+        missing_meta_keys = [key for key in required_meta_keys if not meta.get(key)]
+        if missing_meta_keys:
+            raise ValueError(
+                "Semantic guide artifact meta is missing required fields: "
+                + ", ".join(missing_meta_keys)
+            )
+
+        normalized_result = dict(result)
+        normalized_result["document_id"] = document_id
+        if isinstance(normalized_result.get("document_guide"), dict):
+            normalized_document_guide = dict(normalized_result["document_guide"])
+            normalized_document_guide["document_id"] = document_id
+            normalized_result["document_guide"] = normalized_document_guide
+
+        validated_result = validate_payload("semantic_guide", normalized_result)
+        return {
+            "meta": {
+                "schema_version": str(meta["schema_version"]),
+                "prompt_version": str(meta["prompt_version"]),
+                "model_name": str(meta["model_name"]),
+                "generated_at": str(meta["generated_at"]),
+                "total_rendered_pages": int(meta.get("total_rendered_pages", 0)),
+                "page_context_completed_pages": int(meta.get("page_context_completed_pages", 0)),
+                "semantic_guide_call_count": int(meta.get("semantic_guide_call_count", 1)),
+                "digest_size_chars": int(meta.get("digest_size_chars", 0)),
+            },
+            "result": validated_result,
+        }
+
+    def _normalize_page_context_artifact(
+        self,
+        document_id: str,
+        page_number: int,
+        payload: dict[str, object],
+    ) -> dict[str, object]:
+        if not isinstance(payload, dict):
+            raise ValueError("Page context artifact must be a JSON object.")
+
+        normalized = dict(payload)
+        normalized["document_id"] = document_id
+        normalized["page_number"] = page_number
+        if not str(normalized.get("parser_source") or "").strip():
+            normalized["parser_source"] = self.settings.document_parser_backend
+        if not str(normalized.get("generated_at") or "").strip():
+            normalized["generated_at"] = datetime.now(timezone.utc).isoformat()
+        if not str(normalized.get("schema_version") or "").strip():
+            normalized["schema_version"] = self.settings.schema_version
+        if not str(normalized.get("parser_schema_version") or "").strip():
+            normalized["parser_schema_version"] = self.settings.parser_schema_version
+
+        page_elements = normalized.get("page_elements")
+        if not isinstance(page_elements, list):
+            normalized["page_elements"] = []
+
+        for field_name in (
+            "text_blocks",
+            "visual_blocks",
+            "table_blocks",
+            "figure_blocks",
+            "caption_blocks",
+            "formula_like_blocks",
+            "heading_chain",
+            "source_candidates",
+            "parser_quality_notes",
+        ):
+            if not isinstance(normalized.get(field_name), list):
+                normalized[field_name] = []
+
+        for field_name in ("text_density", "image_coverage", "scan_like_score", "table_like_score", "figure_like_score"):
+            try:
+                normalized[field_name] = round(float(normalized.get(field_name, 0.0)), 4)
+            except (TypeError, ValueError):
+                normalized[field_name] = 0.0
+
+        normalized["reading_order_quality"] = str(
+            normalized.get("reading_order_quality") or "unknown"
+        )
+        return normalized
 
     def _normalize_pass2_artifact(
         self,
@@ -2199,6 +2388,16 @@ class StorageService:
             return False, None
         return True, None
 
+    def _get_semantic_guide_health(self, document_id: str) -> tuple[bool, str | None]:
+        try:
+            artifact = self.load_semantic_guide(document_id)
+        except ValueError:
+            return False, "Stored semantic guide is invalid."
+
+        if artifact is None:
+            return False, None
+        return True, None
+
     def _derive_processing_stage(
         self,
         *,
@@ -2332,15 +2531,23 @@ class StorageService:
             "document_id": document_id,
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "total_processing_time_seconds": 0.0,
+            "upload_to_render_seconds": 0.0,
+            "upload_to_parser_map_ready_seconds": 0.0,
+            "upload_to_semantic_guide_ready_seconds": 0.0,
+            "upload_to_viewer_ready_seconds": 0.0,
             "render_time_seconds": 0.0,
             "parse_time_seconds": 0.0,
             "triage_time_seconds": 0.0,
             "spine_time_seconds": 0.0,
             "pass1_time_seconds": 0.0,
+            "semantic_guide_time_seconds": 0.0,
             "synthesis_time_seconds": 0.0,
             "pass2_time_seconds": 0.0,
             "rendered_pages": 0,
             "hard_page_count": 0,
+            "page_element_count": 0,
+            "page_guide_count": 0,
+            "pass1_parser_first_pages": 0,
             "pass1_text_first_pages": 0,
             "pass1_multimodal_pages": 0,
             "pass1_escalated_pages": 0,
@@ -2363,6 +2570,7 @@ class StorageService:
             "openai_pass2_call_count": 0,
             "codex_cli_call_count": 0,
             "codex_cli_pass1_call_count": 0,
+            "codex_cli_semantic_guide_call_count": 0,
             "codex_cli_synthesis_call_count": 0,
             "codex_cli_pass2_call_count": 0,
             "codex_cli_selection_call_count": 0,
@@ -2370,14 +2578,17 @@ class StorageService:
             "codex_cli_error_count": 0,
             "codex_cli_repair_count": 0,
             "document_parser_backend": self.settings.document_parser_backend,
+            "pass1_mode": self.settings.pass1_mode,
             "pass1_routing_mode": self.settings.pass1_routing_mode,
             "pass1_max_workers": self.settings.pass1_max_workers,
             "pipeline_mode": self.settings.pipeline_mode,
             "spine_mode": self.settings.v2_spine_mode,
             "openai_model_pass1": self.settings.stage_config("pass1").model_name,
+            "semantic_guide_model": self.settings.stage_config("semantic_guide").model_name,
             "openai_model_synthesis": self.settings.stage_config("document_synthesis").model_name,
             "openai_model_pass2": self.settings.stage_config("pass2").model_name,
             "reasoning_effort_pass1": self.settings.stage_config("pass1").reasoning_effort,
+            "reasoning_effort_semantic_guide": self.settings.stage_config("semantic_guide").reasoning_effort,
             "reasoning_effort_synthesis": self.settings.stage_config("document_synthesis").reasoning_effort,
             "reasoning_effort_pass2": self.settings.stage_config("pass2").reasoning_effort,
             "openai_timeout_seconds": self.settings.openai_timeout_seconds,

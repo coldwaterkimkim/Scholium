@@ -49,6 +49,7 @@ class PagePublicResponse(PageResultBase):
     final_anchors: list[Pass2FinalAnchor] = Field(default_factory=list)
     page_elements: list[PageElement] = Field(default_factory=list)
     page_guide: PageGuide | None = None
+    document_guide_summary: dict[str, object] | None = None
     page_risk_note: str
     viewer_mode: Literal["render_only", "page_context_ready", "on_demand", "legacy_pass2"] = "on_demand"
 
@@ -124,11 +125,14 @@ class DocumentProcessingResponse(BaseModel):
     pass1_failed_pages: int
     pass1_processed_pages: int
     synthesis_ready: bool
+    semantic_guide_ready: bool = False
     pass2_completed_pages: int
     pass2_failed_pages: int
     render_ready_for_viewer: bool
     page_context_ready_pages: int
+    parser_map_ready_pages: int = 0
     document_context_ready: bool
+    viewer_ready: bool = False
     ready_for_viewer: bool
     current_page_number: int | None = None
     error_message: str | None = None

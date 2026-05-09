@@ -46,6 +46,17 @@ class SelectionContextBuilder:
         )
         page_parse = self._load_page_parse_artifact(document_id, page_number)
         page_manifest_entry = self._load_page_manifest_entry(document_id, page_number)
+        semantic_guide_artifact = self._load_semantic_guide_artifact(document_id)
+        semantic_result = (
+            dict(semantic_guide_artifact.get("result") or {})
+            if isinstance(semantic_guide_artifact, dict)
+            else None
+        )
+        semantic_meta = (
+            dict(semantic_guide_artifact.get("meta") or {})
+            if isinstance(semantic_guide_artifact, dict)
+            else {}
+        )
 
         rounded_bbox = self.round_bbox(selected_bbox)
         matched_page_elements = self._rank_page_elements(
@@ -53,13 +64,20 @@ class SelectionContextBuilder:
             rounded_bbox,
         )
         nearby_text_blocks = self._rank_nearby_text_blocks(page_parse, rounded_bbox)
+        page_guide_brief = self._build_page_guide_brief(
+            pass1_result.get("page_guide"),
+            semantic_result,
+            page_number,
+        )
         document_context_brief = self._build_document_context_brief(
             document_summary,
+            semantic_result,
             page_number,
             matched_page_elements,
         )
         related_page_candidates = self._build_related_page_candidates(
             document_summary,
+            semantic_result,
             page_number,
             matched_page_elements,
         )
@@ -77,12 +95,14 @@ class SelectionContextBuilder:
             "selected_bbox": rounded_bbox,
             "readiness": {
                 "page_context_ready": True,
-                "document_context_ready": document_summary is not None,
+                "document_context_ready": document_summary is not None or semantic_result is not None,
+                "semantic_guide_ready": semantic_result is not None,
             },
             "matched_page_elements": matched_page_elements,
             "nearby_text_blocks": nearby_text_blocks,
             "page_role": self._compact_text(pass1_result.get("page_role"), max_chars=220),
             "page_summary": self._compact_text(pass1_result.get("page_summary"), max_chars=_MAX_SUMMARY_CHARS),
+            "page_guide_brief": page_guide_brief,
             "document_context_brief": document_context_brief,
             "related_page_candidates": related_page_candidates,
             "source_candidates": source_candidates,
@@ -95,6 +115,8 @@ class SelectionContextBuilder:
                 "pass1_path": pass1_meta.get("pass1_path"),
                 "document_summary_prompt_version": document_summary_meta.get("prompt_version"),
                 "document_summary_model_name": document_summary_meta.get("model_name"),
+                "semantic_guide_prompt_version": semantic_meta.get("prompt_version"),
+                "semantic_guide_model_name": semantic_meta.get("model_name"),
             },
         }
 
@@ -130,6 +152,13 @@ class SelectionContextBuilder:
             if isinstance(page_payload, dict) and int(page_payload.get("page_number", 0)) == page_number:
                 return dict(page_payload)
         return None
+
+    def _load_semantic_guide_artifact(self, document_id: str) -> dict[str, Any] | None:
+        try:
+            payload = self.storage.load_semantic_guide(document_id)
+        except ValueError:
+            return None
+        return dict(payload) if isinstance(payload, dict) else None
 
     def _rank_page_elements(
         self,
@@ -241,12 +270,18 @@ class SelectionContextBuilder:
     def _build_document_context_brief(
         self,
         document_summary: dict[str, Any] | None,
+        semantic_result: dict[str, Any] | None,
         page_number: int,
         matched_page_elements: list[dict[str, Any]],
     ) -> dict[str, Any]:
+        semantic_document_guide = self._semantic_document_guide(semantic_result)
+        if document_summary is None and semantic_document_guide is not None:
+            document_summary = self._document_summary_from_semantic(semantic_document_guide)
+
         if document_summary is None:
             return {
                 "available": False,
+                "semantic_guide_available": False,
                 "overall_topic": None,
                 "overall_summary": None,
                 "sections": [],
@@ -290,6 +325,7 @@ class SelectionContextBuilder:
 
         return {
             "available": True,
+            "semantic_guide_available": semantic_document_guide is not None,
             "overall_topic": self._compact_text(document_summary.get("overall_topic"), max_chars=180),
             "overall_summary": self._compact_text(document_summary.get("overall_summary"), max_chars=_MAX_SUMMARY_CHARS),
             "sections": sections,
@@ -300,9 +336,14 @@ class SelectionContextBuilder:
     def _build_related_page_candidates(
         self,
         document_summary: dict[str, Any] | None,
+        semantic_result: dict[str, Any] | None,
         page_number: int,
         matched_page_elements: list[dict[str, Any]],
     ) -> list[dict[str, Any]]:
+        semantic_document_guide = self._semantic_document_guide(semantic_result)
+        if document_summary is None and semantic_document_guide is not None:
+            document_summary = self._document_summary_from_semantic(semantic_document_guide)
+
         if document_summary is None:
             return []
 
@@ -363,6 +404,68 @@ class SelectionContextBuilder:
             if len(deduped_candidates) >= _MAX_RELATED_PAGES:
                 break
         return deduped_candidates
+
+    def _semantic_document_guide(self, semantic_result: dict[str, Any] | None) -> dict[str, Any] | None:
+        if not isinstance(semantic_result, dict):
+            return None
+        document_guide = semantic_result.get("document_guide")
+        return dict(document_guide) if isinstance(document_guide, dict) else None
+
+    def _document_summary_from_semantic(
+        self,
+        semantic_document_guide: dict[str, Any],
+    ) -> dict[str, Any]:
+        return {
+            "overall_topic": semantic_document_guide.get("overall_topic"),
+            "overall_summary": semantic_document_guide.get("overall_summary"),
+            "sections": semantic_document_guide.get("section_structure", []),
+            "key_concepts": [
+                {
+                    "term": concept.get("concept"),
+                    "description": concept.get("description"),
+                    "pages": concept.get("pages", []),
+                }
+                for concept in semantic_document_guide.get("key_concepts", [])
+                if isinstance(concept, dict)
+            ],
+            "difficult_pages": semantic_document_guide.get("difficult_pages", []),
+            "prerequisite_links": semantic_document_guide.get("prerequisite_links", []),
+        }
+
+    def _build_page_guide_brief(
+        self,
+        pass1_page_guide: object,
+        semantic_result: dict[str, Any] | None,
+        page_number: int,
+    ) -> dict[str, Any]:
+        page_guide = dict(pass1_page_guide) if isinstance(pass1_page_guide, dict) else {}
+        if isinstance(semantic_result, dict):
+            for candidate in semantic_result.get("page_guides", []):
+                if not isinstance(candidate, dict) or int(candidate.get("page_number", 0)) != page_number:
+                    continue
+                page_guide.update(
+                    {
+                        key: value
+                        for key, value in candidate.items()
+                        if key not in {"document_id", "page_number"}
+                    }
+                )
+                break
+
+        return {
+            "available": bool(page_guide),
+            "page_role": self._compact_text(page_guide.get("page_role"), max_chars=160),
+            "one_line_thesis": self._compact_text(page_guide.get("one_line_thesis"), max_chars=260),
+            "key_question": self._compact_text(page_guide.get("key_question"), max_chars=200),
+            "logic_flow": self._compact_text_list(page_guide.get("logic_flow"), max_items=3, max_chars=180),
+            "study_focus": self._compact_text_list(page_guide.get("study_focus"), max_items=3, max_chars=180),
+            "common_confusions": self._compact_text_list(
+                page_guide.get("common_confusions"),
+                max_items=3,
+                max_chars=180,
+            ),
+            "must_remember": self._compact_text_list(page_guide.get("must_remember"), max_items=3, max_chars=180),
+        }
 
     def _build_source_candidates(
         self,
@@ -473,6 +576,25 @@ class SelectionContextBuilder:
         if len(text) <= max_chars:
             return text
         return text[: max(0, max_chars - 1)].rstrip() + "..."
+
+    def _compact_text_list(
+        self,
+        value: object,
+        *,
+        max_items: int,
+        max_chars: int,
+    ) -> list[str]:
+        if not isinstance(value, list):
+            return []
+        compacted: list[str] = []
+        for item in value:
+            text = self._compact_text(item, max_chars=max_chars)
+            if not text:
+                continue
+            compacted.append(text)
+            if len(compacted) >= max_items:
+                break
+        return compacted
 
     def _stable_json(self, value: dict[str, Any]) -> str:
         return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))

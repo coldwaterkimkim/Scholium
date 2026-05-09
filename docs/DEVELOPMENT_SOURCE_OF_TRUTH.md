@@ -24,6 +24,7 @@ Raw generated benchmark runs belong in ignored local `docs/perf_runs/` outputs, 
 ## Prompts
 
 - `docs/prompts/pass1_prompt.md`
+- `docs/prompts/semantic_guide_prompt.md`
 - `docs/prompts/document_synthesis_prompt.md`
 - `docs/prompts/selection_explanation_prompt.md`
 - `docs/prompts/selection_follow_up_prompt.md`
@@ -42,6 +43,8 @@ Raw generated benchmark runs belong in ignored local `docs/perf_runs/` outputs, 
 - `backend/app/services/storage.py`
 - `backend/app/services/document_parser.py`
 - `backend/app/services/pymupdf4llm_adapter.py`
+- `backend/app/services/page_context_builder.py`
+- `backend/app/services/semantic_guide_generator.py`
 - `backend/app/services/orchestrator.py`
 - `backend/app/workers/render_worker.py`
 - `backend/app/workers/pass1_worker.py`
@@ -63,6 +66,7 @@ Raw generated benchmark runs belong in ignored local `docs/perf_runs/` outputs, 
 ## Benchmarks And Scripts
 
 - `backend/scripts/benchmark_selected_region_perf.py`
+- `backend/scripts/benchmark_pass1_modes.py`
 - `backend/scripts/benchmark_pdf_parsers.py`
 - `backend/scripts/benchmark_parser_selection_explanations.py`
 - `backend/scripts/export_parser_goldset_review.py`

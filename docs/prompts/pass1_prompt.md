@@ -1,7 +1,12 @@
-# Scholium MVP v0 — Pass 1 Prompt
+# Scholium MVP v0 - Legacy LLM Pass 1 Prompt
+
+> Current default architecture note: this prompt is legacy/debug/fallback only.
+> The default `PASS1_MODE=parser_first` path does not call an LLM for page-by-page Pass1.
+> Parser-first PageContext/PageElementMap generation owns bbox and page elements.
+> Use this prompt only with `PASS1_MODE=legacy_llm` or a future explicit hybrid fallback.
 
 ## Purpose
-페이지 단위 1차 분석. 문서 전체 맥락을 과하게 끌어오지 않고, **현재 페이지 자체를 잘 읽고** 나중에 사용자가 드래그한 영역을 설명하는 데 필요한 페이지 요소 후보를 최대한 많이 추출한다.
+페이지 단위 legacy 1차 분석. 문서 전체 맥락을 과하게 끌어오지 않고, **현재 페이지 자체를 잘 읽고** 나중에 사용자가 드래그한 영역을 설명하는 데 필요한 페이지 요소 후보를 최대한 많이 추출한다.
 
 ## Runtime Defaults
 - baseline model: `gpt-5.4`
@@ -11,7 +16,7 @@
 - output contract: JSON only + local schema validation
 - backend wrapper adds `meta` outside the validated result body
 
-이 단계의 목적은 다음 4가지다.
+legacy/debug/fallback 모드에서 이 단계의 목적은 다음 5가지다.
 1. 페이지 역할 초안 생성
 2. 페이지 요약 초안 생성
 3. Page Guide 생성: 학생이 이 페이지를 어떤 순서와 관점으로 읽어야 하는지 안내

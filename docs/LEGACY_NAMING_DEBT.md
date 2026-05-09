@@ -23,6 +23,7 @@ This migration keeps old artifacts readable while moving active code and docs to
 | Legacy term | Current conceptual meaning | Class | Current handling |
 | --- | --- | --- | --- |
 | `candidate_anchors` | Persisted pass1 field for page elements / candidate regions | B/C | Storage accepts legacy `candidate_anchors` and new `page_elements` / `candidate_regions`, then normalizes to persisted `candidate_anchors` plus a loaded `page_elements` alias. Prompt output schema still uses `candidate_anchors`. |
+| `page_analysis_pass1.json` | Compatibility envelope for parser-first PageContext/PageElementMap | B/C | In `PASS1_MODE=parser_first`, this file is deterministic parser output shaped like legacy pass1 so old API/frontend/SelectionContext paths keep working. |
 | `candidate_anchor_count` | Page element count | A/B | Backend pass1 result now emits `page_element_count` and keeps `candidate_anchor_count` as compatibility metadata. |
 | `anchor_id` | Element ID, selection ID, or legacy anchor ID depending on artifact | B/C | Public page elements expose `element_id` while keeping `anchor_id`. Selection explanations still mirror `anchor_id = selection_id` for compatibility. |
 | `anchor_type` | Element type / region type / legacy anchor type | B/C | Public page elements expose `element_type` while keeping `anchor_type`. Prompt output schemas still use `anchor_type`. |
@@ -38,6 +39,7 @@ This migration keeps old artifacts readable while moving active code and docs to
 ## Backend Strategy
 
 - Persisted pass1 JSON remains backward compatible with `candidate_anchors`.
+- Parser-first PageContext is stored separately as `page_context.json`, while `page_analysis_pass1.json` remains the compatibility artifact for existing callers.
 - New pass1-like input can provide `page_elements` or `candidate_regions`.
 - `StorageService.load_pass1_result()` returns normalized `result.page_elements` so current code can use current naming without rewriting old JSON files.
 - `PagePublicResponse.page_elements` now uses the `PageElement` schema with `element_id` / `element_type` plus legacy aliases.
