@@ -95,6 +95,7 @@ class SelectionExplanationService:
         except Exception as exc:
             raise SelectionExplanationError(f"Selection explanation provider failed: {exc}") from exc
 
+        envelope = self._preserve_source_labels(envelope, selection_context)
         envelope = self._attach_selection_cache_meta(
             envelope,
             selection_context,
@@ -293,6 +294,103 @@ class SelectionExplanationService:
             return "ko"
         document = self.storage.get_document(document_id)
         return document.response_language if document is not None else "ko"
+
+    def _preserve_source_labels(
+        self,
+        envelope: dict[str, Any],
+        selection_context: dict[str, Any],
+    ) -> dict[str, Any]:
+        result = envelope.get("result")
+        if not isinstance(result, dict):
+            return envelope
+
+        related_candidates_by_page = {
+            int(candidate.get("page_number")): candidate
+            for candidate in selection_context.get("related_page_candidates", [])
+            if isinstance(candidate, dict) and candidate.get("page_number") is not None
+        }
+        if not related_candidates_by_page:
+            return envelope
+
+        normalized_result = dict(result)
+        normalized_related: list[dict[str, Any]] = []
+        changed = False
+        for item in normalized_result.get("related_concepts_and_pages") or []:
+            if not isinstance(item, dict):
+                continue
+            normalized_item = dict(item)
+            try:
+                page_number = int(normalized_item.get("page_number"))
+            except (TypeError, ValueError):
+                normalized_related.append(normalized_item)
+                continue
+            candidate = related_candidates_by_page.get(page_number)
+            if candidate is None:
+                normalized_related.append(normalized_item)
+                continue
+            source_labels = [
+                str(label)
+                for label in candidate.get("source_labels", [])
+                if str(label).strip()
+            ]
+            source_label = str(candidate.get("source_label") or "").strip()
+            concept = str(normalized_item.get("concept") or "").strip()
+            preserved_concept = self._source_preserved_related_concept(
+                concept=concept,
+                source_label=source_label,
+                source_labels=source_labels,
+            )
+            if preserved_concept and preserved_concept != concept:
+                normalized_item["concept"] = preserved_concept
+                changed = True
+            normalized_related.append(normalized_item)
+
+        if not changed:
+            return envelope
+
+        normalized_result["related_concepts_and_pages"] = normalized_related
+        return {
+            **envelope,
+            "result": normalized_result,
+        }
+
+    def _source_preserved_related_concept(
+        self,
+        *,
+        concept: str,
+        source_label: str,
+        source_labels: list[str],
+    ) -> str:
+        if not source_label:
+            return concept
+        if not concept:
+            return source_label
+
+        concept_key = concept.casefold()
+        source_keys = [label.casefold() for label in source_labels if label]
+        if any(concept_key in source_key or source_key in concept_key for source_key in source_keys):
+            return concept
+
+        source_has_ascii = any(self._has_ascii_letters(label) for label in source_labels)
+        source_has_hangul = any(self._has_hangul(label) for label in source_labels)
+        concept_has_ascii = self._has_ascii_letters(concept)
+        concept_has_hangul = self._has_hangul(concept)
+
+        if concept_has_hangul and source_has_ascii:
+            return source_label
+        if concept_has_ascii and source_has_hangul and not source_has_ascii:
+            return source_label
+        if concept in {"Prerequisite page", "Later related page", "Related page", "Mock concept"}:
+            return source_label
+        return concept
+
+    @staticmethod
+    def _has_hangul(value: str) -> bool:
+        return any("\uac00" <= character <= "\ud7a3" for character in value)
+
+    @staticmethod
+    def _has_ascii_letters(value: str) -> bool:
+        return any("a" <= character.lower() <= "z" for character in value)
 
     def _attach_selection_cache_meta(
         self,

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from typing import Any
 
 from app.services.storage import StorageService, get_storage_service
@@ -14,7 +15,7 @@ _MAX_RELATED_PAGES = 3
 _MAX_SOURCE_CANDIDATES = 4
 _MAX_TEXT_SNIPPET_CHARS = 360
 _MAX_SUMMARY_CHARS = 700
-_CONTEXT_VERSION = "selection_context_v1"
+_CONTEXT_VERSION = "selection_context_v2_source_text_policy"
 
 
 class SelectionContextBuilder:
@@ -77,6 +78,7 @@ class SelectionContextBuilder:
             matched_page_elements,
         )
         related_page_candidates = self._build_related_page_candidates(
+            document_id,
             document_summary,
             semantic_result,
             page_number,
@@ -94,6 +96,21 @@ class SelectionContextBuilder:
             "document_id": document_id,
             "page_number": page_number,
             "response_language": "en" if response_language == "en" else "ko",
+            "source_text_policy": {
+                "explanation_language": "en" if response_language == "en" else "ko",
+                "preserve_source_terms": True,
+                "preserve_fields": [
+                    "concept_title",
+                    "label",
+                    "related_concepts_and_pages[].concept",
+                    "source_cues[].label",
+                    "source_cues[].snippet",
+                ],
+                "rule": (
+                    "Write explanatory prose in response_language, but keep concept names, page titles, "
+                    "selected text, labels, and snippets in the exact language/wording found in the PDF."
+                ),
+            },
             "selected_bbox": rounded_bbox,
             "readiness": {
                 "page_context_ready": True,
@@ -337,6 +354,7 @@ class SelectionContextBuilder:
 
     def _build_related_page_candidates(
         self,
+        document_id: str,
         document_summary: dict[str, Any] | None,
         semantic_result: dict[str, Any] | None,
         page_number: int,
@@ -402,10 +420,143 @@ class SelectionContextBuilder:
             if related_page <= 0 or related_page == page_number or related_page in seen_pages:
                 continue
             seen_pages.add(related_page)
-            deduped_candidates.append(candidate)
+            deduped_candidates.append(
+                self._with_related_page_source_labels(document_id, related_page, candidate)
+            )
             if len(deduped_candidates) >= _MAX_RELATED_PAGES:
                 break
         return deduped_candidates
+
+    def _with_related_page_source_labels(
+        self,
+        document_id: str,
+        page_number: int,
+        candidate: dict[str, Any],
+    ) -> dict[str, Any]:
+        source_labels = self._related_page_source_labels(document_id, page_number)
+        source_label = self._best_source_label(source_labels)
+        semantic_concept = self._compact_text(candidate.get("concept"), max_chars=120)
+        source_preserved_concept = self._source_preserved_concept(
+            semantic_concept,
+            source_label,
+            source_labels,
+        )
+
+        enriched = dict(candidate)
+        enriched["semantic_concept"] = semantic_concept
+        enriched["concept"] = source_preserved_concept or semantic_concept
+        enriched["source_label"] = source_label
+        enriched["source_labels"] = source_labels[:5]
+        enriched["source_text_policy"] = "preserve_pdf_wording_for_concept_labels"
+        return enriched
+
+    def _related_page_source_labels(self, document_id: str, page_number: int) -> list[str]:
+        labels: list[str] = []
+        try:
+            page_context = self.storage.load_page_context(document_id, page_number)
+        except ValueError:
+            page_context = None
+        if isinstance(page_context, dict):
+            for heading in page_context.get("heading_chain", []):
+                self._append_source_label(labels, heading)
+            for element in page_context.get("page_elements", [])[:10]:
+                if not isinstance(element, dict):
+                    continue
+                self._append_source_label(labels, element.get("label"))
+                self._append_source_label(labels, element.get("text"))
+            for candidate in page_context.get("source_candidates", [])[:6]:
+                if not isinstance(candidate, dict):
+                    continue
+                self._append_source_label(labels, candidate.get("label"))
+                self._append_source_label(labels, candidate.get("snippet"))
+
+        if labels:
+            return labels
+
+        try:
+            pass1_artifact = self.storage.load_pass1_result(document_id, page_number)
+        except ValueError:
+            pass1_artifact = None
+        pass1_result = dict(pass1_artifact.get("result") or {}) if isinstance(pass1_artifact, dict) else {}
+        for element in self._page_elements_from_pass1_result(pass1_result)[:10]:
+            self._append_source_label(labels, element.get("label"))
+            self._append_source_label(labels, element.get("text"))
+        return labels
+
+    def _append_source_label(self, labels: list[str], value: object) -> None:
+        label = self._compact_text(value, max_chars=140)
+        if not label:
+            return
+        normalized_label = " ".join(label.split()).casefold()
+        if normalized_label in {"text", "paragraph", "heading", "formula", "image", "table", "figure"}:
+            return
+        if any(" ".join(existing.split()).casefold() == normalized_label for existing in labels):
+            return
+        labels.append(label)
+
+    def _best_source_label(self, labels: list[str]) -> str | None:
+        if not labels:
+            return None
+
+        def score(label: str) -> tuple[int, int]:
+            stripped = label.strip()
+            score_value = 0
+            if ":" in stripped:
+                score_value += 4
+            if self._contains_source_acronym(stripped):
+                score_value += 3
+            if 8 <= len(stripped) <= 96:
+                score_value += 2
+            if stripped.startswith(("•", "-", "→")):
+                score_value -= 2
+            if len(stripped) > 120:
+                score_value -= 2
+            return (score_value, -len(stripped))
+
+        return max(labels, key=score)
+
+    @staticmethod
+    def _contains_source_acronym(value: str) -> bool:
+        tokens = {token.upper() for token in re.findall(r"[A-Za-z0-9]+", value)}
+        return bool(tokens & {"AI", "ML", "DL", "LLM", "AIBT"})
+
+    def _source_preserved_concept(
+        self,
+        concept: str | None,
+        source_label: str | None,
+        source_labels: list[str],
+    ) -> str | None:
+        clean_concept = self._compact_text(concept, max_chars=120)
+        if not source_label:
+            return clean_concept
+        if not clean_concept:
+            return source_label
+
+        concept_key = clean_concept.casefold()
+        source_keys = [label.casefold() for label in source_labels]
+        if any(concept_key in source_key or source_key in concept_key for source_key in source_keys):
+            return clean_concept
+
+        concept_has_hangul = self._has_hangul(clean_concept)
+        source_has_hangul = any(self._has_hangul(label) for label in source_labels)
+        source_has_ascii_words = any(self._has_ascii_letters(label) for label in source_labels)
+        concept_has_ascii_words = self._has_ascii_letters(clean_concept)
+
+        if concept_has_hangul and source_has_ascii_words:
+            return source_label
+        if concept_has_ascii_words and source_has_hangul and not source_has_ascii_words:
+            return source_label
+        if clean_concept in {"Prerequisite page", "Later related page", "Related page", "Mock concept"}:
+            return source_label
+        return clean_concept
+
+    @staticmethod
+    def _has_hangul(value: str) -> bool:
+        return any("\uac00" <= character <= "\ud7a3" for character in value)
+
+    @staticmethod
+    def _has_ascii_letters(value: str) -> bool:
+        return any(("a" <= character.lower() <= "z") for character in value)
 
     def _semantic_document_guide(self, semantic_result: dict[str, Any] | None) -> dict[str, Any] | None:
         if not isinstance(semantic_result, dict):

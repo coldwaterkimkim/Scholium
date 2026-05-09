@@ -63,10 +63,19 @@ class SemanticGuideGenerator:
         )
         digest["response_language"] = response_language
         digest["response_language_instruction"] = (
-            "Write all student-facing DocumentGuide and PageGuide fields in English."
+            "Write explanatory guide prose in English. Preserve PDF/deck wording for source-derived "
+            "concept names, page titles, section titles, captions, formulas, acronyms, and snippets."
             if response_language == "en"
-            else "Write all student-facing DocumentGuide and PageGuide fields in Korean."
+            else "Write explanatory guide prose in Korean. Preserve PDF/deck wording for source-derived "
+            "concept names, page titles, section titles, captions, formulas, acronyms, and snippets."
         )
+        digest["source_text_policy"] = {
+            "preserve_source_terms": True,
+            "rule": (
+                "Explanation prose follows response_language; source-derived labels and snippets keep the "
+                "exact PDF/deck language and wording."
+            ),
+        }
         digest_size_chars = len(json.dumps(digest, ensure_ascii=False, separators=(",", ":")))
 
         try:

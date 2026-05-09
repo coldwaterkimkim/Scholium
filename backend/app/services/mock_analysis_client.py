@@ -264,14 +264,25 @@ class MockAnalysisClient:
             else "Selected region"
         )
         response_language = "en" if selection_context.get("response_language") == "en" else "ko"
+        related_candidates = [
+            candidate
+            for candidate in selection_context.get("related_page_candidates", [])
+            if isinstance(candidate, dict)
+        ]
         related_page = None
-        for concept in document_context.get("key_concepts", []):
-            for page in concept.get("pages", []):
-                if int(page) != page_number:
-                    related_page = int(page)
+        related_concept = "Mock concept"
+        if related_candidates:
+            first_candidate = related_candidates[0]
+            related_page = int(first_candidate.get("page_number") or 0) or None
+            related_concept = str(first_candidate.get("concept") or first_candidate.get("source_label") or related_concept)
+        else:
+            for concept in document_context.get("key_concepts", []):
+                for page in concept.get("pages", []):
+                    if int(page) != page_number:
+                        related_page = int(page)
+                        break
+                if related_page is not None:
                     break
-            if related_page is not None:
-                break
 
         return self._wrap(
             "selection_explanation",
@@ -324,9 +335,13 @@ class MockAnalysisClient:
                 ),
                 "related_concepts_and_pages": [
                     {
-                        "concept": "Mock concept",
+                        "concept": related_concept,
                         "page_number": related_page,
-                        "relation_reason": "문서 요약에서 같은 흐름으로 묶인 개념이다.",
+                        "relation_reason": (
+                            "The document summary groups it into the same learning path."
+                            if response_language == "en"
+                            else "문서 요약에서 같은 흐름으로 묶인 개념이다."
+                        ),
                     }
                 ],
                 "source_cues": [
