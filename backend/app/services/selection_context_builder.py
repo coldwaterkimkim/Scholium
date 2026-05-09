@@ -5,6 +5,7 @@ import json
 import re
 from typing import Any
 
+from app.services.selection_target_resolver import SelectionTargetResolver
 from app.services.storage import StorageService, get_storage_service
 
 
@@ -15,14 +16,19 @@ _MAX_RELATED_PAGES = 3
 _MAX_SOURCE_CANDIDATES = 4
 _MAX_TEXT_SNIPPET_CHARS = 360
 _MAX_SUMMARY_CHARS = 700
-_CONTEXT_VERSION = "selection_context_v2_source_text_policy"
+_CONTEXT_VERSION = "selection_context_v3_selection_target"
 
 
 class SelectionContextBuilder:
     """Build the compact context sent to the selection explanation provider."""
 
-    def __init__(self, storage: StorageService | None = None) -> None:
+    def __init__(
+        self,
+        storage: StorageService | None = None,
+        selection_target_resolver: SelectionTargetResolver | None = None,
+    ) -> None:
         self.storage = storage or get_storage_service()
+        self.selection_target_resolver = selection_target_resolver or SelectionTargetResolver()
 
     def build(
         self,
@@ -61,8 +67,18 @@ class SelectionContextBuilder:
         )
 
         rounded_bbox = self.round_bbox(selected_bbox)
+        page_elements = self._page_elements_from_pass1_result(pass1_result)
+        selection_target = self.selection_target_resolver.resolve(
+            document_id=document_id,
+            page_number=page_number,
+            selected_bbox=rounded_bbox,
+            page_parse=page_parse,
+            page_elements=page_elements,
+            pdf_path=self._source_pdf_path(document_id),
+            rendered_page_image_path=self._rendered_page_image_path(document_id, page_number),
+        )
         matched_page_elements = self._rank_page_elements(
-            self._page_elements_from_pass1_result(pass1_result),
+            page_elements,
             rounded_bbox,
         )
         nearby_text_blocks = self._rank_nearby_text_blocks(page_parse, rounded_bbox)
@@ -87,6 +103,8 @@ class SelectionContextBuilder:
         )
         source_candidates = self._build_source_candidates(
             page_number,
+            rounded_bbox,
+            selection_target,
             matched_page_elements,
             nearby_text_blocks,
             document_context_brief,
@@ -103,6 +121,8 @@ class SelectionContextBuilder:
                 "preserve_fields": [
                     "concept_title",
                     "label",
+                    "selection_context.selection_target.selected_text_exact",
+                    "selection_context.selection_target.enclosing_block_text",
                     "related_concepts_and_pages[].concept",
                     "source_cues[].label",
                     "source_cues[].snippet",
@@ -113,6 +133,7 @@ class SelectionContextBuilder:
                 ),
             },
             "selected_bbox": rounded_bbox,
+            "selection_target": selection_target,
             "readiness": {
                 "page_context_ready": True,
                 "document_context_ready": document_summary is not None or semantic_result is not None,
@@ -147,6 +168,9 @@ class SelectionContextBuilder:
             "matched_element_count": len(matched_page_elements),
             "nearby_text_block_count": len(nearby_text_blocks),
             "source_candidate_count": len(source_candidates),
+            "matched_word_count": int(selection_target.get("matched_word_count") or 0),
+            "selection_target_confidence": float(selection_target.get("confidence") or 0.0),
+            "selection_target_kind": str(selection_target.get("target_kind") or "unknown"),
         }
         return context
 
@@ -179,6 +203,18 @@ class SelectionContextBuilder:
         except ValueError:
             return None
         return dict(payload) if isinstance(payload, dict) else None
+
+    def _source_pdf_path(self, document_id: str) -> str | None:
+        document = self.storage.get_document(document_id)
+        if document is None:
+            return None
+        return self.storage.resolve_relative_path(document.original_path).as_posix()
+
+    def _rendered_page_image_path(self, document_id: str, page_number: int) -> str | None:
+        page = self.storage.get_page(document_id, page_number)
+        if page is None:
+            return None
+        return self.storage.resolve_relative_path(page.image_path).as_posix()
 
     def _rank_page_elements(
         self,
@@ -654,11 +690,37 @@ class SelectionContextBuilder:
     def _build_source_candidates(
         self,
         page_number: int,
+        selected_bbox: list[float],
+        selection_target: dict[str, Any],
         matched_page_elements: list[dict[str, Any]],
         nearby_text_blocks: list[dict[str, Any]],
         document_context_brief: dict[str, Any],
     ) -> list[dict[str, Any]]:
         candidates: list[dict[str, Any]] = []
+        selected_text_exact = self._compact_text(selection_target.get("selected_text_exact"), max_chars=220)
+        if selected_text_exact:
+            candidates.append(
+                {
+                    "source_type": "this_slide",
+                    "label": selected_text_exact,
+                    "page_number": page_number,
+                    "snippet": selected_text_exact,
+                    "bbox": selected_bbox,
+                    "source_role": "selection_target",
+                }
+            )
+        enclosing_block_text = self._compact_text(selection_target.get("enclosing_block_text"), max_chars=260)
+        if enclosing_block_text and enclosing_block_text != selected_text_exact:
+            candidates.append(
+                {
+                    "source_type": "this_slide",
+                    "label": "Enclosing context",
+                    "page_number": page_number,
+                    "snippet": enclosing_block_text,
+                    "bbox": selected_bbox,
+                    "source_role": "context_only",
+                }
+            )
         for element in matched_page_elements:
             candidates.append(
                 {
@@ -667,6 +729,12 @@ class SelectionContextBuilder:
                     "page_number": page_number,
                     "snippet": element.get("short_explanation") or element.get("question"),
                     "bbox": element.get("bbox"),
+                    "source_role": (
+                        "target_support"
+                        if selection_target.get("bbox_match_mode") == "near_exact_element_match"
+                        and element.get("element_id") == selection_target.get("primary_element_id")
+                        else "context_only"
+                    ),
                 }
             )
         for block in nearby_text_blocks:

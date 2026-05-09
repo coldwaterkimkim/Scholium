@@ -82,14 +82,18 @@ const PANEL_COPY = {
   ko: {
     ariaLabel: "선택 설명",
     eyebrow: "선택 설명",
-    studyImportance: "학습 중요도",
+    studyImportance: "Study Importance",
     studyImportanceTitle:
-      "학습 중요도는 문서 핵심 주제와의 관련성, 이후 개념의 선행 지식 여부, 반복 출현 가능성, 시험/복습 가치 기준이야.",
-    criteriaText: "중심성, 선행 지식, 반복 가능성, 복습 가치를 함께 본 값이야.",
-    meaning: "문맥 속 의미",
-    why: "여기서 중요한 이유",
-    related: "관련 개념과 페이지",
-    source: "근거",
+      "Study Importance는 선택 대상이 이 페이지를 이해하는 데 얼마나 중심적인지 보는 값이야.",
+    criteriaText: "애매하면 Medium으로 두고, High는 진짜 중심 개념에만 써.",
+    focusType: "focus",
+    whatThisIs: "What this is",
+    whatItMeansHere: "What it means here",
+    omittedContext: "Omitted Context",
+    commonConfusion: "Common Confusion",
+    exampleOrApplication: "Example / Application",
+    related: "Related concepts and pages",
+    source: "Source cues",
     sourceFallback: "이 결과에는 근거 단서가 없어.",
     confidence: "신뢰도",
     confidenceTitle:
@@ -110,12 +114,16 @@ const PANEL_COPY = {
     eyebrow: "Selected explanation",
     studyImportance: "Study Importance",
     studyImportanceTitle:
-      "Study importance combines centrality, prerequisite value, recurrence, and review value.",
-    criteriaText: "Centrality, prerequisite value, recurrence, and review value are considered together.",
-    meaning: "Meaning in context",
-    why: "Why it matters here",
+      "Study Importance reflects how central this exact selected target is to understanding the page.",
+    criteriaText: "If uncertain, Medium is preferred; High is reserved for truly central selections.",
+    focusType: "focus",
+    whatThisIs: "What this is",
+    whatItMeansHere: "What it means here",
+    omittedContext: "Omitted Context",
+    commonConfusion: "Common Confusion",
+    exampleOrApplication: "Example / Application",
     related: "Related concepts and pages",
-    source: "Source",
+    source: "Source cues",
     sourceFallback: "Source cues unavailable for this artifact.",
     confidence: "Confidence",
     confidenceTitle: "Confidence is grounding strength, not a guarantee of correctness.",
@@ -150,6 +158,37 @@ function localizedImportanceLevel(level: string, responseLanguage: ResponseLangu
     }
   }
   return level;
+}
+
+function getImportanceLevel(studyImportance: LegacyPrecomputedAnchor["study_importance"]): "low" | "medium" | "high" {
+  const rawLevel = studyImportance?.importance_level ?? studyImportance?.level ?? "medium";
+  const normalized = rawLevel.trim().toLowerCase();
+  if (normalized === "high" || normalized === "low") {
+    return normalized;
+  }
+  return "medium";
+}
+
+function getImportanceScore(studyImportance: LegacyPrecomputedAnchor["study_importance"]): 1 | 2 | 3 | 4 | 5 {
+  if (studyImportance?.score) {
+    return studyImportance.score;
+  }
+  const level = getImportanceLevel(studyImportance);
+  if (level === "high") {
+    return 5;
+  }
+  if (level === "low") {
+    return 2;
+  }
+  return 3;
+}
+
+function formatFocusType(focusType: string | null | undefined): string | null {
+  const normalized = focusType?.trim();
+  if (!normalized) {
+    return null;
+  }
+  return normalized.replaceAll("_", " ");
 }
 
 function localizedSourceType(sourceType: string, responseLanguage: ResponseLanguage): string {
@@ -414,8 +453,15 @@ export function SelectedExplanationPanel({
   const conceptTitle = "concept_title" in explanation ? explanation.concept_title : explanation.label;
   const sourceId = "selection_id" in explanation ? explanation.selection_id : explanation.anchor_id;
   const isSelectionExplanation = "selection_id" in explanation && "document_id" in explanation;
-  const meaningInContext = explanation.meaning_in_context || explanation.short_explanation;
-  const whyItMattersHere = explanation.why_it_matters_here || explanation.long_explanation;
+  const importanceLevel = getImportanceLevel(explanation.study_importance);
+  const importanceScore = getImportanceScore(explanation.study_importance);
+  const importanceFocusType = formatFocusType(explanation.study_importance?.focus_type);
+  const whatThisIs = explanation.what_this_is || explanation.short_explanation;
+  const whatItMeansHere =
+    explanation.what_it_means_here || explanation.meaning_in_context || explanation.long_explanation;
+  const omittedContext = explanation.omitted_context?.trim();
+  const commonConfusion = explanation.common_confusion?.trim();
+  const exampleOrApplication = explanation.example_or_application?.trim();
   const relatedConcepts = normalizeRelatedConcepts(explanation, currentPage);
   const sourceCues = explanation.source_cues ?? [];
   const confidencePercent = Number.isFinite(explanation.confidence)
@@ -774,13 +820,18 @@ export function SelectedExplanationPanel({
               </div>
               <div className={styles.importanceValue}>
                 <span className={styles.importanceLevel}>
-                  {localizedImportanceLevel(explanation.study_importance.level, responseLanguage)}
+                  {localizedImportanceLevel(importanceLevel, responseLanguage)}
                 </span>
+                {importanceFocusType ? (
+                  <span className={styles.importanceFocus}>
+                    {copy.focusType}: {importanceFocusType}
+                  </span>
+                ) : null}
                 <span
                   className={styles.dots}
-                  aria-label={`${copy.scoreLabel} ${explanation.study_importance.score} / 5`}
+                  aria-label={`${copy.scoreLabel} ${importanceScore} / 5`}
                 >
-                  {scoreDots(explanation.study_importance.score).map((isActive, index) => (
+                  {scoreDots(importanceScore).map((isActive, index) => (
                     <span
                       key={index}
                       className={`${styles.dot} ${isActive ? styles.dotActive : ""}`}
@@ -796,14 +847,35 @@ export function SelectedExplanationPanel({
           ) : null}
 
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>{copy.meaning}</h3>
-            <p className={styles.bodyText}>{meaningInContext}</p>
+            <h3 className={styles.sectionTitle}>{copy.whatThisIs}</h3>
+            <p className={styles.bodyText}>{whatThisIs}</p>
           </section>
 
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>{copy.why}</h3>
-            <p className={styles.bodyText}>{whyItMattersHere}</p>
+            <h3 className={styles.sectionTitle}>{copy.whatItMeansHere}</h3>
+            <p className={styles.bodyText}>{whatItMeansHere}</p>
           </section>
+
+          {omittedContext ? (
+            <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>{copy.omittedContext}</h3>
+              <p className={styles.bodyText}>{omittedContext}</p>
+            </section>
+          ) : null}
+
+          {commonConfusion ? (
+            <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>{copy.commonConfusion}</h3>
+              <p className={styles.bodyText}>{commonConfusion}</p>
+            </section>
+          ) : null}
+
+          {exampleOrApplication ? (
+            <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>{copy.exampleOrApplication}</h3>
+              <p className={styles.bodyText}>{exampleOrApplication}</p>
+            </section>
+          ) : null}
 
           {relatedConcepts.length > 0 ? (
             <section className={styles.section}>

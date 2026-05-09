@@ -25,11 +25,11 @@
 | stage | model | reasoning.effort | prompt_version |
 | --- | --- | --- | --- |
 | pass1 parser_first | model call 없음 | n/a | `parser_first_page_context_v0_1` |
-| semantic_guide | `gpt-5.5` via Codex CLI | `medium` | `semantic_guide_v0_1` |
+| semantic_guide | `gpt-5.5` via Codex CLI | `medium` | `semantic_guide_v0_3` |
 | pass1 legacy_llm | `gpt-5.4` | `medium` | `pass1_v0_1` |
 | document_synthesis legacy | `gpt-5.4` | `medium` | `synthesis_v0_1` |
 | pass2 legacy | `gpt-5.4` | `medium` | `pass2_v0_2` |
-| selection_explanation | `gpt-5.5` | `medium` | `selection_explanation_v0_1` |
+| selection_explanation | `gpt-5.5` | `medium` | `selection_explanation_v0_3` |
 
 ## 2026-05 selected-region pivot
 
@@ -40,7 +40,9 @@
 - `pass2`는 legacy/debug path로 내려간다. `SCHOLIUM_PRECOMPUTE_ANCHORED_EXPLANATIONS=true`일 때만 선제 final anchor artifact를 만든다.
 - 사용자가 viewer에서 drag-select한 bbox는 `POST /api/documents/{document_id}/pages/{page_number}/selection-explanation`로 전달된다.
 - selection explanation은 page image와 compact `SelectionContext`를 입력으로 Codex CLI가 생성한다. full pass1 artifact, full document summary, full page text, 모든 page element는 기본 payload에 넣지 않는다.
-- `SelectionContext`에는 선택 bbox, matched page elements 최대 5개, nearby text blocks 최대 5개, page role/summary, compact PageGuide subset, 짧은 DocumentGuide/document context, related page candidates 최대 3개, source candidates가 들어간다.
+- `SelectionTargetResolver`가 먼저 선택 bbox 안의 exact text / near-exact page element / multi-element / visual crop / mixed target을 결정한다. LLM 호출이나 full parse 재실행은 하지 않는다.
+- `SelectionContext`에는 `selection_target`, 선택 bbox, matched page elements 최대 5개, nearby text blocks 최대 5개, page role/summary, compact PageGuide/Wrap-up subset, 짧은 DocumentGuide/document context, related page candidates 최대 3개, source candidates가 들어간다.
+- 정보 우선순위는 `selection_target` > selected bbox > matched page elements/nearby blocks > PageGuide/DocumentGuide/Wrap-up이다. page elements는 context이며 near-exact bbox match일 때만 primary target support가 된다.
 - cache key는 document/page, 3자리 반올림 bbox, prompt/schema/provider/model/reasoning, context hash를 포함한다.
 - selection explanation artifact는 `data/analysis/{document_id}/pages/{page_number}/selection_explanations/{selection_id}.json`에 저장한다.
 - invalid JSON 또는 schema validation 실패 결과는 저장하지 않는다.
@@ -59,9 +61,12 @@
 
 ## 2026-05 page guide layer
 
-- Scholium의 설명 UI는 두 레이어로 나뉜다.
-  - `Page Guide`: 페이지 단위 proactive macro orientation. viewer 상단에 붙어서 페이지 역할, thesis, key question, reading path, logic flow, key concepts, omitted context, study focus, confusions, takeaways, self-check를 보여준다.
+- Scholium의 설명 UI는 세 레이어로 나뉜다.
+  - `Page Guide`: 페이지 단위 proactive macro orientation. viewer 상단에 붙어서 page role, previous connection, one-line thesis만 보여준다.
+  - `Wrap-up`: 페이지 단위 proactive review. viewer 하단에 붙어서 logic flow, study focus, must remember, next connection만 보여준다.
   - `Selected Explanation Panel`: 선택 영역 단위 reactive micro explanation. 기존처럼 selected bbox 근처에 floating panel로 뜬다.
+- Selected Explanation Panel은 Study Importance, What this is, What it means here, optional Omitted Context/Common Confusion/Example, related concepts/pages, source cues, follow-up 순서로 표시한다.
+- `key_concept_detail`은 별도 section으로 만들지 않는다. `common_confusion`은 generic dictionary ambiguity가 아니라 PDF 학습 맥락에서 헷갈리기 쉬운 개념 구분이다.
 - `page_guide`는 pass1 page artifact의 일부로 생성한다.
 - public page API는 `page_guide: PageGuide | null`을 반환한다.
 - 오래된 pass1 artifact에 `page_guide`가 없으면 loader/API에서 `page_role`과 `page_summary` 기반의 최소 fallback을 제공하고, unavailable rich fields는 비워둔다.

@@ -102,8 +102,10 @@ export type PrerequisiteLink = {
 };
 
 export type StudyImportance = {
-  level: "low" | "medium" | "high";
-  score: 1 | 2 | 3 | 4 | 5;
+  importance_level?: "low" | "medium" | "high";
+  level?: "low" | "medium" | "high";
+  score?: 1 | 2 | 3 | 4 | 5;
+  focus_type?: string | null;
   reason?: string | null;
 };
 
@@ -150,6 +152,11 @@ export type LegacyPrecomputedAnchor = {
   study_importance?: StudyImportance | null;
   meaning_in_context?: string | null;
   why_it_matters_here?: string | null;
+  what_this_is?: string | null;
+  what_it_means_here?: string | null;
+  omitted_context?: string | null;
+  common_confusion?: string | null;
+  example_or_application?: string | null;
   related_concepts_and_pages?: RelatedConceptPage[] | null;
   source_cues?: SourceCue[] | null;
 };
@@ -190,8 +197,11 @@ export type SelectionExplanation = LegacyPrecomputedAnchor & {
   selected_bbox: [number, number, number, number];
   explanation_mode: "selection";
   study_importance: StudyImportance;
-  meaning_in_context: string;
-  why_it_matters_here: string;
+  what_this_is: string;
+  what_it_means_here: string;
+  omitted_context?: string | null;
+  common_confusion?: string | null;
+  example_or_application?: string | null;
   related_concepts_and_pages: RelatedConceptPage[];
   source_cues: SourceCue[];
 };

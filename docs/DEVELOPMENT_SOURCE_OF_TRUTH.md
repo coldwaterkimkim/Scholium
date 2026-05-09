@@ -45,6 +45,7 @@ Raw generated benchmark runs belong in ignored local `docs/perf_runs/` outputs, 
 - `backend/app/services/storage.py`
 - `backend/app/services/document_parser.py`
 - `backend/app/services/pymupdf4llm_adapter.py`
+- `backend/app/services/selection_target_resolver.py`
 - `backend/app/services/page_context_builder.py`
 - `backend/app/services/semantic_guide_generator.py`
 - `backend/app/services/orchestrator.py`

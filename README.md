@@ -134,11 +134,12 @@ OpenAI API 키는 기본 실행에 필요하지 않다. 로컬 MVP 분석 provid
 3. page image만 준비된 `render_only`는 내부 상태일 뿐, 사용자-facing 기본 flow에서는 viewer 진입 조건이 아니다.
 4. render, parser-first PageContext/PageElementMap, DocumentGuide, 전체 Page Guide/Wrap-up이 모두 준비되면 viewer 진입이 가능해진다. top-edge `Page Guide`는 page role, previous connection, one-line thesis만 보여준다.
 5. 사용자가 헷갈리는 영역을 드래그하면 frontend가 normalized bbox `[x, y, w, h]`를 보낸다.
-6. Semantic Guide/document summary compatibility artifact까지 준비되면 `on_demand`가 되고, 문서 전체 맥락이 포함된 full selected-region explanation을 만든다.
-7. backend가 full pass1/document artifact를 그대로 보내지 않고 compact `SelectionContext`를 만든다.
-8. Codex CLI가 선택 영역 전용 JSON 설명을 생성한다.
-9. schema validation을 통과한 결과만 `data/analysis/<document_id>/pages/<page>/selection_explanations/`에 저장된다.
-10. floating academic annotation panel이 선택 영역 옆에 뜬다.
+6. backend가 `SelectionTargetResolver`로 선택 bbox 안의 exact text / page element / visual crop target을 먼저 정한다.
+7. Semantic Guide/document summary compatibility artifact까지 준비되면 `on_demand`가 되고, 문서 전체 맥락이 포함된 full selected-region explanation을 만든다.
+8. backend가 full pass1/document artifact를 그대로 보내지 않고 compact `SelectionContext`를 만든다. 이때 `selection_target`이 1순위이고, page elements는 context/support다.
+9. Codex CLI가 선택 영역 전용 JSON 설명을 생성한다.
+10. schema validation을 통과한 결과만 `data/analysis/<document_id>/pages/<page>/selection_explanations/`에 저장된다.
+11. floating academic annotation panel이 선택 영역 옆에 뜬다.
 
 Scholium의 설명 UI는 세 레이어로 나뉜다.
 
@@ -147,6 +148,8 @@ Scholium의 설명 UI는 세 레이어로 나뉜다.
 - `Selected Explanation Panel`: 선택 영역 단위, reactive, micro explanation. "내가 드래그한 이 부분은 무슨 뜻이지?"에 답한다.
 
 `reading_path`, `self_check_questions`, per-page `key_concepts`, `omitted_context`, `example_or_application`, `common_confusions`는 더 이상 proactive Page Guide에서 생성하지 않는다. 이런 자세한 정보는 나중에 Selection Explanation 또는 optional deep-dive 흐름으로 옮길 영역이다.
+
+Selected Explanation Panel은 Study Importance, What this is, What it means here, optional Omitted Context/Common Confusion/Example, related concepts/pages, source cues, follow-up 순서로 표시한다. `key_concept_detail`은 의도적으로 별도 section이 아니며, `common_confusion`은 PDF 학습 맥락에서 헷갈릴 만한 개념 구분이 있을 때만 생성한다.
 
 Pass1 artifact의 persisted field는 legacy 호환 때문에 아직 `candidate_anchors`지만, 현재 제품 의미와 public page API 이름은 `page_elements`다. 새 코드에서는 `page_elements` / `element_id` / `element_type`을 우선 쓰고, `candidate_anchors` / `anchor_id` / `anchor_type`은 저장 artifact와 legacy/debug 호환용으로만 취급한다.
 `PASS1_MODE=parser_first`에서는 LLM이 bbox/page element를 만들지 않는다. parser가 `page_context.json`과 PageElementMap을 만들고, 기존 API 호환을 위해 `page_analysis_pass1.json`에도 parser-derived page elements를 저장한다.

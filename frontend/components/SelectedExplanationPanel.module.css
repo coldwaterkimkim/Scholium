@@ -165,6 +165,15 @@
   text-transform: capitalize;
 }
 
+.importanceFocus {
+  max-width: 150px;
+  color: #69705f;
+  cursor: text;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
 .importanceReason {
   grid-column: 1 / -1;
   margin: 0;

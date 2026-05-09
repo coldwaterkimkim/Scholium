@@ -319,9 +319,10 @@ class MockAnalysisClient:
         selected_bbox: list[float],
         selection_context: dict[str, Any],
     ) -> dict[str, Any]:
+        selection_target = dict(selection_context.get("selection_target") or {})
         matched_preprocessed_elements = list(selection_context.get("matched_page_elements", []))
         document_context = dict(selection_context.get("document_context_brief") or {})
-        matched_label = (
+        matched_label = str(selection_target.get("selected_text_exact") or "").strip() or (
             str(matched_preprocessed_elements[0].get("label"))
             if matched_preprocessed_elements
             else "Selected region"
@@ -378,24 +379,27 @@ class MockAnalysisClient:
                 "related_pages": [related_page] if related_page else [],
                 "confidence": 0.72,
                 "study_importance": {
-                    "level": "medium",
-                    "score": 3,
+                    "importance_level": "medium",
+                    "focus_type": "background_context",
                     "reason": (
                         "The selected region overlaps with a preprocessed element on the current page."
                         if response_language == "en"
                         else "선택된 영역이 현재 페이지의 전처리 요소와 일부 겹친다."
                     ),
                 },
-                "meaning_in_context": (
+                "what_this_is": (
+                    f"{matched_label} is the exact selected target from the page."
+                    if response_language == "en"
+                    else f"{matched_label}은 페이지에서 사용자가 정확히 선택한 대상이다."
+                ),
+                "what_it_means_here": (
                     "This region is the user's chosen point of confusion, interpreted through the current page summary."
                     if response_language == "en"
                     else "이 영역은 사용자가 직접 지정한 막힘 지점이며, 현재 페이지 요약과 연결해 해석된다."
                 ),
-                "why_it_matters_here": (
-                    "Scholium does not preselect this point; it explains it only after the user selects it."
-                    if response_language == "en"
-                    else "Scholium은 이 지점을 먼저 정하지 않고, 사용자가 선택한 순간에만 설명을 만든다."
-                ),
+                "omitted_context": None,
+                "common_confusion": None,
+                "example_or_application": None,
                 "related_concepts_and_pages": [
                     {
                         "concept": related_concept,

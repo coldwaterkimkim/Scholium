@@ -514,6 +514,7 @@ class CodexCLIClient:
                     "matched_element_count": int(context_metrics.get("matched_element_count", 0)),
                     "nearby_text_block_count": int(context_metrics.get("nearby_text_block_count", 0)),
                     "source_candidate_count": int(context_metrics.get("source_candidate_count", 0)),
+                    "matched_word_count": int(context_metrics.get("matched_word_count", 0)),
                 }
             )
         return meta

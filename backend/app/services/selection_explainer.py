@@ -304,17 +304,28 @@ class SelectionExplanationService:
         if not isinstance(result, dict):
             return envelope
 
+        normalized_result = dict(result)
+        changed = False
+        selection_target = selection_context.get("selection_target")
+        if isinstance(selection_target, dict):
+            selected_text_exact = str(selection_target.get("selected_text_exact") or "").strip()
+            if selected_text_exact:
+                if normalized_result.get("concept_title") != selected_text_exact:
+                    normalized_result["concept_title"] = selected_text_exact
+                    changed = True
+                if normalized_result.get("label") != selected_text_exact:
+                    normalized_result["label"] = selected_text_exact
+                    changed = True
+
         related_candidates_by_page = {
             int(candidate.get("page_number")): candidate
             for candidate in selection_context.get("related_page_candidates", [])
             if isinstance(candidate, dict) and candidate.get("page_number") is not None
         }
         if not related_candidates_by_page:
-            return envelope
+            return {**envelope, "result": normalized_result} if changed else envelope
 
-        normalized_result = dict(result)
         normalized_related: list[dict[str, Any]] = []
-        changed = False
         for item in normalized_result.get("related_concepts_and_pages") or []:
             if not isinstance(item, dict):
                 continue
@@ -412,6 +423,8 @@ class SelectionExplanationService:
                 "matched_element_count": int(metrics.get("matched_element_count", 0)),
                 "nearby_text_block_count": int(metrics.get("nearby_text_block_count", 0)),
                 "source_candidate_count": int(metrics.get("source_candidate_count", 0)),
+                "matched_word_count": int(metrics.get("matched_word_count", 0)),
+                "selection_target_kind": str(metrics.get("selection_target_kind") or "unknown"),
             }
         )
         if "prompt_payload_size_chars" not in meta:

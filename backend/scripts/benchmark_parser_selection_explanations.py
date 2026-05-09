@@ -273,7 +273,16 @@ def _evaluate_result(result: dict[str, Any] | None, spec: SelectionSpec) -> dict
         return {"source_cue_count": 0, "related_count": 0, "mentions_expected_label": False, "has_specific_title": False}
     text = " ".join(
         str(result.get(key) or "")
-        for key in ["concept_title", "label", "meaning_in_context", "why_it_matters_here", "short_explanation", "long_explanation"]
+        for key in [
+            "concept_title",
+            "label",
+            "what_this_is",
+            "what_it_means_here",
+            "meaning_in_context",
+            "why_it_matters_here",
+            "short_explanation",
+            "long_explanation",
+        ]
     ).lower()
     expected_terms = [term for term in spec.expected_concept_label.lower().replace("/", " ").split() if len(term) >= 4]
     return {
