@@ -9,6 +9,7 @@ import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   ApiRequestError,
@@ -23,6 +24,7 @@ import {
   createSelectionExplanation,
   deleteSelectionExplanation,
   getDocument,
+  getDocumentProcessing,
   getDocumentSummary,
   getPageResult,
   getSelectionExplanationHistory,
@@ -926,6 +928,7 @@ function isSamePersistedSelection(job: SelectionJob, explanation: SelectionExpla
 }
 
 export function DocumentViewer({ documentId }: DocumentViewerProps) {
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [documentMeta, setDocumentMeta] = useState<DocumentMeta | null>(null);
@@ -1605,6 +1608,7 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
     const documentRequestId = ++documentRequestIdRef.current;
     const summaryController = new AbortController();
     const documentController = new AbortController();
+    const processingController = new AbortController();
 
     setCurrentPage(1);
     setTotalPages(1);
@@ -1622,6 +1626,15 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
 
     async function loadDocumentMetaAndSummary() {
       try {
+        const processing = await getDocumentProcessing(documentId, processingController.signal);
+        if (documentRequestId !== documentRequestIdRef.current) {
+          return;
+        }
+        if (!processing.ready_for_viewer && !processing.viewer_ready) {
+          router.replace(`/documents/${encodeURIComponent(documentId)}/processing`);
+          return;
+        }
+
         const meta = await getDocument(documentId, documentController.signal);
         if (documentRequestId !== documentRequestIdRef.current) {
           return;
@@ -1673,10 +1686,11 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
     void loadDocumentMetaAndSummary();
 
     return () => {
+      processingController.abort();
       documentController.abort();
       summaryController.abort();
     };
-  }, [documentId, resetSelectionJobs]);
+  }, [documentId, resetSelectionJobs, router]);
 
   useEffect(() => {
     function handleEscape(event: KeyboardEvent) {
@@ -1951,6 +1965,13 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
             </div>
 
             <div className={styles.navRow}>
+              <button
+                type="button"
+                className={`${styles.navButton} ${styles.homeButton}`}
+                onClick={() => router.push("/")}
+              >
+                작업 홈
+              </button>
               <button
                 type="button"
                 className={styles.navButton}

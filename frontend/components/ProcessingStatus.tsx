@@ -8,6 +8,7 @@ import {
   type DocumentProcessing,
   type ProcessingFailureSummary,
   getDocumentProcessing,
+  retryDocumentProcessing,
 } from "@/lib/api";
 
 import styles from "./ProcessingStatus.module.css";
@@ -60,6 +61,8 @@ export function ProcessingStatus({ documentId }: ProcessingStatusProps) {
   const router = useRouter();
   const [snapshot, setSnapshot] = useState<DocumentProcessing | null>(null);
   const [loading, setLoading] = useState(true);
+  const [retryNonce, setRetryNonce] = useState(0);
+  const [retrying, setRetrying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -123,7 +126,22 @@ export function ProcessingStatus({ documentId }: ProcessingStatusProps) {
       }
       controller?.abort();
     };
-  }, [documentId, router]);
+  }, [documentId, router, retryNonce]);
+
+  async function handleRetry() {
+    setRetrying(true);
+    setError(null);
+
+    try {
+      const nextSnapshot = await retryDocumentProcessing(documentId);
+      setSnapshot(nextSnapshot);
+      setRetryNonce((currentNonce) => currentNonce + 1);
+    } catch (retryError: unknown) {
+      setError(getProcessingErrorMessage(retryError));
+    } finally {
+      setRetrying(false);
+    }
+  }
 
   const isFailed = snapshot?.status === "failed";
   const canOpenViewer = Boolean(snapshot?.ready_for_viewer || snapshot?.viewer_ready);
@@ -234,6 +252,18 @@ export function ProcessingStatus({ documentId }: ProcessingStatusProps) {
             <button type="button" className={styles.secondaryButton} onClick={() => router.push("/")}>
               작업 목록
             </button>
+            {isFailed ? (
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => {
+                  void handleRetry();
+                }}
+                disabled={retrying}
+              >
+                {retrying ? "재처리 시작 중..." : "재처리"}
+              </button>
+            ) : null}
             <button
               type="button"
               className={styles.primaryButton}
@@ -269,7 +299,7 @@ export function ProcessingStatus({ documentId }: ProcessingStatusProps) {
 
           {isFailed ? (
             <div className={styles.failureNote}>
-              처리에 실패해서 viewer로 이동하지 않았어. 지금 단계에선 재시도 버튼은 아직 없어.
+              처리에 실패해서 viewer로 이동하지 않았어. 재처리를 눌러 준비 단계를 다시 실행할 수 있어.
             </div>
           ) : null}
         </section>

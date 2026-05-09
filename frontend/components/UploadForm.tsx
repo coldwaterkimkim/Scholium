@@ -8,6 +8,7 @@ import {
   deleteDocument,
   type DocumentListItem,
   listDocuments,
+  retryDocumentProcessing,
   uploadDocument,
 } from "@/lib/api";
 import {
@@ -152,6 +153,7 @@ export function UploadForm() {
   const [listError, setListError] = useState<string | null>(null);
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<Set<string>>(() => new Set());
   const [deletingDocumentIds, setDeletingDocumentIds] = useState<Set<string>>(() => new Set());
+  const [retryingDocumentIds, setRetryingDocumentIds] = useState<Set<string>>(() => new Set());
   const [now, setNow] = useState(() => new Date());
   const [responseLanguage, setResponseLanguage] = useState<ResponseLanguage>(DEFAULT_RESPONSE_LANGUAGE);
 
@@ -376,6 +378,26 @@ export function UploadForm() {
     }
   }
 
+  async function retryDocument(documentId: string) {
+    setError(null);
+    setNotice(null);
+    setRetryingDocumentIds((currentIds) => new Set([...currentIds, documentId]));
+
+    try {
+      await retryDocumentProcessing(documentId);
+      setNotice("재처리를 시작했어. 준비가 끝나면 viewer를 열 수 있어.");
+      await refreshDocuments({ showLoading: false });
+    } catch (retryError: unknown) {
+      setListError(getListErrorMessage(retryError));
+    } finally {
+      setRetryingDocumentIds((currentIds) => {
+        const nextIds = new Set(currentIds);
+        nextIds.delete(documentId);
+        return nextIds;
+      });
+    }
+  }
+
   return (
     <div className={styles.page}>
       <main className={styles.shell}>
@@ -521,6 +543,7 @@ export function UploadForm() {
             <div className={styles.documentList}>
               {documents.map((document) => {
                 const isDeleting = deletingDocumentIds.has(document.document_id);
+                const isRetrying = retryingDocumentIds.has(document.document_id);
                 const elapsedSeconds = getElapsedSeconds(document, now);
                 const durationLabel = isPreparing(document)
                   ? `준비 중 ${formatDuration(elapsedSeconds)}`
@@ -571,6 +594,18 @@ export function UploadForm() {
                     </div>
 
                     <div className={styles.documentActions}>
+                      {document.status === "failed" ? (
+                        <button
+                          type="button"
+                          className={styles.rowButton}
+                          onClick={() => {
+                            void retryDocument(document.document_id);
+                          }}
+                          disabled={isDeleting || isRetrying}
+                        >
+                          {isRetrying ? "재처리 중" : "재처리"}
+                        </button>
+                      ) : null}
                       <button
                         type="button"
                         className={styles.rowButton}

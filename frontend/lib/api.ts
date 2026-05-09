@@ -371,6 +371,20 @@ export function getDocumentProcessing(
   );
 }
 
+export function retryDocumentProcessing(
+  documentId: string,
+  signal?: AbortSignal,
+): Promise<DocumentProcessing> {
+  return fetchJson<DocumentProcessing>(
+    `/api/documents/${encodeURIComponent(documentId)}/retry`,
+    "문서 재처리에 실패했어.",
+    signal,
+    {
+      method: "POST",
+    },
+  );
+}
+
 export async function deleteDocument(documentId: string, signal?: AbortSignal): Promise<void> {
   const response = await fetch(
     buildApiUrl(`/api/documents/${encodeURIComponent(documentId)}`),

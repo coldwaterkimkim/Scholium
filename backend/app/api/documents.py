@@ -5,7 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Request, UploadFile, status
 
-from app.models.document import DocumentRecord, DocumentStatus, DocumentUploadResponse
+from app.models.document import DocumentRecord, DocumentStatus, DocumentUploadResponse, ProcessingStage
 from app.models.read_api import (
     DocumentListItem,
     DocumentListResponse,
@@ -268,6 +268,63 @@ def get_document_processing(
             detail="Document not found.",
         )
 
+    return DocumentProcessingResponse(**snapshot)
+
+
+@router.post(
+    "/{document_id}/retry",
+    response_model=DocumentProcessingResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def retry_document_processing(
+    document_id: str,
+    background_tasks: BackgroundTasks,
+    storage: StorageService = Depends(get_storage_service),
+    orchestrator: DocumentOrchestrator = Depends(get_document_orchestrator),
+) -> DocumentProcessingResponse:
+    document = _get_document_or_404(storage, document_id)
+    if orchestrator.is_processing_active(document_id) or document.status in {
+        DocumentStatus.UPLOADED,
+        DocumentStatus.RENDERING,
+        DocumentStatus.ANALYZING,
+    }:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Document processing is already running.",
+        )
+
+    if document.status is not DocumentStatus.FAILED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only failed documents can be retried.",
+        )
+
+    previous_snapshot = storage.get_document_processing_snapshot(document_id)
+    retry_stage = ProcessingStage.RENDER
+    if (
+        previous_snapshot is not None
+        and int(previous_snapshot.get("rendered_pages") or 0) > 0
+        and int(previous_snapshot.get("page_context_ready_pages") or 0) > 0
+        and not bool(previous_snapshot.get("semantic_guide_ready"))
+    ):
+        retry_stage = ProcessingStage.SYNTHESIS
+
+    storage.update_document(
+        document_id,
+        status=DocumentStatus.ANALYZING,
+        error_message=None,
+    )
+    background_tasks.add_task(orchestrator.retry_processing_in_background, document_id)
+
+    snapshot = storage.get_document_processing_snapshot(
+        document_id,
+        current_stage=retry_stage,
+    )
+    if snapshot is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found.",
+        )
     return DocumentProcessingResponse(**snapshot)
 
 

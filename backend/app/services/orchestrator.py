@@ -56,8 +56,21 @@ class DocumentOrchestrator:
         with self._stage_lock:
             return self._active_stages.get(document_id)
 
+    def is_processing_active(self, document_id: str) -> bool:
+        return self.get_stage(document_id) is not None
+
     async def run_pipeline_in_background(self, document_id: str) -> None:
         await run_in_threadpool(self.run_pipeline, document_id)
+
+    async def retry_processing_in_background(self, document_id: str) -> None:
+        await run_in_threadpool(self.retry_processing, document_id)
+
+    def retry_processing(self, document_id: str) -> None:
+        snapshot = self.storage.get_document_processing_snapshot(document_id)
+        if snapshot is not None and self._can_retry_synthesis_only(snapshot):
+            self._run_synthesis_only_retry(document_id)
+            return
+        self.run_pipeline(document_id)
 
     def run_pipeline(self, document_id: str) -> None:
         pipeline_started_at = perf_counter()
@@ -247,6 +260,105 @@ class DocumentOrchestrator:
                 spine_context=spine_context,
                 pass1_summary=pass1_summary,
                 pass2_summary=pass2_summary,
+                synthesis_result=synthesis_result,
+            )
+
+    def _can_retry_synthesis_only(self, snapshot: dict[str, object]) -> bool:
+        return (
+            int(snapshot.get("rendered_pages") or 0) > 0
+            and int(snapshot.get("page_context_ready_pages") or 0) > 0
+            and not bool(snapshot.get("semantic_guide_ready"))
+        )
+
+    def _run_synthesis_only_retry(self, document_id: str) -> None:
+        retry_started_at = perf_counter()
+        synthesis_result: dict[str, object] | None = None
+        parse_context = self._empty_parse_context()
+        spine_context = self._empty_spine_context()
+
+        self._start_processing_benchmark(document_id)
+        try:
+            self.storage.update_document(
+                document_id,
+                status=DocumentStatus.ANALYZING,
+                error_message=None,
+            )
+            self._set_stage(document_id, ProcessingStage.SYNTHESIS)
+            synthesis_started_at = perf_counter()
+            synthesis_result = self._run_semantic_or_legacy_synthesis(document_id)
+            self._record_benchmark_duration(
+                document_id,
+                "synthesis_time_seconds",
+                perf_counter() - synthesis_started_at,
+            )
+            self._record_benchmark_duration(
+                document_id,
+                "semantic_guide_time_seconds",
+                perf_counter() - synthesis_started_at,
+            )
+            self._record_benchmark_duration(
+                document_id,
+                "upload_to_semantic_guide_ready_seconds",
+                perf_counter() - retry_started_at,
+            )
+            self._record_semantic_context(document_id, synthesis_result)
+            if synthesis_result.get("synthesis_status") != StageStatus.COMPLETED.value:
+                self._mark_failed(
+                    document_id,
+                    self._summarize_error_message(
+                        "Document synthesis retry failed.",
+                        synthesis_result.get("error_message"),
+                    ),
+                )
+                return
+
+            snapshot = self.storage.get_document_processing_snapshot(
+                document_id,
+                current_stage=ProcessingStage.SYNTHESIS,
+            )
+            if snapshot is None:
+                raise ValueError(f"Document not found during synthesis retry finalization: {document_id}")
+            if not snapshot["synthesis_ready"]:
+                self._mark_failed(
+                    document_id,
+                    "Document summary is unavailable after retry.",
+                )
+                return
+            if int(snapshot["pass1_completed_pages"]) <= 0:
+                self._mark_failed(
+                    document_id,
+                    "Parser map is unavailable after retry.",
+                )
+                return
+
+            self.storage.update_document(
+                document_id,
+                status=DocumentStatus.COMPLETED,
+                error_message=self._build_completion_summary(snapshot),
+            )
+            self._record_benchmark_duration(
+                document_id,
+                "upload_to_viewer_ready_seconds",
+                perf_counter() - retry_started_at,
+            )
+        except Exception as exc:
+            self._mark_failed(
+                document_id,
+                self._summarize_error_message(
+                    f"Retry failed during {self._stage_label(self.get_stage(document_id))}.",
+                    str(exc),
+                ),
+            )
+        finally:
+            self._clear_stage(document_id)
+            self._finalize_processing_benchmark(
+                document_id=document_id,
+                pipeline_started_at=retry_started_at,
+                render_result=None,
+                parse_context=parse_context,
+                spine_context=spine_context,
+                pass1_summary=None,
+                pass2_summary=None,
                 synthesis_result=synthesis_result,
             )
 
@@ -475,9 +587,10 @@ class DocumentOrchestrator:
             payload = {
                 "page_guide_count": int(synthesis_result.get("page_guide_count") or 0),
             }
-            if self.storage.settings.llm_provider == "codex_cli":
+            semantic_call_count = synthesis_result.get("semantic_guide_call_count")
+            if self.storage.settings.llm_provider == "codex_cli" and semantic_call_count is not None:
                 payload["codex_cli_semantic_guide_call_count"] = int(
-                    synthesis_result.get("semantic_guide_call_count") or 0
+                    semantic_call_count or 0
                 )
             self.storage.update_processing_benchmark_state(document_id, payload)
         except Exception as exc:

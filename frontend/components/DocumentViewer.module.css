@@ -72,6 +72,14 @@
   cursor: pointer;
 }
 
+.homeButton {
+  min-width: 96px;
+  border-color: rgba(101, 121, 64, 0.28);
+  background: #f6f8f0;
+  color: #4f6f2a;
+  font-weight: 800;
+}
+
 .navButton:disabled {
   cursor: not-allowed;
   opacity: 0.45;
